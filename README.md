@@ -3,11 +3,13 @@
 ![PyPI - Version](https://img.shields.io/pypi/v/requests)
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/shapeshifter.svg)
 
+Author: [Patrick Prunty]()
+
 `motormongo` - An Object Document Mapper
 for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or asyncio
 and enable non-blocking access to MongoDB.
 
-Asynchronous operations in a backend system, build using [FastAPI]() for
+Asynchronous operations in a backend system, built using [FastAPI]() for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests, leading to
 more efficient use of server resources.
 
@@ -75,7 +77,7 @@ task = await TaskDocument.find_one(
 )
 ```
 Note: The `_id` here is automatically converted to a BSON ObjectID, however, you can also pass a BSON ObjectID to the
-function:
+function; motormongo handles this scenario:
 ```python
 from bson import ObjectId
 
@@ -174,6 +176,33 @@ itself.
 
  The following object instance methods are
 suported by an instance of a motormongo Document object:
+
+
+### Read
+
+[//]: # (* `.count&#40;&#41;`)
+
+[//]: # (```python)
+
+[//]: # (# Find all tasks where the user is not alive)
+
+[//]: # (tasks: List[TaskDocument] = await TaskDocument.find_many&#40;)
+
+[//]: # (    {)
+
+[//]: # (        "alive": False)
+
+[//]: # (    })
+
+[//]: # (&#41;)
+
+[//]: # (# Recursively delete all TaskDocument instances in the tasks list who are not alive)
+
+[//]: # (if tasks.count&#40;&#41; > 10:)
+
+[//]: # (    # Do something logical)
+
+[//]: # (```)
 
 ### Update
 
