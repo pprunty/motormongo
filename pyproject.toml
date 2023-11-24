@@ -12,7 +12,11 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
+motor = "^3.3.2"
 
+
+[tool.poetry.group.dev.dependencies]
+fastapi = {extras = ["all"], version = "^0.104.1"}
 
 [build-system]
 requires = ["poetry-core"]

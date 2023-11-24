@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ReturnDocument
 
-from backend._motor_.fields import Field
+from motormongo.fields.field import Field
 
 DATABASE = "test"
 
@@ -17,10 +17,10 @@ def camel_to_snake(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
-class BaseDocument:
+class Document:
     def __init__(self, **kwargs):
-        self._collection = self.get_collection_name()
-        print(f"Creating class for collection {self._collection}")
+        self.__collection = self.get_collection_name()
+        print(f"Creating class for collection {self.__collection}")
 
         # # Handling _id separately
         if '_id' in kwargs:
@@ -63,11 +63,11 @@ class BaseDocument:
             print(f"Retrieved db: {db}")
             document = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
             if not hasattr(self, '_id'):
-                print(f"attempting to save document for collection: {self._collection}")
-                result = await db[self._collection].insert_one(document)
+                print(f"attempting to save document for collection: {self.__collection}")
+                result = await db[self.__collection].insert_one(document)
                 self._id = result.inserted_id
             else:
-                await db[self._collection].replace_one({'_id': self._id}, document)
+                await db[self.__collection].replace_one({'_id': self._id}, document)
         except Exception as e:
             print(f"Error saving document: {e}")
 
@@ -98,7 +98,7 @@ class BaseDocument:
     async def delete(self):
         try:
             db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
-            await db[self._collection].delete_one({'_id': self._id})
+            await db[self.__collection].delete_one({'_id': self._id})
         except Exception as e:
             print(f"Error deleting document: {e}")
 
@@ -107,7 +107,7 @@ class BaseDocument:
 
     def to_dict(self):
         """Convert document to a dictionary representation."""
-        return {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+        return {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
 
     @staticmethod
     def _json_encoder(obj):

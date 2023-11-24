@@ -13,3 +13,7 @@ lint:
 .PHONY: run
 run:
 	poetry run uvicorn motormongo.main:app --reload  --log-config=motormongo/logging.yaml
+
+.PHONY: example
+example:
+	poetry run uvicorn example.main:app --reload

@@ -6,3 +6,4 @@ motormongo/.DS_Store
 motormongo/*/__pycache__
 dist
 .env
+poetry.lock
