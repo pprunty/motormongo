@@ -15,11 +15,8 @@ more efficient use of server resources.
 
 # Table of Contents
 
-1. [Installation](#quickstart)
+1. [Installation](#installation)
 2. [Quickstart](#quickstart)
-   1. [Creating Motor client]()
-   2. [Defining a motormongo Document](#defining-a-motormongo-document)
-   3. [Example Code Snippet](#example-code-snippet)
 3. [C.R.U.D Class Methods](#class-methods)
 4. [C.R.U.D Object Instance Methods](#class-methods)
 5. [FastAPI Integration](#overview)
@@ -27,19 +24,19 @@ more efficient use of server resources.
 
 ## Installation
 
-To install motormongo, you can use `pip`:
+To install motormongo, you can use `pip` inside your virtual environment:
 
 ```shell
-python -m pip install -U motormongo
+python -m pip install motormongo
 ```
 
-Or to install motormongo into your `poetry` environment:
+Alternatively, to install motormongo into your `poetry` environment:
 
 ```shell
 poetry add motormongo
 ```
 
-## Usage
+## Quickstart
 
 ### Step 1. Create a Motor Client:
 
@@ -86,7 +83,7 @@ await User.insert_one(
 ### Step 4: Put all the code above into one file and run it
 
 ```shell
-python3 main.py
+python main.py
 ```
 
 
