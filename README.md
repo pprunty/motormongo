@@ -45,6 +45,23 @@ class TaskDocument(Document):
 
 The following [classmethods]() are supported by motormongo's Document class:
 
+
+| Operation                          | CRUD Type | Detail                                                                                             |
+|------------------------------------|-----------|----------------------------------------------------------------------------------------------------|
+| `insert_one(document)`             | Create    | `await TaskDocument.insert_one({"name": "John", "age": 24, "alive": True})`                        |
+| `insert_many(List[document])`      | Create    | `await TaskDocument.insert_many([{"name": "John", "age": 24, "alive": True}, {"name": "Mary", "age": 2, "alive": False}])` |
+| `find_one(query)`                  | Read      | `await TaskDocument.find_one({"_id": "655fc281c440f677fa1e117e"})`                                 |
+| `find_one` with ObjectId           | Read      | `await TaskDocument.find_one({"_id": ObjectId("655fc281c440f677fa1e117e")})`                       |
+| `find_many(filter)`                | Read      | `await TaskDocument.find_many({"alive": True})`                                                     |
+| `update_one`                       | Update    | `await TaskDocument.update_one({"_id": "655fc281c440f677fa1e117e"}, {"age": 49})`                  |
+| `update_many(query, fields)`       | Update    | `await TaskDocument.update_many({"age": 70}, {"alive": False})`                                    |
+| `replace_one`                      | Update    | [No example provided]                                                                               |
+| `find_one_or_create(query, document)` | Other   | `await TaskDocument.find_one_or_create({"name": "John"}, {"name": "John Doe", "age": 24, "alive": False})` |
+| `find_one_and_replace`             | Other     | `await TaskDocument.find_one_and_replace({"_id": ObjectId("655fc281c440f677fa1e117e")}, {"name": "John"})` |
+| `find_one_and_delete`              | Other     | [No example provided]                                                                               |
+| `find_one_and_update_empty_fields(query, fields)` | Other | `await TaskDocument.find_one_and_update_empty_fields({"_id": ObjectId("655fc281c440f677fa1e117e")}, {"name": "John"})` |
+
+
 ### Create
 
 * `insert_one(document)`
