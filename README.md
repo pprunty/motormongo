@@ -86,6 +86,20 @@ await User.insert_one(
 python main.py
 ```
 
+## Step 5: Validate user was created in your MongoDB collection
+
+You can do this using [MongoDB compass](), or add an alternative method to find and print all documents in the user 
+collection:
+
+```python
+users = User.find_many({})
+if users:
+    print("User collection contains the following documents:")
+    for user in users:
+        print(user.to_dict())  # Assuming that to_dict() is a method of User class
+else:
+    print("User collection failed to update! Check your MongoDB connection details and try again!")
+```
 
 ## Congratulations 🎉
 
