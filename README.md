@@ -26,18 +26,43 @@ more efficient use of server resources.
 
 ## Usage
 
-Define a motormongo document:
+### Step 1. Create a Motor Client:
 
 ```python
-from motormongo import Document, StringField, IntegerField, BooleanField
+from motor.motor_asyncio import AsyncIOMotorClient
 
-
-class TaskDocument(Document):
-    name = StringField(help_text="")
-    money = IntegerField(help_text="")
-    alive = BooleanField(help_text="")
 ```
 
+For details on how to set up a local or cloud MongoDB database instance, see [here]().
+
+### Step 2. Define a motormongo Document:
+
+Define a motormongo `User` document:
+
+```python
+import re
+
+from motormongo.abstracts.base_document import Document
+from motormongo.fields.binary_field import BinaryField
+from motormongo.fields.string_field import StringField
+
+
+class User(Document):
+    username = StringField(help_text="The username for the user", min_length=3, max_length=50)
+    email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
+    password = BinaryField(help_text="The hashed password for the user")
+
+```
+
+## Congratulations 🎉
+
+You've successfully created your first motormongo Document class. 🥳
+
+For further development details on how to run CRUD (Create, Read, Update and Destroy) operation using the class methods
+or object instance methods, continue reading.
+
+Or if you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
+[FastAPI Integration]() section.
 
 ## Class methods
 
