@@ -56,12 +56,12 @@ class User(Document):
 
 ## Congratulations 🎉
 
-You've successfully created your first motormongo Document class. 🥳
+You've successfully created your first motormongo Object Document Mapper class. 🥳
 
-For further development details on how to run CRUD (Create, Read, Update and Destroy) operation using the class methods
-or object instance methods, continue reading.
+For further development details on how to run asynchronous CRUD operation using motormongo Document class methods
+and object instance methods, continue reading.
 
-Or if you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
+If you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
 [FastAPI Integration]() section.
 
 ## Class methods
