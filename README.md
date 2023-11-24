@@ -13,6 +13,63 @@ Asynchronous operations in a backend system, built using [FastAPI]() for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests, leading to
 more efficient use of server resources.
 
+# Table of Contents
+
+1. **Introduction**
+   - [Author Information](#author-information)
+   - [Overview of `motormongo`](#overview-of-motormongo)
+   - [Key Features](#key-features)
+   - [Technology Stack](#technology-stack)
+
+2. **Usage**
+   - [Defining a motormongo Document](#defining-a-motormongo-document)
+   - [Example Code Snippet](#example-code-snippet)
+
+3. **Class Methods**
+   - [Overview](#overview-class-methods)
+   - Create
+     - [`insert_one(document)`](#insert-one-document)
+     - [`insert_many(List[document])`](#insert-many-list-document)
+   - Read
+     - [`find_one(query)`](#find-one-query)
+     - [`find_many(filter)`](#find-many-filter)
+   - Update
+     - [`update_one`](#update-one)
+     - [`update_many(query, fields)`](#update-many-query-fields)
+     - [`replace_one`](#replace-one)
+   - Destroy
+     - [Methods to be detailed](#destroy-methods)
+   - Other
+     - [`find_one_or_create(query, document)`](#find-one-or-create-query-document)
+     - [`find_one_and_replace`](#find-one-and-replace)
+     - [`find_one_and_delete`](#find-one-and-delete)
+     - [`find_one_and_update_empty_fields(query, fields)`](#find-one-and-update-empty-fields-query-fields)
+
+4. **Instance Methods**
+   - [Introduction](#introduction-instance-methods)
+   - Operations
+     - Read
+       - [Details to be added](#read-instance-methods)
+     - Update
+       - [`task.save()`](#task-save)
+     - Destroy
+       - [`task.delete()`](#task-delete)
+
+5. **FastAPI Integration**
+   - [Overview](#overview-fastapi-integration)
+   - [Creating a Document Example](#creating-a-document-example)
+   - [Additional API Examples](#additional-api-examples)
+
+6. **Additional Resources**
+   - [Official Documentation](#official-documentation)
+   - [Community and Support](#community-and-support)
+   - [Contributing Guidelines](#contributing-guidelines)
+
+7. **Appendix**
+   - [Changelog](#changelog)
+   - [License Information](#license-information)
+
+
 ## Usage
 
 Define a motormongo document:
