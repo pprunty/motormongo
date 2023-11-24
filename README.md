@@ -15,14 +15,29 @@ more efficient use of server resources.
 
 # Table of Contents
 
-1. [Quickstart](#quickstart)
+1. [Installation](#quickstart)
+2. [Quickstart](#quickstart)
    1. [Creating Motor client]()
    2. [Defining a motormongo Document](#defining-a-motormongo-document)
    3. [Example Code Snippet](#example-code-snippet)
-2. [C.R.U.D Class Methods](#class-methods)
-3. [C.R.U.D Object Instance Methods](#class-methods)
-4. [FastAPI Integration](#overview)
+3. [C.R.U.D Class Methods](#class-methods)
+4. [C.R.U.D Object Instance Methods](#class-methods)
+5. [FastAPI Integration](#overview)
 
+
+## Installation
+
+To install motormongo, you can use `pip`:
+
+```shell
+python -m pip install -U motormongo
+```
+
+Or to install motormongo into your `poetry` environment:
+
+```shell
+poetry add motormongo
+```
 
 ## Usage
 
@@ -53,6 +68,27 @@ class User(Document):
     password = BinaryField(help_text="The hashed password for the user")
 
 ```
+
+### Step 3: Create a MongoDB document using the User class
+
+```python
+import bcrypt
+
+await User.insert_one(
+    {
+        "username": "johndoe",
+        "email": "johndoe@portmarnock.ie",
+        "password": bcrypt.hashpw("password123".encode('utf-8'), salt=bcrypt.gensalt())
+    }
+)
+```
+
+### Step 4: Put all the code above into one file and run it
+
+```shell
+python3 main.py
+```
+
 
 ## Congratulations 🎉
 
