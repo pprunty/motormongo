@@ -15,22 +15,13 @@ more efficient use of server resources.
 
 # Table of Contents
 
-1. [Usage](#usage)
-   1. [Defining a motormongo Document](#defining-a-motormongo-document)
-   2. [Example Code Snippet](#example-code-snippet)
-2. [Class Methods](#class-methods)
-    * **Create**
-      * [`insert_one(document)`](#insert-one-document)
-      * [`insert_many(List[document])`](#insert-many-list-document)
-    * **Read**
-      * [`find_one(query)`](#find-one-query)
-      * [`find_many(filter)`](#find-many-filter)
-    * **Update**
-      * [`update_one`](#update-one)
-      * [`update_many(query, fields)`](#update-many-query-fields)
-      * [`replace_one`](#replace-one)
-3. [Quickstart](#quickstart)
-4. [Overview](#overview)
+1. [Quickstart](#quickstart)
+   1. [Creating Motor client]()
+   2. [Defining a motormongo Document](#defining-a-motormongo-document)
+   3. [Example Code Snippet](#example-code-snippet)
+2. [C.R.U.D Class Methods](#class-methods)
+3. [C.R.U.D Object Instance Methods](#class-methods)
+4. [FastAPI Integration](#overview)
 
 
 ## Usage
