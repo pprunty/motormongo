@@ -4,8 +4,8 @@
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/shapeshifter.svg)
 
 `motormongo` - An Object Document Mapper
-for MongoDB built on-top of Motor, an asynchronous Python driver for MongoDB, designed to work with Tornado or asyncio
-and enable non-blocking access to MongoDB. Asynchronous operations in a backend system, build using FastAPI for
+for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or asyncio
+and enable non-blocking access to MongoDB. Asynchronous operations in a backend system, build using [FastAPI]() for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests, leading to
 more efficient use of server resources.
 
@@ -44,7 +44,7 @@ await Task.insert_one(
 )
 ```
 
-* `insert_many`
+* `insert_many(List[document])`
 ```python
 await Task.insert_many(
     [
@@ -64,7 +64,7 @@ await Task.insert_many(
 
 ### Read
 
-* `find_one`
+* `find_one(query)`
 ```python
 task = await Task.find_one(
     {
@@ -84,7 +84,7 @@ task = await Task.find_one(
 )
 ```
 
-* `find_many`
+* `find_many(filter)`
 ```python
 tasks = await Task.find_many(
     {
@@ -139,6 +139,16 @@ task, was_created = await Task.find_one_or_create(
 )
 ```
 * `find_one_and_replace`
+```python
+task = await Task.find_one_and_replace(
+    {
+        "_id": ObjectId("655fc281c440f677fa1e117e")
+    },
+    {
+        "name": "John"
+    }
+)
+```
 * `find_one_and_delete`
 * `find_one_and_update_empty_fields(query, fields)`
 ```python
@@ -152,7 +162,52 @@ task = await Task.find_one_and_update_empty_fields(
 )
 ```
 
-## Static methods
+## Instance methods
+
+motormongo also supports the manimulation of fields on the [object instance](). This allows
+users to programmatically achieve the same operations listed above through the object instance
+itself.
+
+### Operations
+
+ The following object instance methods are
+suported by an instance of a motormongo Document object:
+
+### Update
+
+* `task.save()`
+
+```python
+# Find task by MongoDB _id
+task = await Task.find_one(
+    {
+        "_id": "655fc281c440f677fa1e117e"
+    }
+)
+# If there age is greater than 80, make them dead
+if task.age > 80:
+    task.alive = False
+# Persist update on TaskDocument instance in MongoDB database
+task.save()
+```
+In this example, `Task.find_one()` returns an instance of `TaskDocument`. If the age field
+is greater than 80, the alive field is set to false. The instance of the document in the MongoDB
+database is then updated by calling the `.save()` method on the `TaskDocument` object instance.
+
+### Destroy
+
+* `task.delete()`
+
+```python
+# Find all tasks where the user is not alive
+tasks: List[TaskDocument] = await Task.find_many(
+    {
+        "alive": False
+    }
+)
+# Recursively delete all TaskDocument instances in the tasks list who are not alive
+tasks.delete()
+```
 
 
 ## FastAPI integration
