@@ -51,7 +51,6 @@ The following [classmethods]() are supported by motormongo's Document class:
 | Create    | [`insert_one(document)`](#create)                           | `await TaskDocument.insert_one({"name": "John", "age": 24, "alive": True})`                        |
 | Create    | [`insert_many(List[document])`](#create)                    | `await TaskDocument.insert_many([{"name": "John", "age": 24, "alive": True}, {"name": "Mary", "age": 2, "alive": False}])` |
 | Read      | [`find_one(query)`](#read)                                  | `await TaskDocument.find_one({"_id": "655fc281c440f677fa1e117e"})`                                 |
-| Read      | [`find_one` with ObjectId](#read)                           | `await TaskDocument.find_one({"_id": ObjectId("655fc281c440f677fa1e117e")})`                       |
 | Read      | [`find_many(filter)`](#read)                                | `await TaskDocument.find_many({"alive": True})`                                                     |
 | Update    | [`update_one`](#update)                                     | `await TaskDocument.update_one({"_id": "655fc281c440f677fa1e117e"}, {"age": 49})`                  |
 | Update    | [`update_many(query, fields)`](#update)                     | `await TaskDocument.update_many({"age": 70}, {"alive": False})`                                    |
