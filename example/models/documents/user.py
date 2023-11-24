@@ -10,3 +10,7 @@ class User(Document):
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
     password = BinaryField(help_text="The hashed password for the user")
 
+    class Meta:
+        collection = "users"
+        created_at_timestamp = True
+        updated_at_timestamp = True

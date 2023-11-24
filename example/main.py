@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from example.models.documents.user import User
 from example.models.requests.user import UserModelRequest
 from motor.motor_asyncio import AsyncIOMotorClient
+import bcrypt
 
 app = FastAPI()
 
@@ -20,9 +21,11 @@ async def shutdown_db_client():
 
 @app.post("/users/")
 async def create_user(user: UserModelRequest):
-    new_user = User(**user.model_dump())
+    new_user = User(username=user.username,
+                    email=user.email,
+                    password=bcrypt.hashpw("password123".encode('utf-8'), salt=bcrypt.gensalt()))
     await new_user.save()
-    return new_user.to_dict()  # Assuming BaseDocument has a to_dict method
+    return {}  # Assuming BaseDocument has a to_dict method
 
 
 @app.get("/users/{user_id}", response_model=UserModelRequest)

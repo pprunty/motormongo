@@ -1,11 +1,13 @@
 import json
 import re
+from datetime import datetime
 
 from bson import ObjectId
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ReturnDocument
 
+from motormongo.fields.datetime_field import DateTimeField
 from motormongo.fields.field import Field
 
 DATABASE = "test"
@@ -22,6 +24,11 @@ class Document:
         self.__collection = self.get_collection_name()
         print(f"Creating class for collection {self.__collection}")
 
+        if getattr(self.Meta, 'created_at_timestamp', False):
+            self.created_at = DateTimeField(default=datetime.utcnow)
+        if getattr(self.Meta, 'updated_at_timestamp', False):
+            self.updated_at = DateTimeField(default=datetime.utcnow)
+
         # # Handling _id separately
         if '_id' in kwargs:
             print(f"Setting _id: {kwargs['_id']}")
@@ -33,6 +40,10 @@ class Document:
             if isinstance(field, Field):
                 print(f"{name} -> {kwargs.get(name, field.options.get('default'))}")
                 setattr(self, name, kwargs.get(name, field.options.get('default')))
+
+        if 'created_at' not in kwargs:
+            self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
 
     @classmethod
     def get_collection_name(cls):
@@ -58,6 +69,8 @@ class Document:
             return None
 
     async def save(self):
+        if getattr(self.Meta, 'updated_at_timestamp', False):
+            self.updated_at = datetime.datetime.utcnow()
         try:
             db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
             print(f"Retrieved db: {db}")

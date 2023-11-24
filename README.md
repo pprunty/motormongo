@@ -64,6 +64,10 @@ class User(Document):
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
     password = BinaryField(help_text="The hashed password for the user")
 
+    class Meta:
+        collection = "users" #< If not provided, will default to class name User->user
+        created_at_timestamp = True #< Provide a DateTimeField for document creation
+        updated_at_timestamp = True #< Provide a DateTimeField for document updates
 ```
 
 ### Step 3: Create a MongoDB document using the User class
@@ -112,6 +116,20 @@ and object instance methods, continue reading.
 
 If you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
 [FastAPI Integration]() section.
+
+## motormongo Fields
+
+motormongo supports the following datatype fields for your motormongo Document class:
+
+1. `StringField`
+2. `IntegerField`
+3. `BooleanField`
+4. `EnumField`
+5. `DateTimeField`
+6. `ListField`
+7. `ReferenceField`
+8. `BinaryField`
+9. `GeoJSONField`
 
 ## Class methods
 
