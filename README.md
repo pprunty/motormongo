@@ -101,6 +101,8 @@ else:
     print("User collection failed to update! Check your MongoDB connection details and try again!")
 ```
 
+And run the file again, as done in Step. 4.
+
 ## Congratulations 🎉
 
 You've successfully created your first motormongo Object Document Mapper class. 🥳
