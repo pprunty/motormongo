@@ -5,7 +5,9 @@
 
 `motormongo` - An Object Document Mapper
 for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or asyncio
-and enable non-blocking access to MongoDB. Asynchronous operations in a backend system, build using [FastAPI]() for
+and enable non-blocking access to MongoDB.
+
+Asynchronous operations in a backend system, build using [FastAPI]() for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests, leading to
 more efficient use of server resources.
 
@@ -17,7 +19,7 @@ Define a motormongo document:
 from motormongo import Document, StringField, IntegerField, BooleanField
 
 
-class Task(Document):
+class TaskDocument(Document):
     name = StringField(help_text="")
     money = IntegerField(help_text="")
     alive = BooleanField(help_text="")
@@ -35,7 +37,7 @@ The following [classmethods]() are supported by motormongo's Document class:
 * `insert_one(document)`
 
 ```python
-await Task.insert_one(
+await TaskDocument.insert_one(
     {
         "name": "John",
         "age": 24, 
@@ -46,7 +48,7 @@ await Task.insert_one(
 
 * `insert_many(List[document])`
 ```python
-await Task.insert_many(
+await TaskDocument.insert_many(
     [
         {
             "name": "John",
@@ -66,7 +68,7 @@ await Task.insert_many(
 
 * `find_one(query)`
 ```python
-task = await Task.find_one(
+task = await TaskDocument.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
@@ -77,7 +79,7 @@ function:
 ```python
 from bson import ObjectId
 
-task = await Task.find_one(
+task = await TaskDocument.find_one(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     }
@@ -86,7 +88,7 @@ task = await Task.find_one(
 
 * `find_many(filter)`
 ```python
-tasks = await Task.find_many(
+tasks = await TaskDocument.find_many(
     {
         "alive": True
     }
@@ -97,7 +99,7 @@ tasks = await Task.find_many(
 
 * `update_one`
 ```python
-updated_task = await Task.update_one(
+updated_task = await TaskDocument.update_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     },
@@ -108,7 +110,7 @@ updated_task = await Task.update_one(
 ```
 * `update_many(qeury, fields)`
 ```python
-updated_tasks = await Task.update_many(
+updated_tasks = await TaskDocument.update_many(
     {
         "age": 70
     },
@@ -127,7 +129,7 @@ updated_tasks = await Task.update_many(
 
 * `find_one_or_create(query, document)`
 ```python
-task, was_created = await Task.find_one_or_create(
+task, was_created = await TaskDocument.find_one_or_create(
     {
         "name": "John"
     },
@@ -140,7 +142,7 @@ task, was_created = await Task.find_one_or_create(
 ```
 * `find_one_and_replace`
 ```python
-task = await Task.find_one_and_replace(
+task = await TaskDocument.find_one_and_replace(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     },
@@ -152,7 +154,7 @@ task = await Task.find_one_and_replace(
 * `find_one_and_delete`
 * `find_one_and_update_empty_fields(query, fields)`
 ```python
-task = await Task.find_one_and_update_empty_fields(
+task = await TaskDocument.find_one_and_update_empty_fields(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     },
@@ -179,7 +181,7 @@ suported by an instance of a motormongo Document object:
 
 ```python
 # Find task by MongoDB _id
-task = await Task.find_one(
+task = await TaskDocument.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
@@ -200,7 +202,7 @@ database is then updated by calling the `.save()` method on the `TaskDocument` o
 
 ```python
 # Find all tasks where the user is not alive
-tasks: List[TaskDocument] = await Task.find_many(
+tasks: List[TaskDocument] = await TaskDocument.find_many(
     {
         "alive": False
     }
@@ -221,12 +223,12 @@ Below are some example APIs detailing how
 ### Creating a document
 
 ```python
-from models.documents import Task
+from models.documents import TaskDocument
 from models.requests import TaskModel
 
 @app.post("/tasks/")
 async def create_task(task: TaskModel):
-    new_task = Task(**task.model_dump())
+    new_task = TaskDocument(**task.model_dump())
     await new_task.save()
     return new_task.to_dict()
 ```
