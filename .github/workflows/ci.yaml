@@ -1,0 +1,78 @@
+name: Django CI 🚀
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: 🧹 Lint with flake8
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry 📦
+        run: |
+          curl -sSL https://install.python-poetry.org | python -
+
+      - name: Configure Poetry 🛠️
+        run: |
+          poetry config virtualenvs.create false
+
+      - name: Install dependencies 🔽
+        run: |
+          cd backend
+          poetry install
+
+      - name: Run flake8 🔍
+        run: |
+          cd backend
+          poetry run flake8 .
+
+  test:
+    name: 🧪 Run tests
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry 📦
+        run: |
+          curl -sSL https://install.python-poetry.org | python -
+
+      - name: Configure Poetry 🛠️
+        run: |
+          poetry config virtualenvs.create false
+
+      - name: Install dependencies 🔽
+        run: |
+          cd backend
+          poetry install
+
+      - name: Run migrations 🏗️
+        env:
+          DJANGO_SETTINGS_MODULE: backend.backend.settings
+        run: |
+          cd backend
+          poetry run python manage.py migrate
+
+      - name: Run Django tests 🧪
+        env:
+          DJANGO_SETTINGS_MODULE: backend.backend.settings
+        run: |
+          cd backend
+          poetry run python manage.py test

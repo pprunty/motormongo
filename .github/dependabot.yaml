@@ -1,0 +1,8 @@
+version: 2
+updates:
+- package-ecosystem: "pip"
+  directory: "/backend"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 3
+  versioning-strategy: "auto"

@@ -1,0 +1,8 @@
+__pycache__/
+docs/.DS_Store
+docs/_build/.DS_Store
+.DS_Store
+motormongo/.DS_Store
+motormongo/*/__pycache__
+dist
+.env
