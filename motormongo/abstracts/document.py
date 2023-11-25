@@ -70,7 +70,7 @@ class Document:
 
     async def save(self):
         if getattr(self.Meta, 'updated_at_timestamp', False):
-            self.updated_at = datetime.datetime.utcnow()
+            self.updated_at = datetime.utcnow()
         try:
             db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
             print(f"Retrieved db: {db}")
@@ -86,6 +86,13 @@ class Document:
 
     @classmethod
     async def update_one(cls, query: dict, update_fields: dict):
+        if getattr(cls.Meta, 'updated_at_timestamp', False):
+            print("updating updated_at timestamp")
+            cls.updated_at = datetime.utcnow()
+            update_fields['updated_at'] = cls.updated_at
+        else:
+            print("Does not have update_at in the class")
+
         print(f"query = {query} and update_fields = {update_fields}")
         if '_id' in query:
             if not isinstance(query['_id'], ObjectId):
@@ -101,6 +108,7 @@ class Document:
                 {"$set": update_fields},
                 return_document=ReturnDocument.AFTER,
             )
+            print(f"updated_result = {update_result}")
             if update_result is not None:
                 return cls(**update_result)
             else:

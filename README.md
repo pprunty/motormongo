@@ -17,6 +17,7 @@ more efficient use of server resources.
 
 1. [Installation](#installation)
 2. [Quickstart](#quickstart)
+3. [Class Datatypes](#motormongo-fields)
 3. [C.R.U.D Class Methods](#class-methods)
 4. [C.R.U.D Object Instance Methods](#class-methods)
 5. [FastAPI Integration](#overview)
@@ -54,7 +55,7 @@ Define a motormongo `User` document:
 ```python
 import re
 
-from motormongo.abstracts.base_document import Document
+from motormongo.abstracts.document import Document
 from motormongo.fields.binary_field import BinaryField
 from motormongo.fields.string_field import StringField
 
@@ -65,9 +66,9 @@ class User(Document):
     password = BinaryField(help_text="The hashed password for the user")
 
     class Meta:
-        collection = "users" #< If not provided, will default to class name User->user
-        created_at_timestamp = True #< Provide a DateTimeField for document creation
-        updated_at_timestamp = True #< Provide a DateTimeField for document updates
+        collection = "users"  # < If not provided, will default to class name User->user
+        created_at_timestamp = True  # < Provide a DateTimeField for document creation
+        updated_at_timestamp = True  # < Provide a DateTimeField for document updates
 ```
 
 ### Step 3: Create a MongoDB document using the User class
@@ -121,15 +122,15 @@ If you wish to get straight into how to integrate motormongo with your [`FastAPI
 
 motormongo supports the following datatype fields for your motormongo Document class:
 
-1. `StringField`
-2. `IntegerField`
+1. `StringField(min_length, max_length, regex)`
+2. `IntegerField(min_value, max_value)`
 3. `BooleanField`
-4. `EnumField`
-5. `DateTimeField`
+4. `EnumField(enum)`
+5. `DateTimeField(auto_now, auto_now_add)`
 6. `ListField`
 7. `ReferenceField`
 8. `BinaryField`
-9. `GeoJSONField`
+9. `GeoJSONField()`
 
 ## Class methods
 
@@ -138,19 +139,19 @@ motormongo supports the following datatype fields for your motormongo Document c
 The following [classmethods]() are supported by motormongo's Document class:
 
 
-| CRUD Type | Operation                                                   | Detail                                                                                             |
-|-----------|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| Create    | [`insert_one(document)`](#create)                           | `await TaskDocument.insert_one({"name": "John", "age": 24, "alive": True})`                        |
-| Create    | [`insert_many(List[document])`](#create)                    | `await TaskDocument.insert_many([{"name": "John", "age": 24, "alive": True}, {"name": "Mary", "age": 2, "alive": False}])` |
-| Read      | [`find_one(query)`](#read)                                  | `await TaskDocument.find_one({"_id": "655fc281c440f677fa1e117e"})`                                 |
-| Read      | [`find_many(filter)`](#read)                                | `await TaskDocument.find_many({"alive": True})`                                                     |
-| Update    | [`update_one`](#update)                                     | `await TaskDocument.update_one({"_id": "655fc281c440f677fa1e117e"}, {"age": 49})`                  |
-| Update    | [`update_many(query, fields)`](#update)                     | `await TaskDocument.update_many({"age": 70}, {"alive": False})`                                    |
-| Update    | [`replace_one`](#update)                                    | [No example provided]                                                                               |
-| Other     | [`find_one_or_create(query, document)`](#other)             | `await TaskDocument.find_one_or_create({"name": "John"}, {"name": "John Doe", "age": 24, "alive": False})` |
-| Other     | [`find_one_and_replace`](#other)                            | `await TaskDocument.find_one_and_replace({"_id": ObjectId("655fc281c440f677fa1e117e")}, {"name": "John"})` |
-| Other     | [`find_one_and_delete`](#other)                             | [No example provided]                                                                               |
-| Other     | [`find_one_and_update_empty_fields(query, fields)`](#other) | `await TaskDocument.find_one_and_update_empty_fields({"_id": ObjectId("655fc281c440f677fa1e117e")}, {"name": "John"})` |
+| CRUD Type | Operation                                                   |
+|-----------|-------------------------------------------------------------|
+| Create    | [`insert_one(document)`](#create)                           |
+| Create    | [`insert_many(List[document])`](#create)                    |
+| Read      | [`find_one(query)`](#read)                                  |
+| Read      | [`find_many(filter)`](#read)                                |
+| Update    | [`update_one`](#update)                                     |
+| Update    | [`update_many(query, fields)`](#update)                     |
+| Update    | [`replace_one`](#update)                                    |
+| Other     | [`find_one_or_create(query, document)`](#other)             |
+| Other     | [`find_one_and_replace`](#other)                            |
+| Other     | [`find_one_and_delete`](#other)                             |
+| Other     | [`find_one_and_update_empty_fields(query, fields)`](#other) |
 
 
 ### Create

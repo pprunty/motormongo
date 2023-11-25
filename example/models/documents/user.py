@@ -1,6 +1,6 @@
 import re
 
-from motormongo.abstracts.base_document import Document
+from motormongo.abstracts.document import Document
 from motormongo.fields.binary_field import BinaryField
 from motormongo.fields.string_field import StringField
 

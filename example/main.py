@@ -25,6 +25,7 @@ async def create_user(user: UserModelRequest):
                     email=user.email,
                     password=bcrypt.hashpw("password123".encode('utf-8'), salt=bcrypt.gensalt()))
     await new_user.save()
+    print(f"saved user {new_user.to_dict()}")
     return {}  # Assuming BaseDocument has a to_dict method
 
 
@@ -36,15 +37,18 @@ async def get_user(user_id: str):
     return user.to_dict()
 
 
-@app.put("/users/{user_id}", response_model=UserModelRequest)
+@app.put("/users/{user_id}")
 async def update_user(user_id: str, user_data: UserModelRequest):
-    user = await User.update_one({"_id": user_id}, user_data.model_dump())
+    update_fields = {
+        "username": user_data.username,
+        "email": user_data.email
+    }
+    user = await User.update_one({"_id": user_id}, update_fields)
     # print(f"Returned after find_one: {user.to_dict()}")
     # if user is None:
     #     raise HTTPException(status_code=404, detail="user not found")
     # updated_user = await user.update({"name": user_data.name})
-    print(f"updated user = {user}")
-    return user
+    return {}
 
 
 @app.delete("/users/{user_id}", response_model=dict)
