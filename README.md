@@ -6,22 +6,23 @@
 Author: [Patrick Prunty]()
 
 `motormongo` - An Object Document Mapper
-for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or asyncio
+for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or
+asyncio
 and enable non-blocking access to MongoDB.
 
 Asynchronous operations in a backend system, built using [FastAPI]() for
-example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests, leading to
+example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests,
+leading to
 more efficient use of server resources.
 
 # Table of Contents
 
 1. [Installation](#installation)
 2. [Quickstart](#quickstart)
-3. [Class Datatypes](#motormongo-fields)
-3. [C.R.U.D Class Methods](#class-methods)
-4. [C.R.U.D Object Instance Methods](#class-methods)
-5. [FastAPI Integration](#overview)
-
+3. [Datatype Fields](#motormongo-fields)
+4. [Class Methods](#class-methods)
+5. [Object Instance Methods](#class-methods)
+6. [FastAPI Integration](#overview)
 
 ## Installation
 
@@ -66,7 +67,7 @@ class User(Document):
     password = BinaryField(help_text="The hashed password for the user")
 
     class Meta:
-        collection = "users"  # < If not provided, will default to class name User->user
+        collection = "users"  # < If not provided, will default to class name (ex. User->user, UserDetails->user_details)
         created_at_timestamp = True  # < Provide a DateTimeField for document creation
         updated_at_timestamp = True  # < Provide a DateTimeField for document updates
 ```
@@ -93,7 +94,7 @@ python main.py
 
 ## Step 5: Validate user was created in your MongoDB collection
 
-You can do this using [MongoDB compass](), or add an alternative method to find and print all documents in the user 
+You can do this using [MongoDB compass](), or add an alternative method to find and print all documents in the user
 collection:
 
 ```python
@@ -125,11 +126,11 @@ motormongo supports the following datatype fields for your motormongo Document c
 1. `StringField(min_length, max_length, regex)`
 2. `IntegerField(min_value, max_value)`
 3. `BooleanField`
-4. `EnumField(enum)`
+4. `EnumField(Enum)`
 5. `DateTimeField(auto_now, auto_now_add)`
 6. `ListField`
-7. `ReferenceField`
-8. `BinaryField`
+7. `ReferenceField(Document)`
+8. `BinaryField(hash_function)`
 9. `GeoJSONField()`
 
 ## Class methods
@@ -138,40 +139,40 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 The following [classmethods]() are supported by motormongo's Document class:
 
-
-| CRUD Type | Operation                                                   |
-|-----------|-------------------------------------------------------------|
-| Create    | [`insert_one(document)`](#create)                           |
-| Create    | [`insert_many(List[document])`](#create)                    |
-| Read      | [`find_one(query)`](#read)                                  |
-| Read      | [`find_many(filter)`](#read)                                |
-| Update    | [`update_one`](#update)                                     |
-| Update    | [`update_many(query, fields)`](#update)                     |
-| Update    | [`replace_one`](#update)                                    |
-| Other     | [`find_one_or_create(query, document)`](#other)             |
-| Other     | [`find_one_and_replace`](#other)                            |
-| Other     | [`find_one_and_delete`](#other)                             |
-| Other     | [`find_one_and_update_empty_fields(query, fields)`](#other) |
-
+| CRUD Type | Operation                                                             |
+|-----------|-----------------------------------------------------------------------|
+| Create    | [`insert_one(document)`](#create) -> Object                           |
+| Create    | [`insert_many(List[document])`](#create) -> List[Object]              |
+| Read      | [`find_one(query)`](#read) -> Object                                  |
+| Read      | [`find_many(filter)`](#read) -> List[Object]                          |
+| Update    | [`update_one`](#update) ->                                            |
+| Update    | [`update_many(query, fields)`](#update)                               |
+| Update    | [`replace_one`](#update)                                              |
+| Mixed     | [`find_one_or_create(query, document)`](#other) -> (Object, boolean)  |
+| Mixed     | [`find_one_and_replace`](#other)                                      |
+| Mixed     | [`find_one_and_delete`](#other)                                       |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#other) -> Object |
 
 ### Create
 
 <a name="insert_one"></a>
+
 * `insert_one(document)`
 
 ```python
-await TaskDocument.insert_one(
+await User.insert_one(
     {
         "name": "John",
-        "age": 24, 
+        "age": 24,
         "alive": True
     }
 )
 ```
 
 * `insert_many(List[document])`
+
 ```python
-await TaskDocument.insert_many(
+await User.insert_many(
     [
         {
             "name": "John",
@@ -190,19 +191,22 @@ await TaskDocument.insert_many(
 ### Read
 
 * `find_one(query)`
+
 ```python
-task = await TaskDocument.find_one(
+user = await User.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
 )
 ```
+
 Note: The `_id` here is automatically converted to a BSON ObjectID, however, you can also pass a BSON ObjectID to the
 function; motormongo handles this scenario:
+
 ```python
 from bson import ObjectId
 
-task = await TaskDocument.find_one(
+user = await User.find_one(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     }
@@ -210,8 +214,9 @@ task = await TaskDocument.find_one(
 ```
 
 * `find_many(filter)`
+
 ```python
-tasks = await TaskDocument.find_many(
+users = await User.find_many(
     {
         "alive": True
     }
@@ -221,8 +226,9 @@ tasks = await TaskDocument.find_many(
 ### Update
 
 * `update_one`
+
 ```python
-updated_task = await TaskDocument.update_one(
+updated_user = await User.update_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     },
@@ -231,9 +237,11 @@ updated_task = await TaskDocument.update_one(
     }
 )
 ```
+
 * `update_many(qeury, fields)`
+
 ```python
-updated_tasks = await TaskDocument.update_many(
+updated_users = await User.update_many(
     {
         "age": 70
     },
@@ -242,17 +250,19 @@ updated_tasks = await TaskDocument.update_many(
     }
 )
 ```
+
 * `replace_one`
 
 ### Destroy
 
-* 
+*
 
 ### Other
 
 * `find_one_or_create(query, document)`
+
 ```python
-task, was_created = await TaskDocument.find_one_or_create(
+user, was_created = await User.find_one_or_create(
     {
         "name": "John"
     },
@@ -263,9 +273,11 @@ task, was_created = await TaskDocument.find_one_or_create(
     }
 )
 ```
+
 * `find_one_and_replace`
+
 ```python
-task = await TaskDocument.find_one_and_replace(
+user = await User.find_one_and_replace(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     },
@@ -274,10 +286,12 @@ task = await TaskDocument.find_one_and_replace(
     }
 )
 ```
+
 * `find_one_and_delete`
 * `find_one_and_update_empty_fields(query, fields)`
+
 ```python
-task = await TaskDocument.find_one_and_update_empty_fields(
+user = await User.find_one_and_update_empty_fields(
     {
         "_id": ObjectId("655fc281c440f677fa1e117e")
     },
@@ -295,9 +309,8 @@ itself.
 
 ### Operations
 
- The following object instance methods are
+The following object instance methods are
 suported by an instance of a motormongo Document object:
-
 
 ### Read
 
@@ -305,9 +318,9 @@ suported by an instance of a motormongo Document object:
 
 [//]: # (```python)
 
-[//]: # (# Find all tasks where the user is not alive)
+[//]: # (# Find all users where the user is not alive)
 
-[//]: # (tasks: List[TaskDocument] = await TaskDocument.find_many&#40;)
+[//]: # (users: List[User] = await User.find_many&#40;)
 
 [//]: # (    {)
 
@@ -317,9 +330,9 @@ suported by an instance of a motormongo Document object:
 
 [//]: # (&#41;)
 
-[//]: # (# Recursively delete all TaskDocument instances in the tasks list who are not alive)
+[//]: # (# Recursively delete all User instances in the users list who are not alive)
 
-[//]: # (if tasks.count&#40;&#41; > 10:)
+[//]: # (if users.count&#40;&#41; > 10:)
 
 [//]: # (    # Do something logical)
 
@@ -327,60 +340,61 @@ suported by an instance of a motormongo Document object:
 
 ### Update
 
-* `task.save()`
+* `user.save()`
 
 ```python
-# Find task by MongoDB _id
-task = await TaskDocument.find_one(
+# Find user by MongoDB _id
+user = await User.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
 )
 # If there age is greater than 80, make them dead
-if task.age > 80:
-    task.alive = False
-# Persist update on TaskDocument instance in MongoDB database
-task.save()
+if user.age > 80:
+    user.alive = False
+# Persist update on User instance in MongoDB database
+user.save()
 ```
-In this example, `Task.find_one()` returns an instance of `TaskDocument`. If the age field
+
+In this example, `Task.find_one()` returns an instance of `User`. If the age field
 is greater than 80, the alive field is set to false. The instance of the document in the MongoDB
-database is then updated by calling the `.save()` method on the `TaskDocument` object instance.
+database is then updated by calling the `.save()` method on the `User` object instance.
 
 ### Destroy
 
-* `task.delete()`
+* `user.delete()`
 
 ```python
-# Find all tasks where the user is not alive
-tasks: List[TaskDocument] = await TaskDocument.find_many(
+# Find all users where the user is not alive
+users: List[User] = await User.find_many(
     {
         "alive": False
     }
 )
-# Recursively delete all TaskDocument instances in the tasks list who are not alive
-tasks.delete()
+# Recursively delete all User instances in the users list who are not alive
+users.delete()
 ```
-
 
 ## FastAPI integration
 
-motormongo can be easily integrated in FastAPI APIs to leverage the asynchronous ability of 
+motormongo can be easily integrated in FastAPI APIs to leverage the asynchronous ability of
 FastAPI. To leverage motormongo's ease-of-use, Pydantic model's should be created to represent the MongoDB
 Document as a Pydantic model.
 
-Below are some example APIs detailing how 
+Below are some example APIs detailing how
 
 ### Creating a document
 
 ```python
-from models.documents import TaskDocument
-from models.requests import TaskModel
+from models.documents import User
+from models.requests import UserModel
 
-@app.post("/tasks/")
-async def create_task(task: TaskModel):
-    new_task = TaskDocument(**task.model_dump())
-    await new_task.save()
-    return new_task.to_dict()
+
+@app.post("/users/")
+async def create_user(user: UserModel):
+    new_user = User(**user.model_dump())
+    await new_user.save()
+    return new_user.to_dict()
 ```
 
 Note: 
