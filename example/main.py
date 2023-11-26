@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi import HTTPException
 from example.models.documents.user import User
@@ -10,7 +12,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")
+    app.mongodb_client = AsyncIOMotorClient(os.getenv("MONGODB_URL"))
     app.mongodb = app.mongodb_client["test"]  # Replace with your database name
 
 

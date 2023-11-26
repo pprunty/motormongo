@@ -11,7 +11,7 @@ class ReferenceField(Field):
         self.document_type = document_type
 
     async def fetch_reference(self, obj):
-        db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
+        db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
         reference_id = obj.__dict__.get(self.name)
         if reference_id:
             document = await db[self.document_type.Meta.collection].find_one({'_id': reference_id})

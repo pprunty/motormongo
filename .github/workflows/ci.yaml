@@ -1,4 +1,4 @@
-name: Django CI 🚀
+name: motormongo CI
 
 on:
   pull_request:
@@ -60,19 +60,5 @@ jobs:
 
       - name: Install dependencies 🔽
         run: |
-          cd backend
+          cd motormongo
           poetry install
-
-      - name: Run migrations 🏗️
-        env:
-          DJANGO_SETTINGS_MODULE: backend.backend.settings
-        run: |
-          cd backend
-          poetry run python manage.py migrate
-
-      - name: Run Django tests 🧪
-        env:
-          DJANGO_SETTINGS_MODULE: backend.backend.settings
-        run: |
-          cd backend
-          poetry run python manage.py test

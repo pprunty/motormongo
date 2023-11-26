@@ -15,15 +15,6 @@ example, enhances performance and scalability by enabling non-blocking, concurre
 leading to
 more efficient use of server resources.
 
-# Table of Contents
-
-1. [Installation](#installation)
-2. [Quickstart](#quickstart)
-3. [Datatype Fields](#motormongo-fields)
-4. [Class Methods](#class-methods)
-5. [Object Instance Methods](#class-methods)
-6. [FastAPI Integration](#overview)
-
 ## Installation
 
 To install motormongo, you can use `pip` inside your virtual environment:
@@ -55,16 +46,21 @@ Define a motormongo `User` document:
 
 ```python
 import re
-
+import bcrypt
 from motormongo.abstracts.document import Document
 from motormongo.fields.binary_field import BinaryField
 from motormongo.fields.string_field import StringField
+from motormongo.fields.string_field import IntegerField
 
+def hash_password(password):
+    # Example hashing function
+    return bcrypt.hashpw(password.encode('utf-8'), salt=bcrypt.gensalt())
 
 class User(Document):
     username = StringField(help_text="The username for the user", min_length=3, max_length=50)
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
-    password = BinaryField(help_text="The hashed password for the user")
+    password = BinaryField(help_text="The hashed password for the user", hash_function=hash_password)
+    age = IntegerField(help_text="The age of the user")
 
     class Meta:
         collection = "users"  # < If not provided, will default to class name (ex. User->user, UserDetails->user_details)
@@ -81,40 +77,37 @@ await User.insert_one(
     {
         "username": "johndoe",
         "email": "johndoe@portmarnock.ie",
-        "password": bcrypt.hashpw("password123".encode('utf-8'), salt=bcrypt.gensalt())
+        "password": "password123" #< hash_functon will hash the string literal password
     }
 )
 ```
 
-### Step 4: Put all the code above into one file and run it
+### Step 4: Validate user was created in your MongoDB collection
 
-```shell
-python main.py
-```
-
-## Step 5: Validate user was created in your MongoDB collection
-
-You can do this using [MongoDB compass](), or add an alternative method to find and print all documents in the user
-collection:
+You can do this using [MongoDB compass](), or alternatively, add a query to find all documents in the user
+collection after doing the insert in step 3:
 
 ```python
 users = User.find_many({})
 if users:
     print("User collection contains the following documents:")
     for user in users:
-        print(user.to_dict())  # Assuming that to_dict() is a method of User class
+        print(user.to_dict()) 
 else:
     print("User collection failed to update! Check your MongoDB connection details and try again!")
 ```
+### Step 5: Put all the code above into one file and run it
 
-And run the file again, as done in Step. 4.
+```shell
+python main.py
+```
 
 ## Congratulations 🎉
 
 You've successfully created your first motormongo Object Document Mapper class. 🥳
 
-For further development details on how to run asynchronous CRUD operation using motormongo Document class methods
-and object instance methods, continue reading.
+The subsequent sections detail the datatype fields provided by motormongo, as well as the CRUD
+operations available on the classmethods and object instance methods of a motormongo document.
 
 If you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
 [FastAPI Integration]() section.
@@ -148,10 +141,10 @@ The following [classmethods]() are supported by motormongo's Document class:
 | Update    | [`update_one`](#update) ->                                            |
 | Update    | [`update_many(query, fields)`](#update)                               |
 | Update    | [`replace_one`](#update)                                              |
-| Mixed     | [`find_one_or_create(query, document)`](#other)` -> (Object, boolean)`  |
-| Mixed     | [`find_one_and_replace`](#other)                                      |
-| Mixed     | [`find_one_and_delete`](#other)                                       |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#other)` -> Object` |
+| Mixed     | [`find_one_or_create(query, document)`](#mixed)` -> (Object, boolean)`  |
+| Mixed     | [`find_one_and_replace`](#mixed)                                      |
+| Mixed     | [`find_one_and_delete`](#mixed)                                       |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)` -> Object` |
 
 ### Create
 
@@ -200,8 +193,8 @@ user = await User.find_one(
 )
 ```
 
-Note: The `_id` here is automatically converted to a BSON ObjectID, however, you can also pass a BSON ObjectID to the
-function; motormongo handles this scenario:
+Note: The `_id` string datatype here is automatically converted to a BSON ObjectID, however, motormongo handles the scenario when a
+BSON ObjectId is passed as the `_id` datatype:
 
 ```python
 from bson import ObjectId
@@ -257,7 +250,7 @@ updated_users = await User.update_many(
 
 *
 
-### Other
+### Mixed
 
 * `find_one_or_create(query, document)`
 

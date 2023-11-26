@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from datetime import datetime
 
@@ -61,7 +62,7 @@ class Document:
                 except Exception as e:
                     raise ValueError(f"Invalid _id format: {e}")
         try:
-            db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
+            db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
             document = await db[cls.get_collection_name()].find_one(query)
             return cls(**document) if document else None
         except Exception as e:
@@ -72,7 +73,7 @@ class Document:
         if getattr(self.Meta, 'updated_at_timestamp', False):
             self.updated_at = datetime.utcnow()
         try:
-            db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
+            db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
             print(f"Retrieved db: {db}")
             document = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
             if not hasattr(self, '_id'):
@@ -102,7 +103,7 @@ class Document:
                     raise ValueError(f"Invalid _id format: {e}")
         update_fields.pop("_id", None)
         try:
-            db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
+            db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
             update_result = await db[cls.get_collection_name()].find_one_and_update(
                 query,
                 {"$set": update_fields},
@@ -118,7 +119,7 @@ class Document:
 
     async def delete(self):
         try:
-            db = AsyncIOMotorClient("mongodb+srv://pprunty:Cracker123!@cluster0.7o5omuv.mongodb.net")[DATABASE]
+            db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
             await db[self.__collection].delete_one({'_id': self._id})
         except Exception as e:
             print(f"Error deleting document: {e}")
