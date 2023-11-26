@@ -141,17 +141,17 @@ The following [classmethods]() are supported by motormongo's Document class:
 
 | CRUD Type | Operation                                                             |
 |-----------|-----------------------------------------------------------------------|
-| Create    | [`insert_one(document)`](#create) -> Object                           |
-| Create    | [`insert_many(List[document])`](#create) -> List[Object]              |
-| Read      | [`find_one(query)`](#read) -> Object                                  |
-| Read      | [`find_many(filter)`](#read) -> List[Object]                          |
+| Create    | [`insert_one(document)`](#create)` -> Object`                           |
+| Create    | [`insert_many(List[document])`](#create)` -> List[Object]`              |
+| Read      | [`find_one(query)`](#read)` -> Object`                                  |
+| Read      | [`find_many(filter)`](#read)` -> List[Object]`                          |
 | Update    | [`update_one`](#update) ->                                            |
 | Update    | [`update_many(query, fields)`](#update)                               |
 | Update    | [`replace_one`](#update)                                              |
-| Mixed     | [`find_one_or_create(query, document)`](#other) -> (Object, boolean)  |
+| Mixed     | [`find_one_or_create(query, document)`](#other)` -> (Object, boolean)`  |
 | Mixed     | [`find_one_and_replace`](#other)                                      |
 | Mixed     | [`find_one_and_delete`](#other)                                       |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#other) -> Object |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#other)` -> Object` |
 
 ### Create
 
