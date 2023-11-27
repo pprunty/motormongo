@@ -26,12 +26,10 @@ jobs:
 
       - name: Install dependencies 🔽
         run: |
-          cd backend
           poetry install
 
       - name: Run flake8 🔍
         run: |
-          cd backend
           poetry run flake8 .
 
   test:
