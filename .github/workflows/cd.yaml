@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 jobs:
+  permissions:
+    id-token: write
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
     - uses: actions/checkout@v2
       name: Checkout code
