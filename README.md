@@ -1,6 +1,6 @@
-[![Documentation Status](https://readthedocs.org/projects/pprunty-shapeshifter/badge/?version=latest)](https://pprunty-shapeshifter.readthedocs.io/en/latest/?badge=latest)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/requests)
-![PyPI - Version](https://img.shields.io/pypi/v/requests)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)
+![PyPI - Version](https://img.shields.io/pypi/v/motormongo)
+![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/shapeshifter.svg)
 
 Author: [Patrick Prunty]()
