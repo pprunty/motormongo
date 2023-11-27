@@ -1,5 +1,5 @@
-![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)
 ![PyPI - Version](https://img.shields.io/pypi/v/motormongo)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)
 ![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/shapeshifter.svg)
 
