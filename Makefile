@@ -8,6 +8,10 @@ install-pre-commit:
 
 .PHONY: lint
 lint:
+	poetry run pre-commit run --all-files
+
+.PHONY: lint
+lint:
 	cd motormongo && poetry run pre-commit run --all-files
 
 .PHONY: run
