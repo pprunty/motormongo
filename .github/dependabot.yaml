@@ -1,9 +1,8 @@
 version: 2
 updates:
-- package-ecosystem: "pip"
-  directory: "/motormongo"
+- package-ecosystem: "python"
+  directory: "/"
   schedule:
     interval: "daily"
   open-pull-requests-limit: 3
   versioning-strategy: "auto"
-  
