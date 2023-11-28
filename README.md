@@ -3,18 +3,21 @@
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)
 ![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)
 
-Author: [Patrick Prunty](). **This project is still in a development phase and NOT recommended for use until non-dev 
+Author: [Patrick Prunty](). 
+
+**This project is still in a development phase and NOT recommended for use until non-dev 
 version is released (non-alpha or beta release versions).**
 
 `motormongo` - An Object Document Mapper
-for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or
-asyncio
-and enable non-blocking access to MongoDB.
+for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), an asynchronous Python driver for MongoDB, designed to work with Tornado or
+asyncio and enable non-blocking access to MongoDB.
 
-Asynchronous operations in a backend system, built using [FastAPI]() for
+Asynchronous operations in a backend system, built using [FastAPI](https://github.com/tiangolo/fastapi) for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests,
-leading to
-more efficient use of server resources.
+leading to more efficient use of server resources.
+
+The interface for instantiating Document classes follows similar logic to mongoengine, enabling ease-of-transition and
+ migration to motormongo from mongoengine.
 
 ## Installation
 
@@ -53,7 +56,7 @@ from motormongo.fields.binary_field import BinaryField
 from motormongo.fields.string_field import StringField
 from motormongo.fields.string_field import IntegerField
 
-def hash_password(password):
+def hash_password(password) -> bytes:
     # Example hashing function
     return bcrypt.hashpw(password.encode('utf-8'), salt=bcrypt.gensalt())
 
@@ -366,7 +369,8 @@ users: List[User] = await User.find_many(
     }
 )
 # Recursively delete all User instances in the users list who are not alive
-users.delete()
+for user in users:
+    user.delete()
 ```
 
 ## FastAPI integration
