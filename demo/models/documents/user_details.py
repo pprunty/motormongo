@@ -1,6 +1,6 @@
 import re
 
-from example.models.documents.user import User
+from demo.models.documents.user import User
 from motormongo.abstracts.document import Document
 from motormongo.fields.boolean_field import BooleanField
 from motormongo.fields.reference_field import ReferenceField

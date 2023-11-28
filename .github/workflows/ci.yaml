@@ -30,7 +30,7 @@ jobs:
 
       - name: Run flake8 🔍
         run: |
-          poetry run flake8 .
+          poetry run lint
 
   test:
     name: 🧪 Run tests
@@ -58,5 +58,8 @@ jobs:
 
       - name: Install dependencies 🔽
         run: |
-          cd motormongo
           poetry install
+
+      - name: Run tests 🚀
+        run: |
+          poetry run test

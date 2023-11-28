@@ -16,4 +16,4 @@ run:
 
 .PHONY: example
 example:
-	poetry run uvicorn example.main:app --reload
+	poetry run uvicorn demo.main:app --reload

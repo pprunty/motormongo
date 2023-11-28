@@ -2,13 +2,15 @@ import os
 
 from fastapi import FastAPI
 from fastapi import HTTPException
-from example.models.documents.user import User
-from example.models.requests.user import UserModelRequest
+from demo.models.documents.user import User
+from demo.models.requests.user import UserModelRequest
 from motor.motor_asyncio import AsyncIOMotorClient
 import bcrypt
 
 app = FastAPI()
 
+
+print(f"Mongo url = {os.getenv('MONGODB_URL')}")
 
 @app.on_event("startup")
 async def startup_db_client():
@@ -23,10 +25,8 @@ async def shutdown_db_client():
 
 @app.post("/users/")
 async def create_user(user: UserModelRequest):
-    new_user = User(username=user.username,
-                    email=user.email,
-                    password=bcrypt.hashpw("password123".encode('utf-8'), salt=bcrypt.gensalt()))
-    await new_user.save()
+    print(f"REUQEST = {user.model_dump()}")
+    new_user = await User.insert_one(**user.model_dump())
     print(f"saved user {new_user.to_dict()}")
     return {}  # Assuming BaseDocument has a to_dict method
 

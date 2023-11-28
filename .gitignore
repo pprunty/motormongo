@@ -7,3 +7,4 @@ motormongo/*/__pycache__
 dist
 .env
 poetry.lock
+.pytest_cache
