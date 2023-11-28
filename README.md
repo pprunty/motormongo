@@ -3,7 +3,7 @@
 ![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)
 ![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)
 
-Author: [Patrick Prunty]()
+Author: [Patrick Prunty](). This project is still in a development phase.
 
 `motormongo` - An Object Document Mapper
 for [MongoDB]() built on-top of [Motor](), an asynchronous Python driver for MongoDB, designed to work with Tornado or
