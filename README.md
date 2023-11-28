@@ -17,7 +17,7 @@ example, enhances performance and scalability by enabling non-blocking, concurre
 leading to more efficient use of server resources.
 
 The interface for instantiating Document classes follows similar logic to [mongoengine](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
- migration to motormongo from mongoengine.
+ migration from `mongoengine` to `motormongo`.
 
 ## Installation
 
@@ -138,19 +138,19 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 The following [classmethods]() are supported by motormongo's Document class:
 
-| CRUD Type | Operation                                                                      |
-|-----------|--------------------------------------------------------------------------------|
-| Create    | [`insert_one(document, **kwargs) -> Object`](#create)                          |
-| Create    | [`insert_many(List[document]) -> List[Object]`](#create)                       |
-| Read      | [`find_one(query, **kwargs) -> Object`](#read)                                 |
-| Read      | [`find_many(filter) -> List[Object]`](#read)                                   |
-| Update    | [`update_one`](#update)                                                        |
-| Update    | [`update_many(query, fields)`](#update)                                        |
-| Update    | [`replace_one`](#update)                                                       |
-| Mixed     | [`find_one_or_create(query, document, **kwargs) -> (Object, boolean)`](#mixed) |
-| Mixed     | [`find_one_and_replace`](#mixed)                                               |
-| Mixed     | [`find_one_and_delete`](#mixed)                                                |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)` -> Object`        |
+| CRUD Type | Operation                                                                                  |
+|-----------|--------------------------------------------------------------------------------------------|
+| Create    | [`insert_one(document: dict, **kwargs) -> Object`](#create)                                |
+| Create    | [`insert_many(List[document: dict]) -> List[Object]`](#create)                             |
+| Read      | [`find_one(query: dict, **kwargs) -> Object`](#read)                                       |
+| Read      | [`find_many(filter: dict, **kwargs) -> List[Object]`](#read)                               |
+| Update    | [`update_one`](#update)                                                                    |
+| Update    | [`update_many(query: dict, fields: dict, **kwargs)`](#update)                              |
+| Update    | [`replace_one`](#update)                                                                   |
+| Mixed     | [`find_one_or_create(query: dict, document: dict, **kwargs) -> (Object, boolean)`](#mixed) |
+| Mixed     | [`find_one_and_replace`](#mixed)                                                           |
+| Mixed     | [`find_one_and_delete`](#mixed)                                                            |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)                                |
 
 ### Create
 
