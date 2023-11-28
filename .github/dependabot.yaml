@@ -6,3 +6,4 @@ updates:
     interval: "daily"
   open-pull-requests-limit: 3
   versioning-strategy: "auto"
+  
