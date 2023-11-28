@@ -16,7 +16,7 @@ Asynchronous operations in a backend system, built using [FastAPI](https://githu
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests,
 leading to more efficient use of server resources.
 
-The interface for instantiating Document classes follows similar logic to mongoengine, enabling ease-of-transition and
+The interface for instantiating Document classes follows similar logic to [mongoengine](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
  migration to motormongo from mongoengine.
 
 ## Installation
@@ -54,7 +54,8 @@ import bcrypt
 from motormongo.abstracts.document import Document
 from motormongo.fields.binary_field import BinaryField
 from motormongo.fields.string_field import StringField
-from motormongo.fields.string_field import IntegerField
+from motormongo.fields.integer_field import IntegerField
+from motormongo.fields.enum_field import EnumField
 
 def hash_password(password) -> bytes:
     # Example hashing function
@@ -65,6 +66,7 @@ class User(Document):
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
     password = BinaryField(help_text="The hashed password for the user", hash_function=hash_password)
     age = IntegerField(help_text="The age of the user")
+    status = EnumField(enum=Status, help_text="Indicator for whether the user is active or not.")
 
     class Meta:
         collection = "users"  # < If not provided, will default to class name (ex. User->user, UserDetails->user_details)
@@ -136,19 +138,19 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 The following [classmethods]() are supported by motormongo's Document class:
 
-| CRUD Type | Operation                                                             |
-|-----------|-----------------------------------------------------------------------|
-| Create    | [`insert_one(document)`](#create)` -> Object`                           |
-| Create    | [`insert_many(List[document])`](#create)` -> List[Object]`              |
-| Read      | [`find_one(query)`](#read)` -> Object`                                  |
-| Read      | [`find_many(filter)`](#read)` -> List[Object]`                          |
-| Update    | [`update_one`](#update) ->                                            |
-| Update    | [`update_many(query, fields)`](#update)                               |
-| Update    | [`replace_one`](#update)                                              |
-| Mixed     | [`find_one_or_create(query, document)`](#mixed)` -> (Object, boolean)`  |
-| Mixed     | [`find_one_and_replace`](#mixed)                                      |
-| Mixed     | [`find_one_and_delete`](#mixed)                                       |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)` -> Object` |
+| CRUD Type | Operation                                                                      |
+|-----------|--------------------------------------------------------------------------------|
+| Create    | [`insert_one(document, **kwargs) -> Object`](#create)                          |
+| Create    | [`insert_many(List[document]) -> List[Object]`](#create)                       |
+| Read      | [`find_one(query, **kwargs) -> Object`](#read)                                 |
+| Read      | [`find_many(filter) -> List[Object]`](#read)                                   |
+| Update    | [`update_one`](#update)                                                        |
+| Update    | [`update_many(query, fields)`](#update)                                        |
+| Update    | [`replace_one`](#update)                                                       |
+| Mixed     | [`find_one_or_create(query, document, **kwargs) -> (Object, boolean)`](#mixed) |
+| Mixed     | [`find_one_and_replace`](#mixed)                                               |
+| Mixed     | [`find_one_and_delete`](#mixed)                                                |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)` -> Object`        |
 
 ### Create
 
