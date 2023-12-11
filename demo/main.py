@@ -25,7 +25,7 @@ async def shutdown_db_client():
 
 @app.post("/users/")
 async def create_user(user: UserModelRequest):
-    print(f"REUQEST = {user.model_dump()}")
+    print(f"REQUEST = {user.model_dump()}")
     new_user = await User.insert_one(**user.model_dump())
     print(f"saved user {new_user.to_dict()}")
     return {}  # Assuming BaseDocument has a to_dict method
@@ -43,7 +43,8 @@ async def get_user(user_id: str):
 async def update_user(user_id: str, user_data: UserModelRequest):
     update_fields = {
         "username": user_data.username,
-        "email": user_data.email
+        "email": user_data.email,
+        "alive": user_data.alive
     }
     user = await User.update_one({"_id": user_id}, update_fields)
     # print(f"Returned after find_one: {user.to_dict()}")
@@ -52,6 +53,13 @@ async def update_user(user_id: str, user_data: UserModelRequest):
     # updated_user = await user.update({"name": user_data.name})
     return {}
 
+@app.put("/users/class/{user_id}")
+async def update_user(user_id: str, user_data: UserModelRequest):
+    user = await User.find_one({"_id": user_id})
+
+    user.alive = user_data.alive
+    await user.save()
+    return {}
 
 @app.delete("/users/{user_id}", response_model=dict)
 async def delete_user(user_id: str):

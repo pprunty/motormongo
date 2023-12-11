@@ -9,8 +9,10 @@ class DateTimeField(Field):
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
 
+    def __set_name__(self, owner, name):
+        super().__set_name__(owner, name)
+
     def __get__(self, obj, objtype=None):
-        # If auto_now is set, return the current datetime
         if self.auto_now:
             return datetime.utcnow()
         return super().__get__(obj, objtype)
@@ -21,3 +23,4 @@ class DateTimeField(Field):
         if self.auto_now_add and not obj.__dict__.get(self.name):
             value = datetime.utcnow()
         super().__set__(obj, value)
+

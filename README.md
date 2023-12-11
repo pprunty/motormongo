@@ -1,9 +1,9 @@
-![PyPI - Version](https://img.shields.io/pypi/v/motormongo)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)
-![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)
-![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)
+[![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)](https://pypi.org/project/motormongo/)
+[![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
+[![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 
-Author: [Patrick Prunty](). 
+Author: [Patrick Prunty](https://pprunty.github.io/pprunty/). 
 
 **This project is still in a development phase and NOT recommended for use until non-dev 
 version is released (non-alpha or beta release versions).**
@@ -138,19 +138,19 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 The following [classmethods]() are supported by motormongo's Document class:
 
-| CRUD Type | Operation                                                                                  |
-|-----------|--------------------------------------------------------------------------------------------|
-| Create    | [`insert_one(document: dict, **kwargs) -> Object`](#create)                                |
-| Create    | [`insert_many(List[document: dict]) -> List[Object]`](#create)                             |
-| Read      | [`find_one(query: dict, **kwargs) -> Object`](#read)                                       |
-| Read      | [`find_many(filter: dict, **kwargs) -> List[Object]`](#read)                               |
-| Update    | [`update_one`](#update)                                                                    |
-| Update    | [`update_many(query: dict, fields: dict, **kwargs)`](#update)                              |
-| Update    | [`replace_one`](#update)                                                                   |
+| CRUD Type | Operation                                                                                 |
+|-----------|-------------------------------------------------------------------------------------------|
+| Create    | [`insert_one(document: dict, **kwargs) -> Object`](#create)                               |
+| Create    | [`insert_many(List[document: dict]) -> List[Object]`](#create)                            |
+| Read      | [`find_one(query: dict, **kwargs) -> Object`](#read)                                      |
+| Read      | [`find_many(filter: dict, **kwargs) -> List[Object]`](#read)                              |
+| Update    | [`update_one()`](#update)                                                                 |
+| Update    | [`update_many(query: dict, fields: dict)`](#update)                                       |
+| Update    | [`replace_one`](#update)                                                                  |
 | Mixed     | [`find_one_or_create(query: dict, document: dict, **kwargs) -> (Object, boolean)`](#mixed) |
-| Mixed     | [`find_one_and_replace`](#mixed)                                                           |
-| Mixed     | [`find_one_and_delete`](#mixed)                                                            |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)                                |
+| Mixed     | [`find_one_and_replace`](#mixed)                                                          |
+| Mixed     | [`find_one_and_delete`](#mixed)                                                           |
+| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)                               |
 
 ### Create
 

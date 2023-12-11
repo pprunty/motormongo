@@ -2,6 +2,8 @@ import json
 import os
 import re
 from datetime import datetime
+from enum import Enum
+
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ReturnDocument
@@ -12,10 +14,10 @@ from typing import Any, Dict, List, Tuple, Union, Awaitable
 DATABASE = "test"
 
 
-def add_timestamps_if_required(cls, **kwargs):
+def add_timestamps_if_required(cls, operation: str = "update", **kwargs):
     current_time = datetime.utcnow()
     if hasattr(cls, 'Meta'):
-        if getattr(cls.Meta, 'created_at_timestamp', False) and 'created_at' not in kwargs:
+        if getattr(cls.Meta, 'created_at_timestamp', False) and 'created_at' not in kwargs and operation != "update":
             kwargs['created_at'] = current_time
         if getattr(cls.Meta, 'updated_at_timestamp', False) and 'updated_at' not in kwargs:
             kwargs['updated_at'] = current_time
@@ -60,17 +62,15 @@ class Document:
     db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
 
     def __init__(self, **kwargs):
-        self._id = None
-        self.Meta = None
         self.__collection = self.get_collection_name()
         print(f"Creating class for collection {self.__collection}")
 
-        if getattr(self.Meta, 'created_at_timestamp', False):
-            self.created_at = DateTimeField(default=datetime.utcnow)
-        if getattr(self.Meta, 'updated_at_timestamp', False):
-            self.updated_at = DateTimeField(default=datetime.utcnow)
+        # if getattr(self.Meta, 'created_at_timestamp', False):
+        #     self.created_at = DateTimeField(default=datetime.utcnow)
+        # if getattr(self.Meta, 'updated_at_timestamp', False):
+        #     self.updated_at = DateTimeField(default=datetime.utcnow)
 
-        # # Handling _id separately
+        # Handling _id separately
         if '_id' in kwargs:
             print(f"Setting _id: {kwargs['_id']}")
             setattr(self, '_id', ObjectId(kwargs['_id']))
@@ -82,9 +82,10 @@ class Document:
                 print(f"{name} -> {kwargs.get(name, field.options.get('default'))}")
                 setattr(self, name, kwargs.get(name, field.options.get('default')))
 
-        if 'created_at' not in kwargs:
-            self.created_at = datetime.utcnow()
-        self.updated_at = datetime.utcnow()
+        if 'created_at' in kwargs:
+            self.created_at = kwargs.get("created_at")
+        # # TODO: This should be set elsewhere?
+        # self.updated_at = datetime.utcnow()
 
     @classmethod
     def get_collection_name(cls):
@@ -105,15 +106,22 @@ class Document:
     async def insert_one(cls, document: dict = None, **kwargs):
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
-        document = add_timestamps_if_required(cls, **document)
-        filtered_document = {k: v for k, v in document.items() if isinstance(getattr(cls, k, None), Field)}
 
-        # Assuming db is a pre-existing database connection
+        # Initialize the instance
+        try:
+            instance = cls(**document)
+        except TypeError as e:
+            raise ValueError(f"Error initializing object: {e}")
+
+        # Apply timestamps
+        document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict())
+
+        print(f"document w timestamp = {document_w_timestamps}")
+
         try:
             collection_name = cls.get_collection_name()
-            result = await cls.db[collection_name].insert_one(filtered_document)
+            result = await cls.db[collection_name].insert_one(document_w_timestamps)
             inserted_document = await cls.db[collection_name].find_one({'_id': result.inserted_id})
-            print(f"inserted document = {inserted_document}")
             return cls(**inserted_document)
         except Exception as e:
             raise ValueError(f"Error inserting document: {e}")
@@ -124,11 +132,14 @@ class Document:
         processed_documents = []
         for doc in documents:
             if isinstance(doc, dict):
-                # Add timestamps and filter the fields based on the class structure
-                doc_with_timestamps = add_timestamps_if_required(cls, **doc)
-                filtered_document = {k: v for k, v in doc_with_timestamps.items() if
-                                     isinstance(getattr(cls, k, None), Field)}
-                processed_documents.append(filtered_document)
+                # Initialize the instance
+                try:
+                    instance = cls(**doc)
+                except TypeError as e:
+                    raise ValueError(f"Error initializing object: {e}")
+                # Apply timestamps
+                document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict())
+                processed_documents.append(document_w_timestamps)
             else:
                 raise ValueError("All items in the documents list must be dictionaries.")
 
@@ -141,17 +152,39 @@ class Document:
             raise ValueError(f"Error inserting multiple documents: {e}")
 
     @classmethod
-    async def find_one(cls, query) -> 'Document':
-        query = cls.convert_id(query)
+    async def find_one(cls, filter: dict = None, **kwargs) -> 'Document':
+        """
+        Finds a single document matching the filter or keyword arguments.
+
+        Args:
+            filter (dict): The filter criteria for the query. Defaults to None.
+            **kwargs: Additional filter criteria as keyword arguments.
+
+        Returns:
+            Document: The found document, or None if no matching document is found.
+        """
+        filter = {**(filter or {}), **kwargs}
+        filter = cls.convert_id(filter)
         try:
-            document = await cls.db[cls.get_collection_name()].find_one(query)
+            document = await cls.db[cls.get_collection_name()].find_one(filter)
             return cls(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
 
     @classmethod
-    async def find_many(cls, filter: dict = None, limit: int = None) -> List['Document']:
-        filter = filter or {}
+    async def find_many(cls, filter: dict = None, limit: int = None, **kwargs) -> List['Document']:
+        """
+        Finds multiple documents matching the filter or keyword arguments.
+
+        Args:
+            filter (dict): The filter criteria for the query. Defaults to None.
+            limit (int): The maximum number of documents to return. Defaults to None.
+            **kwargs: Additional filter criteria as keyword arguments.
+
+        Returns:
+            List[Document]: A list of found documents, or an empty list if no matching documents are found.
+        """
+        filter = {**(filter or {}), **kwargs}
         try:
             cursor = cls.db[cls.get_collection_name()].find(filter)
             if limit is not None:
@@ -163,7 +196,7 @@ class Document:
 
     @classmethod
     async def update_one(cls, query: dict, update_fields: dict) -> 'Document':
-        update_fields = add_timestamps_if_required(cls, **update_fields)
+        update_fields = add_timestamps_if_required(cls, **update_fields, operation="update")
         query = cls.convert_id(query)
         update_fields.pop("_id", None)
         try:
@@ -200,6 +233,41 @@ class Document:
                 return [], 0
         except Exception as e:
             raise ValueError(f"Error updating multiple documents: {e}")
+
+    @classmethod
+    async def delete_one(cls, query: dict) -> bool:
+        """
+        Deletes a single document matching the query.
+
+        Args:
+            query (dict): The query to match the document to be deleted.
+
+        Returns:
+            bool: True if a document was deleted, False otherwise.
+        """
+        query = cls.convert_id(query)
+        try:
+            delete_result = await cls.db[cls.get_collection_name()].delete_one(query)
+            return delete_result.deleted_count > 0
+        except Exception as e:
+            raise ValueError(f"Error deleting document: {e}")
+
+    @classmethod
+    async def delete_many(cls, query: dict) -> int:
+        """
+        Deletes multiple documents matching the query.
+
+        Args:
+            query (dict): The query to match the documents to be deleted.
+
+        Returns:
+            int: The count of documents that were deleted.
+        """
+        try:
+            delete_result = await cls.db[cls.get_collection_name()].delete_many(query)
+            return delete_result.deleted_count
+        except Exception as e:
+            raise ValueError(f"Error deleting documents: {e}")
 
     @classmethod
     async def find_one_or_create(cls, query: dict, defaults: dict = None) -> 'Document':
@@ -243,11 +311,8 @@ class Document:
             raise ValueError(f"Error deleting document: {e}")
 
     async def save(self) -> None:
-        if getattr(self.Meta, 'updated_at_timestamp', False):
-            self.updated_at = datetime.utcnow()
-
-        document = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
-
+        document = add_timestamps_if_required(self, operation="update", **self.to_dict())
+        print(f"doc dict represenatuon = {document}")
         try:
             if not hasattr(self, '_id'):
                 result = await self.db[self.__collection].insert_one(document)
@@ -275,5 +340,10 @@ class Document:
         return json.dumps(self.to_dict(), default=self._json_encoder)
 
     def to_dict(self):
-        """Convert document to a dictionary representation."""
-        return {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
+        """Convert document to a dictionary representation, excluding keys
+        that contain '__' anywhere in the name or are 'Meta'. Convert enums to their values."""
+        return {
+            k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()
+            if "__" not in k and k != "Meta"
+        }
+

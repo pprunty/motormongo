@@ -22,6 +22,7 @@ fastapi = {extras = ["all"], version = "^0.104.1"}
 bcrypt = "^4.0.1"
 pytest = "^7.4.3"
 pre-commit = "^3.5.0"
+pytest-asyncio = "^0.23.0"
 
 [tool.isort]
 multi_line_output = 5
