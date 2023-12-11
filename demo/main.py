@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from demo.models.documents.user import User
 from demo.models.requests.user import UserModelRequest
 from motor.motor_asyncio import AsyncIOMotorClient
+from motormongo import connect
 import bcrypt
 
 app = FastAPI()
@@ -14,13 +15,12 @@ print(f"Mongo url = {os.getenv('MONGODB_URL')}")
 
 @app.on_event("startup")
 async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient(os.getenv("MONGODB_URL"))
-    app.mongodb = app.mongodb_client["test"]  # Replace with your database name
+    await connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
 
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    app.mongodb_client.close()
+    pass
 
 
 @app.post("/users/")
@@ -31,12 +31,13 @@ async def create_user(user: UserModelRequest):
     return {}  # Assuming BaseDocument has a to_dict method
 
 
-@app.get("/users/{user_id}", response_model=UserModelRequest)
+@app.get("/users/{user_id}")
 async def get_user(user_id: str):
     user = await User.find_one({"_id": user_id})
     if user is None:
         raise HTTPException(status_code=404, detail="user not found")
-    return user.to_dict()
+    print(f"Got user {user.to_dict()}")
+    return {}
 
 
 @app.put("/users/{user_id}")

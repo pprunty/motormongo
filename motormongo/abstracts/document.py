@@ -10,6 +10,7 @@ from pymongo import ReturnDocument
 from motormongo.fields.datetime_field import DateTimeField
 from motormongo.fields.field import Field
 from typing import Any, Dict, List, Tuple, Union, Awaitable
+from motormongo import get_db
 
 DATABASE = "test"
 
@@ -58,17 +59,11 @@ class Document:
     delete() -> void | error
 
     """
-
-    db = AsyncIOMotorClient(os.getenv("MONGODB_URL"))[os.getenv("MONGODB_COLLECTION")]
+    _registered_documents = []
 
     def __init__(self, **kwargs):
         self.__collection = self.get_collection_name()
         print(f"Creating class for collection {self.__collection}")
-
-        # if getattr(self.Meta, 'created_at_timestamp', False):
-        #     self.created_at = DateTimeField(default=datetime.utcnow)
-        # if getattr(self.Meta, 'updated_at_timestamp', False):
-        #     self.updated_at = DateTimeField(default=datetime.utcnow)
 
         # Handling _id separately
         if '_id' in kwargs:
@@ -86,6 +81,18 @@ class Document:
             self.created_at = kwargs.get("created_at")
         # # TODO: This should be set elsewhere?
         # self.updated_at = datetime.utcnow()
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Document._registered_documents.append(cls)
+
+    @classmethod
+    async def db(cls):
+        return await get_db()
+
+    # @property
+    # def collection(self):
+    #     return get_collection()
 
     @classmethod
     def get_collection_name(cls):
@@ -120,8 +127,9 @@ class Document:
 
         try:
             collection_name = cls.get_collection_name()
-            result = await cls.db[collection_name].insert_one(document_w_timestamps)
-            inserted_document = await cls.db[collection_name].find_one({'_id': result.inserted_id})
+            db = await cls.db()
+            result = await db[collection_name].insert_one(document_w_timestamps)
+            inserted_document = await db[collection_name].find_one({'_id': result.inserted_id})
             return cls(**inserted_document)
         except Exception as e:
             raise ValueError(f"Error inserting document: {e}")
@@ -145,28 +153,21 @@ class Document:
 
         # Connect to the database and insert the documents
         try:
-            collection_name = cls.get_collection_name()
-            result = await cls.db[collection_name].insert_many(processed_documents)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            result = await collection.insert_many(processed_documents)
             return [cls(**doc) for doc in processed_documents], result.inserted_ids
         except Exception as e:
             raise ValueError(f"Error inserting multiple documents: {e}")
 
     @classmethod
     async def find_one(cls, filter: dict = None, **kwargs) -> 'Document':
-        """
-        Finds a single document matching the filter or keyword arguments.
-
-        Args:
-            filter (dict): The filter criteria for the query. Defaults to None.
-            **kwargs: Additional filter criteria as keyword arguments.
-
-        Returns:
-            Document: The found document, or None if no matching document is found.
-        """
         filter = {**(filter or {}), **kwargs}
         filter = cls.convert_id(filter)
         try:
-            document = await cls.db[cls.get_collection_name()].find_one(filter)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            document = await collection.find_one(filter)
             return cls(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
@@ -186,7 +187,9 @@ class Document:
         """
         filter = {**(filter or {}), **kwargs}
         try:
-            cursor = cls.db[cls.get_collection_name()].find(filter)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            cursor = collection.find(filter)
             if limit is not None:
                 cursor = cursor.limit(limit)
             documents = await cursor.to_list(length=limit)
@@ -200,7 +203,9 @@ class Document:
         query = cls.convert_id(query)
         update_fields.pop("_id", None)
         try:
-            update_result = await cls.db[cls.get_collection_name()].find_one_and_update(
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            update_result = await collection.find_one_and_update(
                 query,
                 {"$set": update_fields},
                 return_document=ReturnDocument.AFTER
@@ -222,7 +227,9 @@ class Document:
         # Connect to the database and perform the update
         try:
             collection_name = cls.get_collection_name()
-            result = await cls.db[collection_name].update_many(query, update_operation)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            result = await collection.update_many(query, update_operation)
 
             # If you need to return the updated documents, you have to find them
             # Note: this may not be efficient for a large number of documents
@@ -247,7 +254,9 @@ class Document:
         """
         query = cls.convert_id(query)
         try:
-            delete_result = await cls.db[cls.get_collection_name()].delete_one(query)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            delete_result = collection.delete_one(query)
             return delete_result.deleted_count > 0
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
@@ -264,14 +273,18 @@ class Document:
             int: The count of documents that were deleted.
         """
         try:
-            delete_result = await cls.db[cls.get_collection_name()].delete_many(query)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            delete_result = await collection.delete_many(query)
             return delete_result.deleted_count
         except Exception as e:
             raise ValueError(f"Error deleting documents: {e}")
 
     @classmethod
     async def find_one_or_create(cls, query: dict, defaults: dict = None) -> 'Document':
-        document = await cls.db[cls.get_collection_name()].find_one(query)
+        db = await cls.db()
+        collection = db[cls.get_collection_name()]
+        document = await collection.find_one(query)
         if document:
             return cls(**document)
         else:
@@ -283,7 +296,9 @@ class Document:
     async def find_one_and_replace(cls, query: dict, replacement: dict) -> 'Document':
         replacement = add_timestamps_if_required(cls, **replacement)
         try:
-            updated_document = await cls.db[cls.get_collection_name()].find_one_and_replace(
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            updated_document = await collection.find_one_and_replace(
                 query, replacement, return_document=ReturnDocument.AFTER
             )
             return cls(**updated_document) if updated_document else None
@@ -293,7 +308,9 @@ class Document:
     @classmethod
     async def find_one_and_update_empty_fields(cls, query: dict, **kwargs) -> Tuple['Document', bool] | Tuple[
         None, bool]:
-        existing_doc = await cls.db[cls.get_collection_name()].find_one(query)
+        db = await cls.db()
+        collection = db[cls.get_collection_name()]
+        existing_doc = await collection.find_one(query)
         if existing_doc:
             update_fields = {k: v for k, v in kwargs.items() if k not in existing_doc or not existing_doc[k]}
             if update_fields:
@@ -305,7 +322,9 @@ class Document:
     @classmethod
     async def find_one_and_delete(cls, query: dict) -> 'Document':
         try:
-            deleted_document = await cls.db[cls.get_collection_name()].find_one_and_delete(query)
+            db = await cls.db()
+            collection = db[cls.get_collection_name()]
+            deleted_document = await collection.find_one_and_delete(query)
             return cls(**deleted_document) if deleted_document else None
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
@@ -314,17 +333,21 @@ class Document:
         document = add_timestamps_if_required(self, operation="update", **self.to_dict())
         print(f"doc dict represenatuon = {document}")
         try:
+            db = await self.db()
+            collection = db[self.get_collection_name()]
             if not hasattr(self, '_id'):
-                result = await self.db[self.__collection].insert_one(document)
+                result = await collection.insert_one(document)
                 self._id = result.inserted_id
             else:
-                await self.db[self.__collection].replace_one({'_id': self._id}, document)
+                await collection.replace_one({'_id': self._id}, document)
         except Exception as e:
             raise ValueError(f"Error saving document: {e}")
 
     async def delete(self) -> None:
         try:
-            await self.db[self.__collection].delete_one({'_id': self._id})
+            db = await self.db()
+            collection = db[self.get_collection_name()]
+            await collection.delete_one({'_id': self._id})
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
 
