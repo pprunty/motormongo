@@ -5,7 +5,7 @@ from motormongo.fields.field import Field
 
 class DateTimeField(Field):
     def __init__(self, auto_now=False, auto_now_add=False, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(type=(datetime, str, None), **kwargs)
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
 

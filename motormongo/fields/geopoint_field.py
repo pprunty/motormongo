@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class GeoPointField(Field):
     def __init__(self, return_as_json=False, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(type=(list, tuple, dict, None), **kwargs)
         self.return_as_dict = return_as_json
 
     def __set__(self, obj, value):

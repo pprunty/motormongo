@@ -11,3 +11,5 @@ class UserModelRequest(BaseModel):
     alive: bool = Field(example=False, default=True)
     status: str = Field(example=Status.ACTIVE)
     location: List[float] = Field(example=[38.8977, 77.0365])
+    favorite_colors: List[str] = Field(example=["blue", "black"])
+    net_worth: float = Field(example=234.1)

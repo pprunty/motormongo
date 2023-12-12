@@ -1,7 +1,5 @@
 import enum as pyenum
-
 from motormongo.fields.field import Field
-
 
 class EnumField(Field):
     def __init__(self, enum, **kwargs):
@@ -14,11 +12,7 @@ class EnumField(Field):
         # If value is a string, try to match it with an enum member's value
         if isinstance(value, str):
             # Find a matching enum member, if any
-            matching_enum = None
-            for enum_member in self.enum:
-                if enum_member.value == value:
-                    matching_enum = enum_member
-                    break
+            matching_enum = next((enum_member for enum_member in self.enum if enum_member.value == value), None)
 
             # If a match is found, set the enum member as the value
             if matching_enum is not None:
@@ -35,6 +29,7 @@ class EnumField(Field):
 
     def __get__(self, obj, objtype=None):
         value = obj.__dict__.get(self.name, self.options.get('default'))
+        # Return the enum member's value if the stored value is an enum member
         if isinstance(value, self.enum):
             return value.value
         return value
