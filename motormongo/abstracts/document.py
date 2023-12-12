@@ -30,31 +30,39 @@ def camel_to_snake(name):
 
 class Document:
     """
+        A base class for MongoDB document models, providing methods for database operations.
 
-    @classmethods:
+        This class provides asynchronous methods for CRUD (Create, Read, Update, Delete) operations
+        and other utility functions for working with MongoDB documents. It should be subclassed to
+        create specific document models.
 
-    insert_one(document: dict | **kwargs) -> Object | error
-    find_one(filter: dict | **kwargs) -> Object | None
-    update_one(query: dict, update_fields: dict) -> Object | error
-    delete_one(query: dict | **kwargs) -> boolean | error
+        Attributes:
+            __collection (str): The name of the MongoDB collection associated with the model.
+            _registered_documents (list): A class-level list that keeps track of all subclasses.
 
-    insert_many(List[document | **kwargs]) -> List[Object] | error
-    find_many(filter) -> List[Object] | Object | None
-    update_many(query, update_fields) -> List[Object] | Object | error
-    delete_many(query) -> boolean | error
-
-    find_one_or_create
-    find_one_and_replace
-    find_one_and_delete
-    find_one_and_update_empty_fields(query, **kwargs) -> (Object, boolean)
-
-    # TODO: Deal with inserting reference documents (look into how Metro handles this)
-
-    object instance methods:
-
-    save() -> void | error
-    delete() -> void | error
-
+        Methods:
+            __init__(self, **kwargs): Initialize a new document instance with the given attributes.
+            __init_subclass__(cls, **kwargs): Class initialization hook for subclasses.
+            db(cls): Asynchronously retrieves the Motor database client instance.
+            get_collection_name(cls): Retrieves the collection name for the document class.
+            convert_id(cls, query): Converts '_id' in the query to an ObjectId.
+            insert_one(cls, document=None, **kwargs): Asynchronously inserts a single document.
+            insert_many(cls, documents): Asynchronously inserts multiple documents.
+            find_one(cls, filter=None, **kwargs): Asynchronously finds a single document.
+            find_many(cls, filter=None, limit=None, **kwargs): Asynchronously retrieves multiple documents.
+            update_one(cls, query, update_fields): Asynchronously updates a single document.
+            update_many(cls, query, update_fields): Asynchronously updates multiple documents.
+            delete_one(cls, query, **kwargs): Asynchronously deletes a single document.
+            delete_many(cls, query): Asynchronously deletes multiple documents.
+            find_one_or_create(cls, query, defaults=None): Asynchronously finds or creates a document.
+            find_one_and_replace(cls, query, replacement): Asynchronously finds and replaces a document.
+            find_one_and_update_empty_fields(cls, query, update_fields): Asynchronously updates empty fields in a document.
+            find_one_and_delete(cls, query): Asynchronously finds and deletes a document.
+            save(self): Asynchronously saves the current document instance.
+            delete(self): Asynchronously deletes the current document instance.
+            _json_encoder(obj): Custom JSON encoder for complex types.
+            to_json(self): Converts the document to a JSON string.
+            to_dict(self): Converts the document to a dictionary representation.
     """
     _registered_documents = []
 
@@ -206,7 +214,7 @@ class Document:
     @classmethod
     async def insert_many(cls, documents: List[Dict[str, Any]]) -> tuple[List['Document'], Any]:
         """
-        Inserts multiple documents into the database collection associated with the class.
+        Asynchronously inserts multiple documents into the database collection associated with the class.
 
         This method first processes each document in the provided list to ensure it adheres
         to the class's structure and applies necessary timestamps. It then inserts these
@@ -259,7 +267,7 @@ class Document:
     @classmethod
     async def find_one(cls, filter: dict = None, **kwargs) -> 'Document':
         """
-        Finds a single document in the database collection that matches the given filter.
+        Asynchronously finds a single document in the database collection that matches the given filter.
 
         This method combines the provided filter dictionary and any additional keyword arguments
         to form the search criteria. It returns an instance of the class that represents the
@@ -299,7 +307,8 @@ class Document:
     @classmethod
     async def find_many(cls, filter: dict = None, limit: int = None, **kwargs) -> List['Document']:
         """
-        Retrieves multiple documents from the database collection that match the given filter and limit.
+        Asynchronously retrieves multiple documents from the database collection that match the
+        given filter and limit.
 
         This method allows you to query multiple documents based on the filter criteria. It supports
         both a filter dictionary and additional keyword arguments. You can also specify a limit on
@@ -343,32 +352,32 @@ class Document:
     @classmethod
     async def update_one(cls, query: dict, update_fields: dict) -> 'Document':
         """
-            Updates a single document in the database collection based on the provided query and update fields.
+        Asynchronously updates a single document in the database collection based on the provided query and update fields.
 
-            This method finds a single document matching the query criteria and updates it with the specified fields.
-            It returns the updated document as an instance of the class. The method also supports additional
-            keyword arguments for further customization.
+        This method finds a single document matching the query criteria and updates it with the specified fields.
+        It returns the updated document as an instance of the class. The method also supports additional
+        keyword arguments for further customization.
 
-            Args:
-                query (dict): A dictionary specifying the filter criteria to identify the document to be updated.
-                update_fields (dict): A dictionary specifying the fields to be updated in the document.
+        Args:
+            query (dict): A dictionary specifying the filter criteria to identify the document to be updated.
+            update_fields (dict): A dictionary specifying the fields to be updated in the document.
 
-            Returns:
-                Document: An instance of the class representing the updated document. Returns None if no document
-                          matches the query criteria or if the update operation fails.
+        Returns:
+            Document: An instance of the class representing the updated document. Returns None if no document
+                      matches the query criteria or if the update operation fails.
 
-            Raises:
-                ValueError: If there is an error in updating the document with the given criteria.
+        Raises:
+            ValueError: If there is an error in updating the document with the given criteria.
 
-            Examples:
-                await MyClass.update_one({"_id": "unique_id"}, {"name": "new_name", "age": 30})
-                query_criteria = {"name": "old_name"}
-                update_data = {"name": "updated_name"}
-                await MyClass.update_one(query_criteria, update_data)
+        Examples:
+            await MyClass.update_one({"_id": "unique_id"}, {"name": "new_name", "age": 30})
+            query_criteria = {"name": "old_name"}
+            update_data = {"name": "updated_name"}
+            await MyClass.update_one(query_criteria, update_data)
 
-            Note:
-                - The `update_fields` should not include the '_id' field as it is automatically popped from the update data.
-            """
+        Note:
+            - The `update_fields` should not include the '_id' field as it is automatically popped from the update data.
+        """
         update_fields = add_timestamps_if_required(cls, **update_fields, operation="update")
         query = cls.convert_id(query)
         update_fields.pop("_id", None)
@@ -389,7 +398,7 @@ class Document:
     async def update_many(cls, query: dict, update_fields: dict) -> Tuple[List['Document'], Any] | Tuple[
         List[Any], int]:
         """
-        Updates multiple documents in the database that match the given query.
+        Asynchronously updates multiple documents in the database that match the given query.
 
         Args:
             query (dict): The filter criteria to match documents that need to be updated.
@@ -434,7 +443,7 @@ class Document:
     @classmethod
     async def delete_one(cls, query: dict, **kwargs) -> bool:
         """
-        Deletes a single document from the database that matches the given query.
+        Asynchronously deletes a single document from the database that matches the given query.
 
         Args:
             query (dict): The filter criteria to match the document that needs to be deleted.
@@ -467,7 +476,7 @@ class Document:
     @classmethod
     async def delete_many(cls, query: dict) -> int:
         """
-        Deletes multiple documents from the database that match the given query.
+        Asynchronously deletes multiple documents from the database that match the given query.
 
         Args:
             query (dict): The filter criteria to match the documents that need to be deleted.
@@ -496,7 +505,7 @@ class Document:
     @classmethod
     async def find_one_or_create(cls, query: dict, defaults: dict = None) -> Tuple['Document', bool]:
         """
-        Finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
+        Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
 
         Args:
             query (dict): The filter criteria for the query.
@@ -528,7 +537,7 @@ class Document:
     @classmethod
     async def find_one_and_replace(cls, query: dict, replacement: dict) -> 'Document':
         """
-        Finds a single document and replaces it with the provided replacement document.
+        Asynchronously finds a single document and replaces it with the provided replacement document.
 
         Args:
             query (dict): The filter criteria for the query.
@@ -558,7 +567,8 @@ class Document:
     @classmethod
     async def find_one_and_update_empty_fields(cls, query: dict, update_fields: dict) -> Tuple['Document', bool]:
         """
-        Finds a single document matching the query and updates its empty fields with the provided values.
+        Asynchronously finds a single document matching the query and updates its empty fields with
+        the provided values.
 
         Args:
             query (dict): The filter criteria for the query.
@@ -593,7 +603,7 @@ class Document:
     @classmethod
     async def find_one_and_delete(cls, query: dict) -> 'Document':
         """
-        Finds a single document matching the query and deletes it.
+        Asynchronously finds a single document matching the query and deletes it.
 
         Args:
             query (dict): The filter criteria for the query.
@@ -618,8 +628,8 @@ class Document:
 
     async def save(self) -> None:
         """
-        Saves the current document instance to the database. If the document does not exist, it is inserted;
-        otherwise, it is updated.
+        Asynchronously saves the current document instance to the database. If the document does not exist,
+        it is inserted; otherwise, it is updated.
 
         This method applies timestamps as required and manages the document's `_id` attribute.
 
@@ -646,7 +656,7 @@ class Document:
 
     async def delete(self) -> None:
         """
-        Deletes the current document instance from the database based on its `_id`.
+        Asynchronously deletes the current document instance from the database based on its `_id`.
 
         Usage:
             user = User.find_one({'name': 'johndoe'})
