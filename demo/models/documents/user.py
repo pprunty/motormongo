@@ -27,6 +27,7 @@ class User(Document):
     age = IntegerField(help_text="The age of the user")
     alive = BooleanField(help_text="Whether the user is dead or alive.")
     status = EnumField(enum=Status, help_text="Indicator for whether the user is active or not.")
+    # todo: add list, reference and datetime field for testing
 
     class Meta:
         collection = "users"  # < If not provided, will default to class name (ex. User->user, UserDetails->user_details)

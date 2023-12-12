@@ -15,13 +15,9 @@ async def connect(uri: str, db: str):
     # todo: initialize odm class indexes, etc.
     # await initialize_odm()
 
+# todo: add methods to check if uri and db is correct based on pymongo errors
 
 async def get_db():
     if DataBase.db is None:
-        raise RuntimeError("Database not connected")
-    return DataBase.db
-
-async def get_collection():
-    if not DataBase.db:
         raise RuntimeError("Database not connected")
     return DataBase.db

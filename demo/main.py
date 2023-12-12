@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -54,11 +55,17 @@ async def update_user(user_id: str, user_data: UserModelRequest):
     # updated_user = await user.update({"name": user_data.name})
     return {}
 
-@app.put("/users/class/{user_id}")
-async def update_user(user_id: str, user_data: UserModelRequest):
-    user = await User.find_one({"_id": user_id})
+@app.put("/users/kill/{user_id}")
+async def kill_user(user_id: str):
+    user = await User.find_one(_id=user_id)
+    user.alive = False
+    await user.save()
+    return {}
 
-    user.alive = user_data.alive
+@app.put("/users/location/{user_id}")
+async def user_field_exists(user_id, location: List[float] = [38.8977, 77.0365]):
+    user = await User.find_one(_id=user_id)
+    user.location = location
     await user.save()
     return {}
 
