@@ -134,39 +134,37 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 ## Class methods
 
-### Operations
+## Operations
 
-The following [classmethods]() are supported by motormongo's Document class:
+The following class methods are supported by motormongo's `Document` class:
 
-| CRUD Type | Operation                                                                                 |
-|-----------|-------------------------------------------------------------------------------------------|
-| Create    | [`insert_one(document: dict, **kwargs) -> Object`](#create)                               |
-| Create    | [`insert_many(List[document: dict]) -> List[Object]`](#create)                            |
-| Read      | [`find_one(query: dict, **kwargs) -> Object`](#read)                                      |
-| Read      | [`find_many(filter: dict, **kwargs) -> List[Object]`](#read)                              |
-| Update    | [`update_one()`](#update)                                                                 |
-| Update    | [`update_many(query: dict, fields: dict)`](#update)                                       |
-| Update    | [`replace_one`](#update)                                                                  |
-| Mixed     | [`find_one_or_create(query: dict, document: dict, **kwargs) -> (Object, boolean)`](#mixed) |
-| Mixed     | [`find_one_and_replace`](#mixed)                                                          |
-| Mixed     | [`find_one_and_delete`](#mixed)                                                           |
-| Mixed     | [`find_one_and_update_empty_fields(query, fields)`](#mixed)                               |
+| CRUD Type | Operation                                                                                                   |
+|-----------|-------------------------------------------------------------------------------------------------------------|
+| Create    | [`insert_one(document: dict, **kwargs) -> Document`](#insert_one)                                           |
+| Create    | [`insert_many(documents: List[dict]) -> Tuple[List[Document], Any]`](#insert_many)                          |
+| Read      | [`find_one(filter: dict, **kwargs) -> Document`](#find_one)                                                 |
+| Read      | [`find_many(filter: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                             |
+| Update    | [`update_one(query: dict, update_fields: dict) -> Document`](#update_one)                                  |
+| Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)              |
+| Delete    | [`delete_one(query: dict, **kwargs) -> bool`](#delete_one)                                                  |
+| Delete    | [`delete_many(query: dict) -> int`](#delete_many)                                                           |
+| Mixed     | [`find_one_or_create(query: dict, defaults: dict) -> Tuple[Document, bool]`](#find_one_or_create)           |
+| Mixed     | [`find_one_and_replace(query: dict, replacement: dict) -> Document`](#find_one_and_replace)                 |
+| Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                      |
+| Mixed     | [`find_one_and_update_empty_fields(query: dict, update_fields: dict) -> Tuple[Document, bool]`](#find_one_and_update_empty_fields) |
 
 ### Create
 
-<a name="insert_one"></a>
-
-* `insert_one(document)`
-
+#### <a name="insert_one"></a> `insert_one(document: dict, **kwargs) -> Document`
+Inserts a single document into the database.
 ```python
-await User.insert_one(
-    {
-        "name": "John",
-        "age": 24,
-        "alive": True
-    }
-)
+await User.insert_one({
+    "name": "John",
+    "age": 24,
+    "alive": True
+})
 ```
+
 
 * `insert_many(List[document])`
 

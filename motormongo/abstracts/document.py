@@ -53,8 +53,8 @@ class Document:
             update_one(cls, query, update_fields): Asynchronously updates a single document.
             update_many(cls, query, update_fields): Asynchronously updates multiple documents.
             delete_one(cls, query, **kwargs): Asynchronously deletes a single document.
-            delete_many(cls, query): Asynchronously deletes multiple documents.
-            find_one_or_create(cls, query, defaults=None): Asynchronously finds or creates a document.
+            delete_many(cls, query, **kwargs): Asynchronously deletes multiple documents.
+            find_one_or_create(cls, query, defaults): Asynchronously finds or creates a document.
             find_one_and_replace(cls, query, replacement): Asynchronously finds and replaces a document.
             find_one_and_update_empty_fields(cls, query, update_fields): Asynchronously updates empty fields in a document.
             find_one_and_delete(cls, query): Asynchronously finds and deletes a document.
@@ -474,12 +474,13 @@ class Document:
             raise ValueError(f"Error deleting document: {e}")
 
     @classmethod
-    async def delete_many(cls, query: dict) -> int:
+    async def delete_many(cls, query: dict = None, **kwargs) -> int:
         """
         Asynchronously deletes multiple documents from the database that match the given query.
 
         Args:
             query (dict): The filter criteria to match the documents that need to be deleted.
+            **kwargs: Additional keyword arguments that will be merged into the query or used as the query.
 
         Usage:
             # Delete all users older than 40
@@ -487,6 +488,8 @@ class Document:
 
             # Delete all users with a specific status
             deleted_count = await MyClass.delete_many({'status': 'inactive'})
+                OR
+            deleted_count = await MyClass.delete_many(status='inactive')
 
         Returns:
             int: The number of documents deleted from the database.
@@ -494,6 +497,7 @@ class Document:
         Raises:
             ValueError: If there is an error in deleting the documents from the database.
         """
+        query = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -503,7 +507,7 @@ class Document:
             raise ValueError(f"Error deleting documents: {e}")
 
     @classmethod
-    async def find_one_or_create(cls, query: dict, defaults: dict = None) -> Tuple['Document', bool]:
+    async def find_one_or_create(cls, query: dict, defaults: dict) -> Tuple['Document', bool]:
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
 
