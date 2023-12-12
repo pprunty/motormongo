@@ -1,10 +1,9 @@
 import json
 import re
 from datetime import datetime
-from enum import Enum
-
 from bson import ObjectId
 from pymongo import ReturnDocument
+from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
 from typing import Any, Dict, List, Tuple
 from motormongo import get_db
@@ -716,7 +715,8 @@ class Document:
             dict: A dictionary representation of the document.
         """
         return {
-            k: (v.value if isinstance(v, Enum) else v) for k, v in self.__dict__.items()
+            k: (v.to_dict() if isinstance(v, EmbeddedDocument) else v)
+            for k, v in self.__dict__.items()
             if "__" not in k and k != "Meta"
         }
 
