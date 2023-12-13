@@ -185,7 +185,7 @@ user_document = {
 user = await MyClass.insert_one(**user_document)
 ```
 
-* `insert_many(List[document]) -> tuple[List['Document'], Any]`
+#### <a name="insert_many"></a> `insert_many(List[document]) -> tuple[List['Document'], Any]`
 
 ```python
 users, user_ids = await MyClass.insert_many(
@@ -213,7 +213,7 @@ inserted_docs, inserted_ids = await MyClass.insert_many(docs_to_insert)
 
 ### Read
 
-* `find_one(query, **kwargs) -> Document`
+#### <a name="find_one"></a> `find_one(query, **kwargs) -> Document`
 
 ```python
 user = await MyClass.find_one(
@@ -242,7 +242,7 @@ user = await User.find_one(
 )
 ```
 
-* `find_many(filter, limit, **kwargs) -> List[Document]`
+#### <a name="find_many"></a> `find_many(filter, limit, **kwargs) -> List[Document]`
 
 ```python
 users =  await MyClass.find_many(age={"$gt": 40}, alive=False, limit=20)
@@ -257,7 +257,7 @@ users = await MyClass.find_many(**filter_criteria, limit=20)
 
 ### Update
 
-* `update_one(query, updated_fields) -> Document`
+#### <a name="update_one"></a> `update_one(query, updated_fields) -> Document`
 
 ```python
 updated_user = await User.update_one(
@@ -279,7 +279,7 @@ update_data = {"name": "updated_name"}
 updated_user = await MyClass.update_one(query_criteria, update_data)
 ```
 
-* `update_many(qeury, fields) -> Tuple[List[Any], int]`
+#### <a name="update_many"></a> `update_many(qeury, fields) -> Tuple[List[Any], int]`
 
 ```python
 updated_users, modified_count = await MyClass.update_many({'age': {'$gt': 40}}, {'category': 'senior'})
@@ -293,7 +293,7 @@ updated_users, modified_count = await MyClass.update_many({'name': 'John Doe'}, 
 
 ### Destroy
 
-* `delete_one(query, **kwargs) -> bool`
+#### <a name="delete_one"></a> `delete_one(query, **kwargs) -> bool`
 
 ```python
 deleted = await MyClass.delete_one({'_id': '507f191e810c19729de860ea'})
@@ -305,7 +305,7 @@ Alternatively, using `**kwargs`:
 deleted = await MyClass.delete_one(name='John Doe')
 ```
 
-* `delete_many(query, **kwargs) -> int`
+#### <a name="delete_many"></a> `delete_many(query, **kwargs) -> int`
 
 ```python
 deleted_count = await MyClass.delete_many({'age': {'$gt': 40}})
@@ -326,25 +326,25 @@ deleted_count = await MyClass.delete_many(status='inactive')
 
 ### Mixed
 
-* `find_one_or_create(query, defaults) -> Tuple['Document', bool]`
+#### <a name="find_one_or_create"></a> `find_one_or_create(query, defaults) -> Tuple['Document', bool]`
 
 ```python
 user, created = await MyClass.find_one_or_create({'username': 'johndoe'}, defaults={'age': 30})
 ```
 
-* `find_one_and_replace(query, replacement) -> Document`
+#### <a name="find_one_and_replace"></a> `find_one_and_replace(query, replacement) -> Document`
 
 ```python
 replaced_user = await MyClass.find_one_and_replace({'username': 'johndoe'}, {'username': 'johndoe', 'age': 35})
 ```
 
-* `find_one_and_delete(query) -> Document`
+#### <a name="find_one_and_delete"></a> `find_one_and_delete(query) -> Document`
 
 ```python
 deleted_user = await MyClass.find_one_and_delete({'username': 'johndoe'})
 ```
 
-* `find_one_and_update_empty_fields(query, update_fields) -> Tuple['Document', bool]`
+#### <a name="find_one_and_update_empty_fields"></a> `find_one_and_update_empty_fields(query, update_fields) -> Tuple['Document', bool]`
 
 ```python
 updated_user, updated = await MyClass.find_one_and_update_empty_fields(
@@ -368,7 +368,7 @@ suported by an instance of a motormongo Document object:
 
 ### Update
 
-* `user.save() -> None`
+#### <a name="save"></a> `user.save() -> None`
 
 ```python
 # Find user by MongoDB _id
@@ -390,7 +390,7 @@ database is then updated by calling the `.save()` method on the `MyClass` object
 
 ### Destroy
 
-* `user.delete() -> None`
+#### <a name="delete"></a> `user.delete() -> None`
 
 ```python
 # Find all users where the user is not alive
