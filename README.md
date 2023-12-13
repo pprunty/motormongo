@@ -3,13 +3,10 @@
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 
-Author: [Patrick Prunty](https://pprunty.github.io/pprunty/). 
-
-**This project is still in a development phase and NOT recommended for use until non-dev 
-version is released (non-alpha or beta release versions).**
+Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
 `motormongo` - An Object Document Mapper
-for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), an asynchronous Python driver for MongoDB, designed to work with Tornado or
+for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), the MongoDB recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
 asyncio and enable non-blocking access to MongoDB.
 
 Asynchronous operations in a backend system, built using [FastAPI](https://github.com/tiangolo/fastapi) for
@@ -130,8 +127,8 @@ You've successfully created your first motormongo Object Document Mapper class. 
 The subsequent sections detail the datatype fields provided by motormongo, as well as the CRUD
 operations available on the classmethods and object instance methods of a motormongo document.
 
-If you wish to get straight into how to integrate motormongo with your [`FastAPI`]() application, skip ahead to the
-[FastAPI Integration]() section.
+If you wish to get straight into how to integrate motormongo with your `FastAPI` application, skip ahead to the
+[FastAPI Integration](#fastapi-integration) section.
 
 ## motormongo Fields
 
