@@ -138,19 +138,19 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 The following class methods are supported by motormongo's `Document` class:
 
-| CRUD Type | Operation                                                                                                   |
-|-----------|-------------------------------------------------------------------------------------------------------------|
-| Create    | [`insert_one(document: dict, **kwargs) -> Document`](#insert_one)                                           |
-| Create    | [`insert_many(documents: List[dict]) -> Tuple[List[Document], Any]`](#insert_many)                          |
-| Read      | [`find_one(filter: dict, **kwargs) -> Document`](#find_one)                                                 |
-| Read      | [`find_many(filter: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                             |
-| Update    | [`update_one(query: dict, update_fields: dict) -> Document`](#update_one)                                  |
-| Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)              |
-| Delete    | [`delete_one(query: dict, **kwargs) -> bool`](#delete_one)                                                  |
-| Delete    | [`delete_many(query: dict) -> int`](#delete_many)                                                           |
-| Mixed     | [`find_one_or_create(query: dict, defaults: dict) -> Tuple[Document, bool]`](#find_one_or_create)           |
-| Mixed     | [`find_one_and_replace(query: dict, replacement: dict) -> Document`](#find_one_and_replace)                 |
-| Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                      |
+| CRUD Type | Operation                                                                                                                          |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------|
+| Create    | [`insert_one(document: dict, **kwargs) -> Document`](#insert_one)                                                                  |
+| Create    | [`insert_many(documents: List[dict]) -> Tuple[List[Document], Any]`](#insert_many)                                                 |
+| Read      | [`find_one(filter: dict, **kwargs) -> Document`](#find_one)                                                                        |
+| Read      | [`find_many(filter: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                                                    |
+| Update    | [`update_one(query: dict, update_fields: dict) -> Document`](#update_one)                                                          |
+| Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)                                      |
+| Delete    | [`delete_one(query: dict, **kwargs) -> bool`](#delete_one)                                                                         |
+| Delete    | [`delete_many(query: dict, **kwargs) -> int`](#delete_many)                                                                        |
+| Mixed     | [`find_one_or_create(query: dict, defaults: dict) -> Tuple[Document, bool]`](#find_one_or_create)                                  |
+| Mixed     | [`find_one_and_replace(query: dict, replacement: dict) -> Document`](#find_one_and_replace)                                        |
+| Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                                             |
 | Mixed     | [`find_one_and_update_empty_fields(query: dict, update_fields: dict) -> Tuple[Document, bool]`](#find_one_and_update_empty_fields) |
 
 ### Create
@@ -361,12 +361,14 @@ itself.
 
 ### Operations
 
-The following object instance methods are
-suported by an instance of a motormongo Document object:
+The following are object instance methods are supported by motormongo's `Document` class:
 
-### Read
+| CRUD Type | Operation                                                                                                                          |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------|
+| Create    | [`save() -> None`](#save)                                                                                                          |
+| Delete    | [`delete() -> None`](#delete)                                                                                                      |
 
-### Update
+NOTE: All update operations can be manipulated on the fields in the Document class object itself.
 
 #### <a name="save"></a> `user.save() -> None`
 
