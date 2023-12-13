@@ -35,14 +35,29 @@ poetry add motormongo
 
 ## Quickstart
 
-### Step 1. Create a Motor Client:
+### Step 1. Create a motormongo client:
 
 ```python
-from motor.motor_asyncio import AsyncIOMotorClient
+from motormongo import connect
 
+
+def init_db():
+    # This 'connect' method needs to be called inside of a function because it is asynchronous
+    await connect(uri="<mongo_uri>", database="<mongo_database>")
+
+if __name__ == "__main__":
+    init_db()
 ```
 
-For details on how to set up a local or cloud MongoDB database instance, see [here]().
+The `mongo_uri` should look something like this:
+
+```text
+mongodb+srv://<username>:<password>@<cluster>.mongodb.net
+```
+
+and `database` should be the name of an existing MongoDB database in your MongoDB instance.
+
+For details on how to set up a local or cloud MongoDB database instance, see [here](https://www.mongodb.com/cloud/atlas/lp/try4?utm_source=google&utm_campaign=search_gs_pl_evergreen_atlas_general_prosp-brand_gic-null_emea-ie_ps-all_desktop_eng_lead&utm_term=using%20mongodb&utm_medium=cpc_paid_search&utm_ad=p&utm_ad_campaign_id=9510384711&adgroup=150907565274&cq_cmp=9510384711&gad_source=1&gclid=Cj0KCQiAyeWrBhDDARIsAGP1mWQ6B0kPYX9Tqmzku-4r-uUzOGL1PKDgSTlfpYeZ0I6HE3C-dgh1xF4aArHqEALw_wcB).
 
 ### Step 2. Define a motormongo Document:
 
