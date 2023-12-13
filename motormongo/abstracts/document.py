@@ -211,7 +211,7 @@ class Document:
             raise ValueError(f"Error inserting document: {e}")
 
     @classmethod
-    async def insert_many(cls, documents: List[Dict[str, Any]]) -> tuple[List['Document'], Any]:
+    async def insert_many(cls, documents: List[Dict[str, Any]]) -> Tuple[List['Document'], Any]:
         """
         Asynchronously inserts multiple documents into the database collection associated with the class.
 
@@ -226,7 +226,7 @@ class Document:
                                               represents a document to be inserted.
 
         Returns:
-            tuple[list['Document'], Any]: A tuple containing two elements. The first element
+            Tuple[list['Document'], Any]: A tuple containing two elements. The first element
                                           is a list of instances of the class corresponding
                                           to the inserted documents. The second element is
                                           a list of MongoDB-generated IDs for these documents.
@@ -579,7 +579,7 @@ class Document:
 
         Usage:
             # Update the user's email and age if they are empty
-            updated_user, updated = await User.find_one_and_update_empty_fields(
+            updated_user, updated = await MyClass.find_one_and_update_empty_fields(
                 {'username': 'johndoe'},
                 {'email': 'johndoe@example.com', 'age': 30}
             )
