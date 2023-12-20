@@ -1,30 +1,13 @@
 import json
-import re
-from datetime import datetime
+from enum import Enum
 from bson import ObjectId
 from pymongo import ReturnDocument
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
 from typing import Any, Dict, List, Tuple
 from motormongo import get_db
-
-DATABASE = "test"
-
-
-def add_timestamps_if_required(cls, operation: str = "update", **kwargs):
-    current_time = datetime.utcnow()
-    if hasattr(cls, 'Meta'):
-        if getattr(cls.Meta, 'created_at_timestamp', False) and 'created_at' not in kwargs and operation != "update":
-            kwargs['created_at'] = current_time
-        if getattr(cls.Meta, 'updated_at_timestamp', False) and 'updated_at' not in kwargs:
-            kwargs['updated_at'] = current_time
-    return kwargs
-
-
-def camel_to_snake(name):
-    """Convert CamelCase to snake_case."""
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+from motormongo.utils.formatter import camel_to_snake
+from motormongo.utils.formatter import add_timestamps_if_required
 
 
 class Document:
@@ -93,10 +76,11 @@ class Document:
                 print(f"{name} -> {kwargs.get(name, field.options.get('default'))}")
                 setattr(self, name, kwargs.get(name, field.options.get('default')))
 
+        # # TODO: This should be set elsewhere?
         if 'created_at' in kwargs:
             self.created_at = kwargs.get("created_at")
-        # # TODO: This should be set elsewhere?
-        # self.updated_at = datetime.utcnow()
+        if 'updated_at' in kwargs:
+            self.updated_at = kwargs.get("updated_at")
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -709,14 +693,15 @@ class Document:
         Converts the document to a dictionary representation.
 
         This method excludes keys that contain '__' anywhere in their name or are 'Meta'.
-        Enum values are converted to their corresponding values.
+        Enum values, embedded documents, and ObjectId instances are converted to their corresponding representations.
 
         Returns:
             dict: A dictionary representation of the document.
         """
         return {
-            k: (v.to_dict() if isinstance(v, EmbeddedDocument) else v)
+            k: (str(v) if isinstance(v, ObjectId)
+                else (v.value if isinstance(v, Enum)
+                      else (v.to_dict() if isinstance(v, EmbeddedDocument) else v)))
             for k, v in self.__dict__.items()
             if "__" not in k and k != "Meta"
         }
-

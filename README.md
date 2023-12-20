@@ -136,13 +136,14 @@ motormongo supports the following datatype fields for your motormongo Document c
 
 1. `StringField(min_length, max_length, regex)`
 2. `IntegerField(min_value, max_value)`
-3. `BooleanField`
-4. `EnumField(Enum)`
+3. `BooleanField()`
+4. `EnumField(enum)`
 5. `DateTimeField(auto_now, auto_now_add)`
-6. `ListField`
+6. `ListField()`
 7. `ReferenceField(Document)`
 8. `BinaryField(hash_function)`
-9. `GeoJSONField()`
+9. `GeoPointField(return_as_json)`
+10. `EmbeddedDocumentField(EmbeddedDocument)`
 
 ## Class methods
 
@@ -165,12 +166,14 @@ The following class methods are supported by motormongo's `Document` class:
 | Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                                             |
 | Mixed     | [`find_one_and_update_empty_fields(query: dict, update_fields: dict) -> Tuple[Document, bool]`](#find_one_and_update_empty_fields) |
 
+All examples below assume `User` is a subclass of motormongo provided Document class.
+
 ### Create
 
 #### <a name="insert_one"></a> `insert_one(document: dict, **kwargs) -> Document`
 Inserts a single document into the database.
 ```python
-user = await MyClass.insert_one({
+user = await User.insert_one({
     "name": "John",
     "age": 24,
     "alive": True
@@ -180,7 +183,7 @@ user = await MyClass.insert_one({
 Alternatively, using `**kwargs`:
 
 ```python
-user = await MyClass.insert_one(
+user = await User.insert_one(
  name="John",
  age=24,
  alive=True)
@@ -194,13 +197,13 @@ user_document = {
     "age": 24,
     "alive": True
 }
-user = await MyClass.insert_one(**user_document)
+user = await User.insert_one(**user_document)
 ```
 
 #### <a name="insert_many"></a> `insert_many(List[document]) -> tuple[List['Document'], Any]`
 
 ```python
-users, user_ids = await MyClass.insert_many(
+users, user_ids = await User.insert_many(
     [
         {
             "name": "John",
@@ -220,7 +223,7 @@ or
 
 ```python
 docs_to_insert = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-inserted_docs, inserted_ids = await MyClass.insert_many(docs_to_insert)
+inserted_docs, inserted_ids = await User.insert_many(docs_to_insert)
 ```
 
 ### Read
@@ -228,7 +231,7 @@ inserted_docs, inserted_ids = await MyClass.insert_many(docs_to_insert)
 #### <a name="find_one"></a> `find_one(query, **kwargs) -> Document`
 
 ```python
-user = await MyClass.find_one(
+user = await User.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
@@ -238,7 +241,7 @@ user = await MyClass.find_one(
 Alternatively, using `**kwargs`:
 
 ```python
-user = await MyClass.find_one(_id="655fc281c440f677fa1e117e")
+user = await User.find_one(_id="655fc281c440f677fa1e117e")
 ```
 
 Note: The `_id` string datatype here is automatically converted to a BSON ObjectID, however, motormongo handles the scenario when a
@@ -257,14 +260,14 @@ user = await User.find_one(
 #### <a name="find_many"></a> `find_many(filter, limit, **kwargs) -> List[Document]`
 
 ```python
-users =  await MyClass.find_many(age={"$gt": 40}, alive=False, limit=20)
+users =  await User.find_many(age={"$gt": 40}, alive=False, limit=20)
 ```
 
 or
 
 ```python
 filter_criteria = {"age": {"$gt": 40}, "alive": False}
-users = await MyClass.find_many(**filter_criteria, limit=20)
+users = await User.find_many(**filter_criteria, limit=20)
 ```
 
 ### Update
@@ -288,19 +291,19 @@ or
 ```python
 query_criteria = {"name": "old_name"}
 update_data = {"name": "updated_name"}
-updated_user = await MyClass.update_one(query_criteria, update_data)
+updated_user = await User.update_one(query_criteria, update_data)
 ```
 
 #### <a name="update_many"></a> `update_many(qeury, fields) -> Tuple[List[Any], int]`
 
 ```python
-updated_users, modified_count = await MyClass.update_many({'age': {'$gt': 40}}, {'category': 'senior'})
+updated_users, modified_count = await User.update_many({'age': {'$gt': 40}}, {'category': 'senior'})
 ```
 
 another example:
 
 ```python
-updated_users, modified_count = await MyClass.update_many({'name': 'John Doe'}, {'$inc': {'age': 1}})
+updated_users, modified_count = await User.update_many({'name': 'John Doe'}, {'$inc': {'age': 1}})
 ```
 
 ### Destroy
@@ -308,32 +311,32 @@ updated_users, modified_count = await MyClass.update_many({'name': 'John Doe'}, 
 #### <a name="delete_one"></a> `delete_one(query, **kwargs) -> bool`
 
 ```python
-deleted = await MyClass.delete_one({'_id': '507f191e810c19729de860ea'})
+deleted = await User.delete_one({'_id': '507f191e810c19729de860ea'})
 ```
 
 Alternatively, using `**kwargs`:
 
 ```python
-deleted = await MyClass.delete_one(name='John Doe')
+deleted = await User.delete_one(name='John Doe')
 ```
 
 #### <a name="delete_many"></a> `delete_many(query, **kwargs) -> int`
 
 ```python
-deleted_count = await MyClass.delete_many({'age': {'$gt': 40}})
+deleted_count = await User.delete_many({'age': {'$gt': 40}})
 ```
 
 Another example:
 
 ```python
 # Delete all users with a specific status
-deleted_count = await MyClass.delete_many({'status': 'inactive'})
+deleted_count = await User.delete_many({'status': 'inactive'})
 ```
 
 Alternatively, using `**kwargs`:
 
 ```python
-deleted_count = await MyClass.delete_many(status='inactive')
+deleted_count = await User.delete_many(status='inactive')
 ```
 
 ### Mixed
@@ -341,25 +344,25 @@ deleted_count = await MyClass.delete_many(status='inactive')
 #### <a name="find_one_or_create"></a> `find_one_or_create(query, defaults) -> Tuple['Document', bool]`
 
 ```python
-user, created = await MyClass.find_one_or_create({'username': 'johndoe'}, defaults={'age': 30})
+user, created = await User.find_one_or_create({'username': 'johndoe'}, defaults={'age': 30})
 ```
 
 #### <a name="find_one_and_replace"></a> `find_one_and_replace(query, replacement) -> Document`
 
 ```python
-replaced_user = await MyClass.find_one_and_replace({'username': 'johndoe'}, {'username': 'johndoe', 'age': 35})
+replaced_user = await User.find_one_and_replace({'username': 'johndoe'}, {'username': 'johndoe', 'age': 35})
 ```
 
 #### <a name="find_one_and_delete"></a> `find_one_and_delete(query) -> Document`
 
 ```python
-deleted_user = await MyClass.find_one_and_delete({'username': 'johndoe'})
+deleted_user = await User.find_one_and_delete({'username': 'johndoe'})
 ```
 
 #### <a name="find_one_and_update_empty_fields"></a> `find_one_and_update_empty_fields(query, update_fields) -> Tuple['Document', bool]`
 
 ```python
-updated_user, updated = await MyClass.find_one_and_update_empty_fields(
+updated_user, updated = await User.find_one_and_update_empty_fields(
                 {'username': 'johndoe'},
                 {'email': 'johndoe@example.com', 'age': 30}
             )
@@ -386,7 +389,7 @@ NOTE: All update operations can be manipulated on the fields in the Document cla
 
 ```python
 # Find user by MongoDB _id
-user = await MyClass.find_one(
+user = await User.find_one(
     {
         "_id": "655fc281c440f677fa1e117e"
     }
@@ -398,9 +401,9 @@ if user.age > 80:
 user.save()
 ```
 
-In this example, `MyClass.find_one()` returns an instance of `MyClass`. If the age field
+In this example, `User.find_one()` returns an instance of `User`. If the age field
 is greater than 80, the alive field is set to false. The instance of the document in the MongoDB
-database is then updated by calling the `.save()` method on the `MyClass` object instance.
+database is then updated by calling the `.save()` method on the `User` object instance.
 
 ### Destroy
 
@@ -408,7 +411,7 @@ database is then updated by calling the `.save()` method on the `MyClass` object
 
 ```python
 # Find all users where the user is not alive
-users = await MyClass.find_many(
+users = await User.find_many(
     {
         "alive": False
     }

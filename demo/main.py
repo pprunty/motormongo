@@ -38,7 +38,7 @@ async def get_user(user_id: str):
     if user is None:
         raise HTTPException(status_code=404, detail="user not found")
     print(f"Got user {user.to_dict()}")
-    return {}
+    return user.to_dict()
 
 
 @app.put("/users/{user_id}")
