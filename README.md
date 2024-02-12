@@ -1,7 +1,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)](https://pypi.org/project/motormongo/)
-[![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
+[![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 
 Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
@@ -142,7 +142,7 @@ motormongo supports the following datatype fields for your motormongo Document c
 6. `ListField()`
 7. `ReferenceField(Document)`
 8. `BinaryField(hash_function)`
-9. `GeoPointField(return_as_json)`
+9. `GeoJSONField(return_as_json)`
 10. `EmbeddedDocumentField(EmbeddedDocument)`
 
 ## Class methods

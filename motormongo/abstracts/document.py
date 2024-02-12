@@ -2,6 +2,8 @@ import json
 from enum import Enum
 from bson import ObjectId
 from pymongo import ReturnDocument
+
+from motormongo.fields.reference_field import ReferenceField
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
 from typing import Any, Dict, List, Tuple
@@ -71,9 +73,8 @@ class Document:
 
         # Setting other attributes
         for name, field in self.__class__.__dict__.items():
-            print(f"field = {field} and name = {name}")
             if isinstance(field, Field):
-                print(f"{name} -> {kwargs.get(name, field.options.get('default'))}")
+                # For non-ReferenceField fields or if the value is not a string, set it directly
                 setattr(self, name, kwargs.get(name, field.options.get('default')))
 
         # # TODO: This should be set elsewhere?
@@ -181,7 +182,7 @@ class Document:
             raise ValueError(f"Error initializing object: {e}")
 
         # Apply timestamps
-        document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict())
+        document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict(id_as_string=False))
 
         print(f"document w timestamp = {document_w_timestamps}")
 
@@ -233,7 +234,7 @@ class Document:
                 except TypeError as e:
                     raise ValueError(f"Error initializing object: {e}")
                 # Apply timestamps
-                document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict())
+                document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict(id_as_string=False))
                 processed_documents.append(document_w_timestamps)
             else:
                 raise ValueError("All items in the documents list must be dictionaries.")
@@ -251,10 +252,6 @@ class Document:
     async def find_one(cls, filter: dict = None, **kwargs) -> 'Document':
         """
         Asynchronously finds a single document in the database collection that matches the given filter.
-
-        This method combines the provided filter dictionary and any additional keyword arguments
-        to form the search criteria. It returns an instance of the class that represents the
-        found document, or None if no document matches the criteria.
 
         Args:
             filter (dict, optional): A dictionary specifying the filter criteria for the query.
@@ -278,11 +275,22 @@ class Document:
             If both filter and keyword arguments are provided, they are combined for the query.
         """
         filter = {**(filter or {}), **kwargs}
+
+        # Check if any value in the filter is a Document instance and replace it with its _id
+        for key, value in filter.items():
+            if isinstance(value, Document) and hasattr(value, '_id'):
+                filter[key] = value._id
+            elif isinstance(value, Document) and not hasattr(value, '_id'):
+                raise ValueError(f"The document provided for '{key}' does not have an '_id'.")
+
         filter = cls.convert_id(filter)
+
+        # print(f"__filter = {filter}")
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
+            # print(f"__doc rep = {document}")
             return cls(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
@@ -365,11 +373,17 @@ class Document:
         query = cls.convert_id(query)
         update_fields.pop("_id", None)
         try:
+            print(f"__insert_one instance ")
+            instance = cls(**update_fields)
+        except TypeError as e:
+            raise ValueError(f"Error initializing object: {e}")
+
+        try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             update_result = await collection.find_one_and_update(
                 query,
-                {"$set": update_fields},
+                {"$set": instance.to_dict(id_as_string=False)},
                 return_document=ReturnDocument.AFTER
             )
             if update_result is not None:
@@ -628,7 +642,7 @@ class Document:
         Raises:
             ValueError: If there is an error in saving the document to the database.
         """
-        document = add_timestamps_if_required(self, operation="update", **self.to_dict())
+        document = add_timestamps_if_required(self, operation="update", **self.to_dict(id_as_string=False))
         print(f"doc dict represenatuon = {document}")
         try:
             db = await self.db()
@@ -688,18 +702,24 @@ class Document:
         """
         return json.dumps(self.to_dict(), default=self._json_encoder)
 
-    def to_dict(self):
+    def to_dict(self, id_as_string=True):
         """
         Converts the document to a dictionary representation.
 
+        Args:
+            id_as_string (bool, optional): If True, converts ObjectId instances to strings.
+                                           Defaults to True.
+
         This method excludes keys that contain '__' anywhere in their name or are 'Meta'.
-        Enum values, embedded documents, and ObjectId instances are converted to their corresponding representations.
+        Enum values, embedded documents, and ObjectId instances are converted to their
+        corresponding representations, depending on the id_as_string flag.
 
         Returns:
             dict: A dictionary representation of the document.
         """
+        ## todo: should return __get__ on the value vs just the v.value?
         return {
-            k: (str(v) if isinstance(v, ObjectId)
+            k: (str(v) if id_as_string and isinstance(v, ObjectId)
                 else (v.value if isinstance(v, Enum)
                       else (v.to_dict() if isinstance(v, EmbeddedDocument) else v)))
             for k, v in self.__dict__.items()

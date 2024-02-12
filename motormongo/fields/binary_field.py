@@ -3,6 +3,7 @@ from bson import Binary
 from typing import Callable, Optional, Union
 
 class BinaryField(Field):
+    # todo: add return_decoded parameter
     def __init__(self, hash_function: Optional[Callable[[str], bytes]] = None, **kwargs):
         super().__init__(**kwargs)
         self.hash_function = hash_function

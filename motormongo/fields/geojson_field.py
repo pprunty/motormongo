@@ -1,10 +1,10 @@
 from motormongo.fields.field import Field
 
 
-class GeoPointField(Field):
-    def __init__(self, return_as_json=False, **kwargs):
+class GeoJSONField(Field):
+    def __init__(self, return_as_list=False, **kwargs):
         super().__init__(type=(list, tuple, dict, None), **kwargs)
-        self.return_as_dict = return_as_json
+        self.return_as_list = return_as_list
 
     def __set__(self, obj, value):
         if value is not None:
@@ -21,14 +21,14 @@ class GeoPointField(Field):
                     raise ValueError("Latitude must be between -90 and 90, and Longitude must be between -180 and 180")
             else:
                 raise ValueError(
-                    "Value for GeoPointField must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary")
+                    "Value for GeoJSONField must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary")
 
         super().__set__(obj, value)
 
     def __get__(self, obj, objtype=None):
         value = super().__get__(obj, objtype)
         # Return the entire GeoJSON dictionary if the flag is set
-        if self.return_as_dict:
+        if not self.return_as_list:
             return value
         # Otherwise, return just the coordinates
         if isinstance(value, dict) and value.get('type') == 'Point':

@@ -16,7 +16,8 @@ install-pre-commit:
 
 .PHONY: run
 run:
-	poetry run uvicorn motormongo.main:app --reload  --log-config=motormongo/logging.yaml
+	poetry run uvicorn motormongo.main:app --reload
+	#poetry run uvicorn motormongo.main:app --reload  --log-config=logging.yaml
 
 .PHONY: demo
 demo:
