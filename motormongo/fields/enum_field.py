@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class EnumField(Field):
     def __init__(self, enum, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(type=pyenum.Enum, **kwargs)
         if not issubclass(enum, pyenum.Enum):
             raise TypeError("enum must be an enum.Enum subclass")
         self.enum = enum

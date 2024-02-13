@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class IntegerField(Field):
     def __init__(self, min_value=None, max_value=None, **kwargs):
-        super().__init__(type=(int, None), **kwargs)
+        super().__init__(type=int, **kwargs)
         self.min_value = min_value
         self.max_value = max_value
 

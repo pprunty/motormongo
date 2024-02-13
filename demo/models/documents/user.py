@@ -1,6 +1,10 @@
 import re
 import bcrypt
 from enum import Enum
+
+from motormongo.abstracts.embedded_document import EmbeddedDocument
+
+from motormongo.fields.embedded_document_field import EmbeddedDocumentField
 from motormongo.abstracts.document import Document
 from motormongo.fields.datetime_field import DateTimeField
 from motormongo.fields.reference_field import ReferenceField
@@ -41,10 +45,18 @@ class User(Document):
         indexes = [{'fields': ['location'], 'type': '2dsphere'}]
         timestamps = True
 
+
+class Metadata(EmbeddedDocument):
+    hair_color = StringField()
+    ethnicity = StringField()
+
 class UserDetails(Document):
-    user = ReferenceField(User)
     gender = EnumField(enum=Gender)
+    user = ReferenceField(User)
     dob = DateTimeField()
+    metadata = EmbeddedDocumentField(Metadata)
 
     class Meta:
         collection = "user_details"
+        created_at_timestamp = True  # < Provide a DateTimeField for document creation
+        updated_at_timestamp = True  # < Provide a DateTimeField for document creation

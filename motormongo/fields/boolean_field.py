@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class BooleanField(Field):
     def __init__(self, **kwargs):
-        super().__init__(type=(bool, None), **kwargs)
+        super().__init__(type=bool, **kwargs)
 
 
     def __set__(self, obj, value):

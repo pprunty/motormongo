@@ -1,17 +1,19 @@
 class Field:
     def __init__(self, type=None, **kwargs):
-        self.type = type
+        # Allow for a single type or a tuple of types
+        self.type = type if isinstance(type, tuple) else (type,)
         self.options = kwargs
 
     def __set_name__(self, owner, name):
         self.name = name
 
     def __get__(self, obj, objtype=None):
-        print(f"returning {self.name} with value { obj.__dict__.get(self.name, self.options.get('default'))} of type = {type( obj.__dict__.get(self.name, self.options.get('default')))}")
         return obj.__dict__.get(self.name, self.options.get('default'))
 
     def __set__(self, obj, value):
-        if self.type and not isinstance(value, self.type):
-            raise TypeError(f"Value for {self.name} must be of type {self.type.__name__}")
-        print(f"setting {self.name} to value {value} with type = {type(value)}")
+        # Check against all allowed types
+        if not any(isinstance(value, t) for t in self.type if t is not None):
+            allowed_types = ", ".join(t.__name__ for t in self.type if t is not None)
+            raise TypeError(f"Value for {self.name} must be of type {allowed_types}")
         obj.__dict__[self.name] = value
+

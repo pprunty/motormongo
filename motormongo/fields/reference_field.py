@@ -21,7 +21,7 @@ class ReferenceField(Field):
                 raise ValueError(f"String value '{value}' cannot be converted to an ObjectId.")
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
         elif not isinstance(value, ObjectId):
-            raise ValueError(f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}.")
+            raise ValueError(f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}.")
 
         super().__set__(obj, value)
     def __get__(self, instance, owner):

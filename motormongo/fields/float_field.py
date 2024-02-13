@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class FloatField(Field):
     def __init__(self, min_value=None, max_value=None, **kwargs):
-        super().__init__(type=(float, None), **kwargs)
+        super().__init__(type=float, **kwargs)
         self.min_value = min_value
         self.max_value = max_value
 

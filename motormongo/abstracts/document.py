@@ -74,8 +74,13 @@ class Document:
         # Setting other attributes
         for name, field in self.__class__.__dict__.items():
             if isinstance(field, Field):
+                print(f"{name} and value = {kwargs.get(name, field.options.get('default'))}")
                 # For non-ReferenceField fields or if the value is not a string, set it directly
-                setattr(self, name, kwargs.get(name, field.options.get('default')))
+                if kwargs.get(name, field.options.get('default')) is not None:
+                    setattr(self, name, kwargs.get(name, field.options.get('default')))
+            else:
+                # todo: valid warn
+                NotImplemented
 
         # # TODO: This should be set elsewhere?
         if 'created_at' in kwargs:
@@ -136,11 +141,15 @@ class Document:
         Raises:
             ValueError: If the '_id' format is invalid and cannot be converted to ObjectId.
         """
-        if '_id' in query and not isinstance(query['_id'], ObjectId):
-            try:
-                query['_id'] = ObjectId(query['_id'])
-            except Exception as e:
-                raise ValueError(f"Invalid _id format: {e}")
+        for key, value in query.items():
+            if isinstance(value, str):
+                try:
+                    query[key] = ObjectId(value)
+                except Exception:
+                    pass  # Ignore if the string cannot be converted to ObjectId
+            elif isinstance(value, dict):
+                # Recursively convert for nested dictionaries
+                query[key] = cls.convert_id(value)
         return query
 
     @classmethod
@@ -174,6 +183,8 @@ class Document:
         """
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
+
+        print(f"document  = {document}")
 
         # Initialize the instance
         try:
@@ -277,6 +288,7 @@ class Document:
         filter = {**(filter or {}), **kwargs}
 
         # Check if any value in the filter is a Document instance and replace it with its _id
+        # todo: get this working
         for key, value in filter.items():
             if isinstance(value, Document) and hasattr(value, '_id'):
                 filter[key] = value._id
@@ -285,7 +297,8 @@ class Document:
 
         filter = cls.convert_id(filter)
 
-        # print(f"__filter = {filter}")
+        print(f"__filter = {filter}")
+
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -343,6 +356,7 @@ class Document:
     @classmethod
     async def update_one(cls, query: dict, update_fields: dict) -> 'Document':
         """
+        TODO: ALLOW FOR update_one to handle case when update_fields does not include entire doc's fields
         Asynchronously updates a single document in the database collection based on the provided query and update fields.
 
         This method finds a single document matching the query criteria and updates it with the specified fields.
@@ -371,10 +385,13 @@ class Document:
         """
         update_fields = add_timestamps_if_required(cls, **update_fields, operation="update")
         query = cls.convert_id(query)
-        update_fields.pop("_id", None)
+        for field in query.keys():
+            update_fields.pop(field, None)
+
         try:
-            print(f"__insert_one instance ")
+            print(f"__update_one instance 1 {update_fields}")
             instance = cls(**update_fields)
+            print(f"__update_one instance {instance.to_dict()}")
         except TypeError as e:
             raise ValueError(f"Error initializing object: {e}")
 
@@ -704,15 +721,12 @@ class Document:
 
     def to_dict(self, id_as_string=True):
         """
-        Converts the document to a dictionary representation.
+        Converts the document to a dictionary representation, using field-specific
+        __get__ methods for serialization where applicable.
 
         Args:
             id_as_string (bool, optional): If True, converts ObjectId instances to strings.
                                            Defaults to True.
-
-        This method excludes keys that contain '__' anywhere in their name or are 'Meta'.
-        Enum values, embedded documents, and ObjectId instances are converted to their
-        corresponding representations, depending on the id_as_string flag.
 
         Returns:
             dict: A dictionary representation of the document.

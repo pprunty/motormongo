@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, time
 
 from motormongo.fields.field import Field
 

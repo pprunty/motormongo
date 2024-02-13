@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class ListField(Field):
     def __init__(self, field=None, **kwargs):
-        super().__init__(type=(list, None), **kwargs)
+        super().__init__(type=list, **kwargs)
         self.field = field
 
     def __set__(self, obj, value):

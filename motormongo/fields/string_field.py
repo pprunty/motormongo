@@ -3,7 +3,7 @@ from motormongo.fields.field import Field
 
 class StringField(Field):
     def __init__(self, min_length=None, max_length=None, regex=None, **kwargs):
-        super().__init__(type=(str, None), **kwargs)
+        super().__init__(type=str, **kwargs)
         self.min_length = min_length
         self.max_length = max_length
         self.regex = regex
