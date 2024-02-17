@@ -2,32 +2,24 @@ import re
 import bcrypt
 from enum import Enum
 
-from motormongo.abstracts.embedded_document import EmbeddedDocument
+from motormongo import Document, EmbeddedDocument
+from motormongo import (EmbeddedDocumentField, DateTimeField, ReferenceField, FloatField, ListField,
+                               GeoJSONField, BooleanField, BinaryField, StringField, IntegerField, EnumField)
 
-from motormongo.fields.embedded_document_field import EmbeddedDocumentField
-from motormongo.abstracts.document import Document
-from motormongo.fields.datetime_field import DateTimeField
-from motormongo.fields.reference_field import ReferenceField
-from motormongo.fields.float_field import FloatField
-from motormongo.fields.list_field import ListField
-from motormongo.fields.geojson_field import GeoJSONField
-from motormongo.fields.boolean_field import BooleanField
-from motormongo.abstracts.document import Document
-from motormongo.fields.binary_field import BinaryField
-from motormongo.fields.string_field import StringField
-from motormongo.fields.integer_field import IntegerField
-from motormongo.fields.enum_field import EnumField
 
 def hash_password(password) -> bytes:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
 
 class Status(Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 
+
 class Gender(Enum):
     MALE = "male"
     FEMALE = "female"
+
 
 class User(Document):
     username = StringField(min_length=3, max_length=50)
@@ -49,6 +41,7 @@ class User(Document):
 class Metadata(EmbeddedDocument):
     hair_color = StringField()
     ethnicity = StringField()
+
 
 class UserDetails(Document):
     gender = EnumField(enum=Gender)

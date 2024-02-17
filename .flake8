@@ -1,18 +1,25 @@
 [flake8]
-ignore = C101,D403,F403,F405,I100,I201,W503,W504,A003
+# General settings
+ignore =
+    E203,
+    E501,
+    W503,
+max-line-length = 88
 exclude =
-    **/migrations/*,
     .git,
-    .mypy_cache,
     __pycache__,
-    core/__backend__/settings/templates/*
-    venv
-filename = *.py
-accept-encodings = utf-8
-inline-quotes = single
-max-complexity = 12
-max-linenumber = 500
-max-line-length = 119
-multiline-quotes = double
+    build,
+    dist,
+    .venv,
+    .tox,
+    docs,
+    tests/fixtures/*,
+    *.egg-info,
+    .eggs
+
 per-file-ignores =
-    cooking_core/project/settings/templates/settings.dev.py:F821
+    __init__.py: F401
+
+max-complexity = 10
+
+select = B, C, E, F, W, B9

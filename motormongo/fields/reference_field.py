@@ -1,5 +1,7 @@
 from bson import ObjectId
+
 from motormongo.fields.field import Field
+
 
 class ReferenceField(Field):
     def __init__(self, document_class, **kwargs):
@@ -9,21 +11,28 @@ class ReferenceField(Field):
     def __set__(self, obj, value):
         # If the value is an instance of the document_class, try to get its _id
         if isinstance(value, self.document_class):
-            if hasattr(value, '_id'):
+            if hasattr(value, "_id"):
                 value = ObjectId(value._id)
             else:
-                raise ValueError(f"The {self.document_class.__name__} instance does not have an '_id' attribute.")
+                raise ValueError(
+                    f"The {self.document_class.__name__} instance does not have an '_id' attribute."
+                )
         # If the value is a string, attempt to convert it to ObjectId
         elif isinstance(value, str):
             try:
                 value = ObjectId(value)
             except Exception:
-                raise ValueError(f"String value '{value}' cannot be converted to an ObjectId.")
+                raise ValueError(
+                    f"String value '{value}' cannot be converted to an ObjectId."
+                )
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
         elif not isinstance(value, ObjectId):
-            raise ValueError(f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}.")
+            raise ValueError(
+                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}."
+            )
 
         super().__set__(obj, value)
+
     def __get__(self, instance, owner):
         print("___ inside ___ get")
         if instance is None:
@@ -46,6 +55,5 @@ class ReferenceField(Field):
 
         db = await self.document_class.db()
         collection = db[self.document_class.get_collection_name()]
-        document = await collection.find_one({'_id': reference_value})
+        document = await collection.find_one({"_id": reference_value})
         return self.document_class(**document) if document else None
-

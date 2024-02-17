@@ -1,10 +1,12 @@
-from datetime import datetime, date, time
+from datetime import date, datetime
 
 from motormongo.fields.field import Field
 
 
 class DateTimeField(Field):
-    def __init__(self, auto_now=False, auto_now_add=False, datetime_formats=None, **kwargs):
+    def __init__(
+        self, auto_now=False, auto_now_add=False, datetime_formats=None, **kwargs
+    ):
         super().__init__(type=(datetime, date, str, None), **kwargs)
         self.auto_now = auto_now
         self.auto_now_add = auto_now_add
@@ -35,12 +37,16 @@ class DateTimeField(Field):
                         continue  # Try the next format
                 if not parsed:
                     formats_str = ", ".join(self.datetime_formats)
-                    raise ValueError(f"Value for {self.name} must be a datetime object, a date object, or a string in one of the formats: {formats_str}")
+                    raise ValueError(
+                        f"Value for {self.name} must be a datetime object, a date object, or a string in one of the formats: {formats_str}"
+                    )
             elif isinstance(value, date) and not isinstance(value, datetime):
                 # Convert date to datetime for consistency
                 value = datetime(value.year, value.month, value.day)
             elif not isinstance(value, datetime):
-                raise ValueError(f"Value for {self.name} must be a datetime object, a date object, or a string representation of datetime")
+                raise ValueError(
+                    f"Value for {self.name} must be a datetime object, a date object, or a string representation of datetime"
+                )
 
         if self.auto_now or (self.auto_now_add and not obj.__dict__.get(self.name)):
             value = datetime.utcnow()

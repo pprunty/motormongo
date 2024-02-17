@@ -6,18 +6,17 @@ install:
 install-pre-commit:
 	poetry run pre-commit uninstall; poetry run pre-commit install
 
-#.PHONY: lint
-#lint:
-#	poetry run pre-commit run --all-files
-#
-#.PHONY: lint
-#lint:
-#	cd motormongo && poetry run pre-commit run --all-files
+.PHONY: lint
+lint:
+	poetry run flake8
 
-.PHONY: run
-run:
-	poetry run uvicorn motormongo.main:app --reload
-	#poetry run uvicorn motormongo.main:app --reload  --log-config=logging.yaml
+.PHONY: lint-fix
+lint-fix:
+	poetry run black motormongo
+
+.PHONY: sort
+sort:
+	 poetry run isort motormongo/
 
 .PHONY: demo
 demo:

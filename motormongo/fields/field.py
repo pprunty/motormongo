@@ -8,7 +8,7 @@ class Field:
         self.name = name
 
     def __get__(self, obj, objtype=None):
-        return obj.__dict__.get(self.name, self.options.get('default'))
+        return obj.__dict__.get(self.name, self.options.get("default"))
 
     def __set__(self, obj, value):
         # Check against all allowed types
@@ -16,4 +16,3 @@ class Field:
             allowed_types = ", ".join(t.__name__ for t in self.type if t is not None)
             raise TypeError(f"Value for {self.name} must be of type {allowed_types}")
         obj.__dict__[self.name] = value
-

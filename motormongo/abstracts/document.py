@@ -1,14 +1,13 @@
 import json
 from enum import Enum
+from typing import Any, Dict, List, Tuple
+
 from bson import ObjectId
 from pymongo import ReturnDocument
 
-from motormongo.fields.reference_field import ReferenceField
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
-from typing import Any, Dict, List, Tuple
-from motormongo.utils.formatter import camel_to_snake
-from motormongo.utils.formatter import add_timestamps_if_required
+from motormongo.utils.formatter import add_timestamps_if_required, camel_to_snake
 
 
 class DocumentMeta(type):
@@ -16,51 +15,54 @@ class DocumentMeta(type):
     Metaclass for Document to automatically register subclasses
     for supporting polymorphism.
     """
+
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
-        if not hasattr(cls, '_registered_documents'):
+        if not hasattr(cls, "_registered_documents"):
             cls._registered_documents = []
         else:
             cls._registered_documents.append(cls)
 
+
 class Document(metaclass=DocumentMeta):
     """
-        A base class for MongoDB document models, providing methods for database operations.
+    A base class for MongoDB document models, providing methods for mongo operations.
 
-        This class provides asynchronous methods for CRUD (Create, Read, Update, Delete) operations
-        and other utility functions for working with MongoDB documents. It should be subclassed to
-        create specific document models.
+    This class provides asynchronous methods for CRUD (Create, Read, Update, Delete) operations
+    and other utility functions for working with MongoDB documents. It should be subclassed to
+    create specific document models.
 
-        Attributes:
-            __collection (str): The name of the MongoDB collection associated with the model.
-            _registered_documents (list): A class-level list that keeps track of all subclasses.
+    Attributes:
+        __collection (str): The name of the MongoDB collection associated with the model.
+        _registered_documents (list): A class-level list that keeps track of all subclasses.
 
-        Methods:
-            __init__(self, **kwargs): Initialize a new document instance with the given attributes.
-            __init_subclass__(cls, **kwargs): Class initialization hook for subclasses.
-            db(cls): Asynchronously retrieves the Motor database client instance.
-            get_collection_name(cls): Retrieves the collection name for the document class.
-            convert_id(cls, query): Converts '_id' in the query to an ObjectId.
-            insert_one(cls, document=None, **kwargs): Asynchronously inserts a single document.
-            insert_many(cls, documents): Asynchronously inserts multiple documents.
-            find_one(cls, filter=None, **kwargs): Asynchronously finds a single document.
-            find_many(cls, filter=None, limit=None, **kwargs): Asynchronously retrieves multiple documents.
-            update_one(cls, query, update_fields): Asynchronously updates a single document.
-            update_many(cls, query, update_fields): Asynchronously updates multiple documents.
-            delete_one(cls, query, **kwargs): Asynchronously deletes a single document.
-            delete_many(cls, query, **kwargs): Asynchronously deletes multiple documents.
-            find_one_or_create(cls, query, defaults): Asynchronously finds or creates a document.
-            find_one_and_replace(cls, query, replacement): Asynchronously finds and replaces a document.
-            find_one_and_update_empty_fields(cls, query, update_fields): Asynchronously updates empty fields in a document.
-            find_one_and_delete(cls, query): Asynchronously finds and deletes a document.
-            save(self): Asynchronously saves the current document instance.
-            delete(self): Asynchronously deletes the current document instance.
-            _json_encoder(obj): Custom JSON encoder for complex types.
-            to_json(self): Converts the document to a JSON string.
-            to_dict(self): Converts the document to a dictionary representation.
+    Methods:
+        __init__(self, **kwargs): Initialize a new document instance with the given attributes.
+        __init_subclass__(cls, **kwargs): Class initialization hook for subclasses.
+        db(cls): Asynchronously retrieves the Motor mongo client instance.
+        get_collection_name(cls): Retrieves the collection name for the document class.
+        convert_id(cls, query): Converts '_id' in the query to an ObjectId.
+        insert_one(cls, document=None, **kwargs): Asynchronously inserts a single document.
+        insert_many(cls, documents): Asynchronously inserts multiple documents.
+        find_one(cls, filter=None, **kwargs): Asynchronously finds a single document.
+        find_many(cls, filter=None, limit=None, **kwargs): Asynchronously retrieves multiple documents.
+        update_one(cls, query, update_fields): Asynchronously updates a single document.
+        update_many(cls, query, update_fields): Asynchronously updates multiple documents.
+        delete_one(cls, query, **kwargs): Asynchronously deletes a single document.
+        delete_many(cls, query, **kwargs): Asynchronously deletes multiple documents.
+        find_one_or_create(cls, query, defaults): Asynchronously finds or creates a document.
+        find_one_and_replace(cls, query, replacement): Asynchronously finds and replaces a document.
+        find_one_and_update_empty_fields(cls, query, update_fields): Asynchronously updates empty fields in a document.
+        find_one_and_delete(cls, query): Asynchronously finds and deletes a document.
+        save(self): Asynchronously saves the current document instance.
+        delete(self): Asynchronously deletes the current document instance.
+        _json_encoder(obj): Custom JSON encoder for complex types.
+        to_json(self): Converts the document to a JSON string.
+        to_dict(self): Converts the document to a dictionary representation.
     """
+
     _registered_documents = []
-    __type_field = '__type'  # Field to store the document's class type
+    __type_field = "__type"  # Field to store the document's class type
 
     def __init__(self, **kwargs):
         """
@@ -76,29 +78,33 @@ class Document(metaclass=DocumentMeta):
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
         self.__collection = self.get_collection_name()
-        self.__dict__[self.__type_field] = self.__class__.__name__  # Store class name in __type_field
+        self.__dict__[self.__type_field] = (
+            self.__class__.__name__
+        )  # Store class name in __type_field
         print(f"Creating class for collection {self.__collection}")
 
         # Handling _id separately
-        if '_id' in kwargs:
+        if "_id" in kwargs:
             print(f"Setting _id: {kwargs['_id']}")
-            setattr(self, '_id', ObjectId(kwargs['_id']))
+            setattr(self, "_id", ObjectId(kwargs["_id"]))
 
         # Setting other attributes
         for name, field in self.__class__.__dict__.items():
             if isinstance(field, Field):
-                print(f"{name} and value = {kwargs.get(name, field.options.get('default'))}")
+                print(
+                    f"{name} and value = {kwargs.get(name, field.options.get('default'))}"
+                )
                 # For non-ReferenceField fields or if the value is not a string, set it directly
-                if kwargs.get(name, field.options.get('default')) is not None:
-                    setattr(self, name, kwargs.get(name, field.options.get('default')))
+                if kwargs.get(name, field.options.get("default")) is not None:
+                    setattr(self, name, kwargs.get(name, field.options.get("default")))
             else:
                 # todo: valid warn
                 NotImplemented
 
         # # TODO: This should be set elsewhere?
-        if 'created_at' in kwargs:
+        if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
-        if 'updated_at' in kwargs:
+        if "updated_at" in kwargs:
             self.updated_at = kwargs.get("updated_at")
 
     def __init_subclass__(cls, **kwargs):
@@ -117,11 +123,12 @@ class Document(metaclass=DocumentMeta):
     @classmethod
     async def db(cls):
         from motormongo import get_db
+
         """
-        Asynchronously retrieves the database client instance.
+        Asynchronously retrieves the mongo client instance.
 
         Returns:
-            The database client instance used by this document class.
+            The mongo client instance used by this document class.
 
         Note:
             - This is an asynchronous method and should be awaited.
@@ -137,7 +144,7 @@ class Document(metaclass=DocumentMeta):
             str: The collection name. If defined in the class's 'Meta' attribute, it uses that;
                  otherwise, converts the class name from CamelCase to snake_case.
         """
-        if hasattr(cls, 'Meta') and hasattr(cls.Meta, 'collection'):
+        if hasattr(cls, "Meta") and hasattr(cls.Meta, "collection"):
             return cls.Meta.collection
         return camel_to_snake(cls.__name__)
 
@@ -169,12 +176,12 @@ class Document(metaclass=DocumentMeta):
     @classmethod
     async def insert_one(cls, document: dict = None, **kwargs):
         """
-        Asynchronously inserts a single document into the database.
+        Asynchronously inserts a single document into the mongo.
 
         This method consolidates the provided `document` and any additional keyword
         arguments (`kwargs`) into a single document. It initializes an instance of
         the class with this document, applies any required timestamps, and then inserts
-        it into the database. If the insertion is successful, it returns an instance of
+        it into the mongo. If the insertion is successful, it returns an instance of
         the class representing the inserted document.
 
         Usage:
@@ -193,7 +200,7 @@ class Document(metaclass=DocumentMeta):
             An instance of the class representing the inserted document.
 
         Raises:
-            ValueError: If there is an error initializing the class instance or inserting the document into the database.
+            ValueError: If there is an error initializing the class instance or inserting the document into the mongo.
         """
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
@@ -207,7 +214,9 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error initializing object: {e}")
 
         # Apply timestamps
-        document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict(id_as_string=False))
+        document_w_timestamps = add_timestamps_if_required(
+            cls, operation="create", **instance.to_dict(id_as_string=False)
+        )
 
         print(f"document w timestamp = {document_w_timestamps}")
 
@@ -215,20 +224,24 @@ class Document(metaclass=DocumentMeta):
             collection_name = cls.get_collection_name()
             db = await cls.db()
             result = await db[collection_name].insert_one(document_w_timestamps)
-            inserted_document = await db[collection_name].find_one({'_id': result.inserted_id})
+            inserted_document = await db[collection_name].find_one(
+                {"_id": result.inserted_id}
+            )
             print(f"__ insert = {inserted_document}")
             return cls.from_dict(**inserted_document)
         except Exception as e:
             raise ValueError(f"Error inserting document: {e}")
 
     @classmethod
-    async def insert_many(cls, documents: List[Dict[str, Any]]) -> Tuple[List['Document'], Any]:
+    async def insert_many(
+        cls, documents: List[Dict[str, Any]]
+    ) -> Tuple[List["Document"], Any]:
         """
-        Asynchronously inserts multiple documents into the database collection associated with the class.
+        Asynchronously inserts multiple documents into the mongo collection associated with the class.
 
         This method first processes each document in the provided list to ensure it adheres
         to the class's structure and applies necessary timestamps. It then inserts these
-        processed documents into the database collection and returns a tuple consisting of
+        processed documents into the mongo collection and returns a tuple consisting of
         a list of class instances corresponding to the inserted documents and a list of
         their MongoDB-generated IDs.
 
@@ -260,24 +273,30 @@ class Document(metaclass=DocumentMeta):
                 except TypeError as e:
                     raise ValueError(f"Error initializing object: {e}")
                 # Apply timestamps
-                document_w_timestamps = add_timestamps_if_required(cls, operation="create", **instance.to_dict(id_as_string=False))
+                document_w_timestamps = add_timestamps_if_required(
+                    cls, operation="create", **instance.to_dict(id_as_string=False)
+                )
                 processed_documents.append(document_w_timestamps)
             else:
-                raise ValueError("All items in the documents list must be dictionaries.")
+                raise ValueError(
+                    "All items in the documents list must be dictionaries."
+                )
 
-        # Connect to the database and insert the documents
+        # Connect to the mongo and insert the documents
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             result = await collection.insert_many(processed_documents)
-            return [cls.from_dict(**doc) for doc in processed_documents], result.inserted_ids
+            return [
+                cls.from_dict(**doc) for doc in processed_documents
+            ], result.inserted_ids
         except Exception as e:
             raise ValueError(f"Error inserting multiple documents: {e}")
 
     @classmethod
-    async def find_one(cls, filter: dict = None, **kwargs) -> 'Document':
+    async def find_one(cls, filter: dict = None, **kwargs) -> "Document":
         """
-        Asynchronously finds a single document in the database collection that matches the given filter.
+        Asynchronously finds a single document in the mongo collection that matches the given filter.
 
         Args:
             filter (dict, optional): A dictionary specifying the filter criteria for the query.
@@ -305,10 +324,12 @@ class Document(metaclass=DocumentMeta):
         # Check if any value in the filter is a Document instance and replace it with its _id
         # todo: get this working
         for key, value in filter.items():
-            if isinstance(value, Document) and hasattr(value, '_id'):
+            if isinstance(value, Document) and hasattr(value, "_id"):
                 filter[key] = value._id
-            elif isinstance(value, Document) and not hasattr(value, '_id'):
-                raise ValueError(f"The document provided for '{key}' does not have an '_id'.")
+            elif isinstance(value, Document) and not hasattr(value, "_id"):
+                raise ValueError(
+                    f"The document provided for '{key}' does not have an '_id'."
+                )
 
         filter = cls.convert_id(filter)
 
@@ -324,9 +345,11 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error finding document: {e}")
 
     @classmethod
-    async def find_many(cls, filter: dict = None, limit: int = None, **kwargs) -> List['Document']:
+    async def find_many(
+        cls, filter: dict = None, limit: int = None, **kwargs
+    ) -> List["Document"]:
         """
-        Asynchronously retrieves multiple documents from the database collection that match the
+        Asynchronously retrieves multiple documents from the mongo collection that match the
         given filter and limit.
 
         This method allows you to query multiple documents based on the filter criteria. It supports
@@ -369,9 +392,9 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error finding documents: {e}")
 
     @classmethod
-    async def update_one(cls, query: dict, update_fields: dict) -> 'Document':
+    async def update_one(cls, query: dict, update_fields: dict) -> "Document":
         """
-        Asynchronously updates a single document in the database collection based on the provided query and update fields.
+        Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
 
         This method finds a single document matching the query criteria and updates it with the specified fields.
         It returns the updated document as an instance of the class. The method also supports additional
@@ -397,7 +420,9 @@ class Document(metaclass=DocumentMeta):
         Note:
             - The `update_fields` should not include the '_id' field as it is automatically popped from the update data.
         """
-        update_fields = add_timestamps_if_required(cls, **update_fields, operation="update")
+        update_fields = add_timestamps_if_required(
+            cls, **update_fields, operation="update"
+        )
         query = cls.convert_id(query)
         for field in query.keys():
             update_fields.pop(field, None)
@@ -415,7 +440,7 @@ class Document(metaclass=DocumentMeta):
             update_result = await collection.find_one_and_update(
                 query,
                 {"$set": instance.to_dict(id_as_string=False)},
-                return_document=ReturnDocument.AFTER
+                return_document=ReturnDocument.AFTER,
             )
             if update_result is not None:
                 return cls.from_dict(**update_result)
@@ -423,10 +448,11 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error updating document: {e}")
 
     @classmethod
-    async def update_many(cls, query: dict, update_fields: dict) -> Tuple[List['Document'], Any] | Tuple[
-        List[Any], int]:
+    async def update_many(
+        cls, query: dict, update_fields: dict
+    ) -> Tuple[List["Document"], Any] | Tuple[List[Any], int]:
         """
-        Asynchronously updates multiple documents in the database that match the given query.
+        Asynchronously updates multiple documents in the mongo that match the given query.
 
         Args:
             query (dict): The filter criteria to match documents that need to be updated.
@@ -443,7 +469,7 @@ class Document(metaclass=DocumentMeta):
             Tuple[List['Document'], int]: A tuple containing a list of updated document objects and the count of documents modified.
 
         Raises:
-            ValueError: If there is an error in updating documents in the database.
+            ValueError: If there is an error in updating documents in the mongo.
         """
         # First, add timestamps to the update fields if required
         update_fields = add_timestamps_if_required(cls, **update_fields)
@@ -451,7 +477,7 @@ class Document(metaclass=DocumentMeta):
         # The update fields should be structured as a MongoDB update operation
         update_operation = {"$set": update_fields}
 
-        # Connect to the database and perform the update
+        # Connect to the mongo and perform the update
         try:
             collection_name = cls.get_collection_name()
             db = await cls.db()
@@ -461,8 +487,12 @@ class Document(metaclass=DocumentMeta):
             # If you need to return the updated documents, you have to find them
             # Note: this may not be efficient for a large number of documents
             if result.modified_count > 0:
-                updated_documents = await cls.db[collection_name].find(query).to_list(length=None)
-                return [cls.from_dict(**doc) for doc in updated_documents], result.modified_count
+                updated_documents = (
+                    await cls.db[collection_name].find(query).to_list(length=None)
+                )
+                return [
+                    cls.from_dict(**doc) for doc in updated_documents
+                ], result.modified_count
             else:
                 return [], 0
         except Exception as e:
@@ -471,7 +501,7 @@ class Document(metaclass=DocumentMeta):
     @classmethod
     async def delete_one(cls, query: dict, **kwargs) -> bool:
         """
-        Asynchronously deletes a single document from the database that matches the given query.
+        Asynchronously deletes a single document from the mongo that matches the given query.
 
         Args:
             query (dict): The filter criteria to match the document that needs to be deleted.
@@ -488,7 +518,7 @@ class Document(metaclass=DocumentMeta):
             bool: True if a document was deleted, otherwise False.
 
         Raises:
-            ValueError: If there is an error in deleting the document from the database.
+            ValueError: If there is an error in deleting the document from the mongo.
         """
         # Consolidate document creation
         query = {**(query or {}), **kwargs}
@@ -504,7 +534,7 @@ class Document(metaclass=DocumentMeta):
     @classmethod
     async def delete_many(cls, query: dict = None, **kwargs) -> int:
         """
-        Asynchronously deletes multiple documents from the database that match the given query.
+        Asynchronously deletes multiple documents from the mongo that match the given query.
 
         Args:
             query (dict): The filter criteria to match the documents that need to be deleted.
@@ -520,10 +550,10 @@ class Document(metaclass=DocumentMeta):
             deleted_count = await MyClass.delete_many(status='inactive')
 
         Returns:
-            int: The number of documents deleted from the database.
+            int: The number of documents deleted from the mongo.
 
         Raises:
-            ValueError: If there is an error in deleting the documents from the database.
+            ValueError: If there is an error in deleting the documents from the mongo.
         """
         query = {**(query or {}), **kwargs}
         try:
@@ -535,7 +565,9 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error deleting documents: {e}")
 
     @classmethod
-    async def find_one_or_create(cls, query: dict, defaults: dict) -> Tuple['Document', bool]:
+    async def find_one_or_create(
+        cls, query: dict, defaults: dict
+    ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
 
@@ -567,7 +599,7 @@ class Document(metaclass=DocumentMeta):
             return created_document, True  # Document created
 
     @classmethod
-    async def find_one_and_replace(cls, query: dict, replacement: dict) -> 'Document':
+    async def find_one_and_replace(cls, query: dict, replacement: dict) -> "Document":
         """
         Asynchronously finds a single document and replaces it with the provided replacement document.
 
@@ -597,7 +629,9 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error replacing document: {e}")
 
     @classmethod
-    async def find_one_and_update_empty_fields(cls, query: dict, update_fields: dict) -> Tuple['Document', bool]:
+    async def find_one_and_update_empty_fields(
+        cls, query: dict, update_fields: dict
+    ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
         the provided values.
@@ -625,7 +659,11 @@ class Document(metaclass=DocumentMeta):
         existing_doc = await collection.find_one(query)
 
         if existing_doc:
-            fields_to_update = {k: v for k, v in update_fields.items() if k not in existing_doc or not existing_doc[k]}
+            fields_to_update = {
+                k: v
+                for k, v in update_fields.items()
+                if k not in existing_doc or not existing_doc[k]
+            }
             if fields_to_update:
                 updated_document = await cls.update_one(query, fields_to_update)
                 return updated_document, True  # Document updated
@@ -633,7 +671,7 @@ class Document(metaclass=DocumentMeta):
         return None, False  # Document not found
 
     @classmethod
-    async def find_one_and_delete(cls, query: dict) -> 'Document':
+    async def find_one_and_delete(cls, query: dict) -> "Document":
         """
         Asynchronously finds a single document matching the query and deletes it.
 
@@ -660,7 +698,7 @@ class Document(metaclass=DocumentMeta):
 
     async def save(self) -> None:
         """
-        Asynchronously saves the current document instance to the database. If the document does not exist,
+        Asynchronously saves the current document instance to the mongo. If the document does not exist,
         it is inserted; otherwise, it is updated.
 
         This method applies timestamps as required and manages the document's `_id` attribute.
@@ -671,24 +709,26 @@ class Document(metaclass=DocumentMeta):
             user.save()
 
         Raises:
-            ValueError: If there is an error in saving the document to the database.
+            ValueError: If there is an error in saving the document to the mongo.
         """
-        document = add_timestamps_if_required(self, operation="update", **self.to_dict(id_as_string=False))
+        document = add_timestamps_if_required(
+            self, operation="update", **self.to_dict(id_as_string=False)
+        )
         print(f"doc dict represenatuon = {document}")
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
-            if not hasattr(self, '_id'):
+            if not hasattr(self, "_id"):
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
             else:
-                await collection.replace_one({'_id': self._id}, document)
+                await collection.replace_one({"_id": self._id}, document)
         except Exception as e:
             raise ValueError(f"Error saving document: {e}")
 
     async def delete(self) -> None:
         """
-        Asynchronously deletes the current document instance from the database based on its `_id`.
+        Asynchronously deletes the current document instance from the mongo based on its `_id`.
 
         Usage:
             user = User.find_one({'name': 'johndoe'})
@@ -696,12 +736,12 @@ class Document(metaclass=DocumentMeta):
                 user.delete()
 
         Raises:
-            ValueError: If there is an error in deleting the document from the database.
+            ValueError: If there is an error in deleting the document from the mongo.
         """
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
-            await collection.delete_one({'_id': self._id})
+            await collection.delete_one({"_id": self._id})
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
 
@@ -731,7 +771,9 @@ class Document(metaclass=DocumentMeta):
         if isinstance(obj, ObjectId):
             return str(obj)  # Convert ObjectId to string
         # Add more custom encodings if necessary
-        raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+        raise TypeError(
+            f"Object of type {obj.__class__.__name__} is not JSON serializable"
+        )
 
     def to_json(self):
         """
@@ -784,7 +826,7 @@ class Document(metaclass=DocumentMeta):
         for k, v in self.__dict__.items():
             if "__" not in k and k != "Meta":
                 # Use custom serialization logic as before
-                value = (str(v) if id_as_string and isinstance(v, ObjectId) else v)
+                value = str(v) if id_as_string and isinstance(v, ObjectId) else v
                 if isinstance(v, Enum):
                     value = v.value
                 elif isinstance(v, EmbeddedDocument):
@@ -796,7 +838,7 @@ class Document(metaclass=DocumentMeta):
         doc_dict[self.__type_field] = self.__class__.__name__
 
         # Ensure '_id' is processed according to id_as_string flag
-        if '_id' in self.__dict__:
-            doc_dict['_id'] = str(self._id) if id_as_string else self._id
+        if "_id" in self.__dict__:
+            doc_dict["_id"] = str(self._id) if id_as_string else self._id
 
         return doc_dict

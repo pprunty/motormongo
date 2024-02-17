@@ -17,6 +17,12 @@ test = "pytest:main"
 python = "^3.11"
 motor = "^3.3.2"
 
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
 [tool.poetry.group.dev.dependencies]
 fastapi = {extras = ["all"], version = "^0.104.1"}
 bcrypt = "^4.0.1"
@@ -24,10 +30,9 @@ pytest = "^7.4.3"
 pre-commit = "^3.5.0"
 pytest-asyncio = "^0.23.0"
 colored = "^2.2.4"
-
-[tool.isort]
-multi_line_output = 5
-line_length = 119
+flake8 = "^7.0.0"
+black = "^24.2.0"
+isort = "^5.13.2"
 
 [tool.yapf]
 based_on_style = "google"

@@ -14,6 +14,8 @@ class ListField(Field):
             if self.field:
                 for item in value:
                     if not isinstance(item, self.field.type):
-                        raise ValueError(f"Items in {self.name} must be of type {self.field.type.__name__}")
+                        raise ValueError(
+                            f"Items in {self.name} must be of type {self.field.type.__name__}"
+                        )
 
         super().__set__(obj, value)

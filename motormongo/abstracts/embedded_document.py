@@ -3,10 +3,9 @@ from motormongo.fields.field import Field
 
 class EmbeddedDocument:
     def __init__(self, **kwargs):
-        print(f"Inside EMBEDDED")
         for name, field in self.__class__.__dict__.items():
             if isinstance(field, Field):
-                setattr(self, name, kwargs.get(name, field.options.get('default')))
+                setattr(self, name, kwargs.get(name, field.options.get("default")))
 
     def to_dict(self):
         return {

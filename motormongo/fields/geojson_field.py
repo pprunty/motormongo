@@ -12,16 +12,25 @@ class GeoJSONField(Field):
             if isinstance(value, (list, tuple)) and len(value) == 2:
                 latitude, longitude = value
                 if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-                    raise ValueError("Latitude must be between -90 and 90, and Longitude must be between -180 and 180")
+                    raise ValueError(
+                        "Latitude must be between -90 and 90, and Longitude must be between -180 and 180"
+                    )
                 value = {"type": "Point", "coordinates": [longitude, latitude]}
             # Check if value is in GeoJSON format
-            elif isinstance(value, dict) and value.get('type') == 'Point' and len(value.get('coordinates', [])) == 2:
-                latitude, longitude = value['coordinates']
+            elif (
+                isinstance(value, dict)
+                and value.get("type") == "Point"
+                and len(value.get("coordinates", [])) == 2
+            ):
+                latitude, longitude = value["coordinates"]
                 if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-                    raise ValueError("Latitude must be between -90 and 90, and Longitude must be between -180 and 180")
+                    raise ValueError(
+                        "Latitude must be between -90 and 90, and Longitude must be between -180 and 180"
+                    )
             else:
                 raise ValueError(
-                    "Value for GeoJSONField must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary")
+                    "Value for GeoJSONField must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary"
+                )
 
         super().__set__(obj, value)
 
@@ -31,6 +40,6 @@ class GeoJSONField(Field):
         if not self.return_as_list:
             return value
         # Otherwise, return just the coordinates
-        if isinstance(value, dict) and value.get('type') == 'Point':
-            return value.get('coordinates')
+        if isinstance(value, dict) and value.get("type") == "Point":
+            return value.get("coordinates")
         return value

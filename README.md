@@ -3,9 +3,7 @@
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 
-<a href="https://pprunty.github.io/pprunty/">
-    <img src="https://github.com/pprunty/motormongo/blob/main/assets/images/avatar.jpg" alt="Patrick Prunty" style="border-radius: 100px; width: 45px; height: 45px; object-fit: cover">
-</a>
+Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
 `motormongo` - An Object Document Mapper
 for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), the MongoDB recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
@@ -399,7 +397,7 @@ user = await User.find_one(
 # If there age is greater than 80, make them dead
 if user.age > 80:
     user.alive = False
-# Persist update on User instance in MongoDB database
+# Persist update on User instance in MongoDB mongo
 user.save()
 ```
 

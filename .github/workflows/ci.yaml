@@ -5,8 +5,41 @@ on:
     branches: [ main ]
 
 jobs:
+  prepare-dependencies:
+    name: 📦 Prepare Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache-dependencies.outputs.cache-hit }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install Poetry 📦
+        run: curl -sSL https://install.python-poetry.org | python -
+
+      - name: Configure Poetry 🛠️
+        run: poetry config virtualenvs.create false
+
+      - name: Cache Poetry dependencies
+        id: cache-dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install dependencies 🔽
+        run: poetry install
+
   lint:
     name: 🧹 Lint with flake8
+    needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,24 +50,24 @@ jobs:
           python-version: 3.11
 
       - name: Install Poetry 📦
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
+        run: curl -sSL https://install.python-poetry.org | python -
 
       - name: Configure Poetry 🛠️
-        run: |
-          poetry config virtualenvs.create false
+        run: poetry config virtualenvs.create false
 
-      - name: Install dependencies 🔽
-        run: |
-          poetry install
+      - name: Install dependencies 🔽 (Cache)
+        if: needs.prepare-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
 
       - name: Run flake8 🔍
-        run: |
-          poetry run lint
+        run: poetry run flake8 motormongo
+
+      - name: Check import sorting ✔️
+        run: poetry run isort motormongo/ --check-only
 
   test:
     name: 🧪 Run tests
-    needs: lint
+    needs: prepare-dependencies
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -49,17 +82,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry 📦
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
+        run: curl -sSL https://install.python-poetry.org | python -
 
       - name: Configure Poetry 🛠️
-        run: |
-          poetry config virtualenvs.create false
+        run: poetry config virtualenvs.create false
 
-      - name: Install dependencies 🔽
-        run: |
-          poetry install
+      - name: Install dependencies 🔽 (Cache)
+        if: needs.prepare-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
 
       - name: Run tests 🚀
-        run: |
-          poetry run test
+        run: poetry run test
