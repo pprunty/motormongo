@@ -20,4 +20,5 @@ sort:
 
 .PHONY: demo
 demo:
+	export DEBUG_MODE=true
 	poetry run uvicorn demo.main:app --reload

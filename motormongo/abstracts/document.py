@@ -8,6 +8,7 @@ from pymongo import ReturnDocument
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
 from motormongo.utils.formatter import add_timestamps_if_required, camel_to_snake
+from motormongo.utils.logging import logger
 
 
 class DocumentMeta(type):
@@ -81,17 +82,17 @@ class Document(metaclass=DocumentMeta):
         self.__dict__[self.__type_field] = (
             self.__class__.__name__
         )  # Store class name in __type_field
-        print(f"Creating class for collection {self.__collection}")
+        logger.debug(f"Creating class for collection {self.__collection}")
 
         # Handling _id separately
         if "_id" in kwargs:
-            print(f"Setting _id: {kwargs['_id']}")
+            logger.debug(f"Setting _id: {kwargs['_id']}")
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
         # Setting other attributes
         for name, field in self.__class__.__dict__.items():
             if isinstance(field, Field):
-                print(
+                logger.debug(
                     f"{name} and value = {kwargs.get(name, field.options.get('default'))}"
                 )
                 # For non-ReferenceField fields or if the value is not a string, set it directly
@@ -205,7 +206,7 @@ class Document(metaclass=DocumentMeta):
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
 
-        print(f"document  = {document}")
+        logger.debug(f"document  = {document}")
 
         # Initialize the instance
         try:
@@ -218,7 +219,7 @@ class Document(metaclass=DocumentMeta):
             cls, operation="create", **instance.to_dict(id_as_string=False)
         )
 
-        print(f"document w timestamp = {document_w_timestamps}")
+        logger.debug(f"document w timestamp = {document_w_timestamps}")
 
         try:
             collection_name = cls.get_collection_name()
@@ -227,7 +228,7 @@ class Document(metaclass=DocumentMeta):
             inserted_document = await db[collection_name].find_one(
                 {"_id": result.inserted_id}
             )
-            print(f"__ insert = {inserted_document}")
+            logger.debug(f"__ insert = {inserted_document}")
             return cls.from_dict(**inserted_document)
         except Exception as e:
             raise ValueError(f"Error inserting document: {e}")
@@ -333,13 +334,13 @@ class Document(metaclass=DocumentMeta):
 
         filter = cls.convert_id(filter)
 
-        print(f"__filter = {filter}")
+        logger.debug(f"__filter = {filter}")
 
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
-            # print(f"__doc rep = {document}")
+            # logger.debug(f"__doc rep = {document}")
             return cls.from_dict(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
@@ -428,9 +429,9 @@ class Document(metaclass=DocumentMeta):
             update_fields.pop(field, None)
 
         try:
-            print(f"__update_one instance 1 {update_fields}")
+            logger.debug(f"__update_one instance 1 {update_fields}")
             instance = cls.from_dict(**update_fields)
-            print(f"__update_one instance {instance.to_dict()}")
+            logger.debug(f"__update_one instance {instance.to_dict()}")
         except TypeError as e:
             raise ValueError(f"Error initializing object: {e}")
 
@@ -714,7 +715,7 @@ class Document(metaclass=DocumentMeta):
         document = add_timestamps_if_required(
             self, operation="update", **self.to_dict(id_as_string=False)
         )
-        print(f"doc dict represenatuon = {document}")
+        logger.debug(f"doc dict represenatuon = {document}")
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]

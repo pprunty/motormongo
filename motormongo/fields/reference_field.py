@@ -34,7 +34,6 @@ class ReferenceField(Field):
         super().__set__(obj, value)
 
     def __get__(self, instance, owner):
-        print("___ inside ___ get")
         if instance is None:
             return self  # Accessed on the class, not an instance
 
