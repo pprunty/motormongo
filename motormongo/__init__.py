@@ -4,7 +4,18 @@ import warnings
 from pymongo.errors import OperationFailure
 
 from motormongo.abstracts.document import Document
-
+from motormongo.abstracts.embedded_document import EmbeddedDocument
+from motormongo.fields.integer_field import IntegerField
+from motormongo.fields.geojson_field import GeoJSONField
+from motormongo.fields.reference_field import ReferenceField
+from motormongo.fields.datetime_field import DateTimeField
+from motormongo.fields.enum_field import EnumField
+from motormongo.fields.binary_field import BinaryField
+from motormongo.fields.boolean_field import BooleanField
+from motormongo.fields.embedded_document_field import EmbeddedDocumentField
+from motormongo.fields.float_field import FloatField
+from motormongo.fields.list_field import ListField
+from motormongo.fields.string_field import StringField
 
 class DataBase:
     client: AsyncIOMotorClient = None

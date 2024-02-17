@@ -4,7 +4,7 @@
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 
 <a href="https://pprunty.github.io/pprunty/">
-    <img src="https://github.com/pprunty/motormongo/blob/main/assets/images/avatar.jpg" alt="Patrick Prunty" style="border-radius: 40px; width: 40px; height: 40px; object-fit: cover">
+    <img src="https://github.com/pprunty/motormongo/blob/main/assets/images/avatar.jpg" alt="Patrick Prunty" style="border-radius: 100px; width: 45px; height: 45px; object-fit: cover">
 </a>
 
 `motormongo` - An Object Document Mapper
