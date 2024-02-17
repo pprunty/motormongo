@@ -4,18 +4,17 @@ from fastapi import FastAPI, HTTPException
 from demo.models.documents.user import User, UserDetails
 from demo.models.requests.user import UserModelRequest
 from demo.models.requests.user_details import UserDetailsRequest, UpdateUserDetailsRequest
-from motormongo import connect
+from motormongo import DataBase
 
 app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    await connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    # Implement any necessary shutdown logic, such as closing database connections
-    pass
+    await DataBase.close()
 
 @app.post("/users/", status_code=201)
 async def create_user(user: UserModelRequest):
@@ -88,7 +87,8 @@ async def get_user_details(user_id: str):
     # details = await UserDetails.find_one({"user": user})
     if details is None:
         raise HTTPException(status_code=404, detail="User details not found")
-    print(f"GOT USER = {details.to_dict(id_as_string=False)}")
+    print(f"GOT USER = {await details.user}")
+    print(f"GOT USER DETAILS = {details.to_dict(id_as_string=False)}")
     return details.to_dict()
 
 @app.put("/user-details/{user_id}", response_model=UserDetailsRequest)

@@ -3,7 +3,9 @@
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 
-Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
+<a href="https://pprunty.github.io/pprunty/">
+    <img src="https://github.com/pprunty/motormongo/assets/images/avatar.jpg" alt="Patrick Prunty" style="border-radius: 40px; width: 40px; height: 40px; object-fit: cover">
+</a>
 
 `motormongo` - An Object Document Mapper
 for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), the MongoDB recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
@@ -140,10 +142,10 @@ motormongo supports the following datatype fields for your motormongo Document c
 4. `EnumField(enum)`
 5. `DateTimeField(auto_now, auto_now_add)`
 6. `ListField()`
-7. `ReferenceField(Document)`
-8. `BinaryField(hash_function)`
-9. `GeoJSONField(return_as_json)`
-10. `EmbeddedDocumentField(EmbeddedDocument)`
+7. `EmbeddedDocumentField(EmbeddedDocument)`
+8. `ReferenceField(Document)`
+9. `BinaryField(hash_function: function)`
+10. `GeoJSONField(return_as_json: bool)`
 
 ## Class methods
 

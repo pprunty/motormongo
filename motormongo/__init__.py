@@ -1,21 +1,54 @@
-import os
-
 from motor.motor_asyncio import AsyncIOMotorClient
-# from motormongo.utils.odm_init import initialize_odm
+import os
+import warnings
+from pymongo.errors import OperationFailure
+
+from motormongo.abstracts.document import Document
 
 
 class DataBase:
-    client = None
+    client: AsyncIOMotorClient = None
     db = None
 
+    @classmethod
+    async def connect(cls, uri: str, db: str, **pooling_options):
+        cls.client = AsyncIOMotorClient(uri or os.getenv("MONGODB_URL"), **pooling_options)
+        cls.db = cls.client[str(db) or str(os.getenv("MONGODB_DB"))]
+        await cls.initialize_indexes()
 
-async def connect(uri: str, db: str):
-    DataBase.client = AsyncIOMotorClient(uri or os.getenv("MONGODB_URL"))
-    DataBase.db = AsyncIOMotorClient(uri or os.getenv("MONGODB_URL"))[db or os.getenv("MONGODB_COLLECTION")]
-    # todo: initialize odm class indexes, etc.
-    # await initialize_odm()
+    @classmethod
+    async def close(cls):
+        if cls.client is not None:
+            cls.client.close()
+            cls.client = None
+            cls.db = None
 
-# todo: add methods to check if uri and db is correct based on pymongo errors
+
+    @classmethod
+    async def initialize_indexes(cls):
+        for document_class in Document._registered_documents:
+            await cls.create_indexes_for_document(document_class)
+
+    @classmethod
+    async def create_indexes_for_document(cls, document_class):
+        if hasattr(document_class, 'Meta') and hasattr(document_class.Meta, 'indexes'):
+            try:
+                collection_name = document_class.get_collection_name()
+                collection = cls.db[collection_name]
+                for index in document_class.Meta.indexes:
+                    fields = index['fields']
+                    options = {k: v for k, v in index.items() if k != 'fields'}
+                    await collection.create_index(fields, **options)
+            except OperationFailure as e:
+                if "index option" in str(e).lower() and "atlas tier" in str(e).lower():
+                    # Issue a colored warning to the user
+                    message = "\033[93mWarning: An index option used in a motormongo Document is either not supported" \
+                              " by your MongoDB Atlas tier or does not exist. Consider upgrading MongoDB tier, or removing " \
+                              "index definition on your Document class to remove this warning.\033[0m"
+                    warnings.warn(message)
+                else:
+                    # If the error is for a different reason, you might want to re-raise the exception or handle it differently
+                    raise
 
 async def get_db():
     if DataBase.db is None:

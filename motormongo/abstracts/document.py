@@ -7,12 +7,23 @@ from motormongo.fields.reference_field import ReferenceField
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
 from typing import Any, Dict, List, Tuple
-from motormongo import get_db
 from motormongo.utils.formatter import camel_to_snake
 from motormongo.utils.formatter import add_timestamps_if_required
 
 
-class Document:
+class DocumentMeta(type):
+    """
+    Metaclass for Document to automatically register subclasses
+    for supporting polymorphism.
+    """
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        if not hasattr(cls, '_registered_documents'):
+            cls._registered_documents = []
+        else:
+            cls._registered_documents.append(cls)
+
+class Document(metaclass=DocumentMeta):
     """
         A base class for MongoDB document models, providing methods for database operations.
 
@@ -49,6 +60,7 @@ class Document:
             to_dict(self): Converts the document to a dictionary representation.
     """
     _registered_documents = []
+    __type_field = '__type'  # Field to store the document's class type
 
     def __init__(self, **kwargs):
         """
@@ -64,6 +76,7 @@ class Document:
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
         self.__collection = self.get_collection_name()
+        self.__dict__[self.__type_field] = self.__class__.__name__  # Store class name in __type_field
         print(f"Creating class for collection {self.__collection}")
 
         # Handling _id separately
@@ -103,6 +116,7 @@ class Document:
 
     @classmethod
     async def db(cls):
+        from motormongo import get_db
         """
         Asynchronously retrieves the database client instance.
 
@@ -188,7 +202,7 @@ class Document:
 
         # Initialize the instance
         try:
-            instance = cls(**document)
+            instance = cls.from_dict(**document)
         except TypeError as e:
             raise ValueError(f"Error initializing object: {e}")
 
@@ -202,7 +216,8 @@ class Document:
             db = await cls.db()
             result = await db[collection_name].insert_one(document_w_timestamps)
             inserted_document = await db[collection_name].find_one({'_id': result.inserted_id})
-            return cls(**inserted_document)
+            print(f"__ insert = {inserted_document}")
+            return cls.from_dict(**inserted_document)
         except Exception as e:
             raise ValueError(f"Error inserting document: {e}")
 
@@ -241,7 +256,7 @@ class Document:
             if isinstance(doc, dict):
                 # Initialize the instance
                 try:
-                    instance = cls(**doc)
+                    instance = cls.from_dict(**doc)
                 except TypeError as e:
                     raise ValueError(f"Error initializing object: {e}")
                 # Apply timestamps
@@ -255,7 +270,7 @@ class Document:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             result = await collection.insert_many(processed_documents)
-            return [cls(**doc) for doc in processed_documents], result.inserted_ids
+            return [cls.from_dict(**doc) for doc in processed_documents], result.inserted_ids
         except Exception as e:
             raise ValueError(f"Error inserting multiple documents: {e}")
 
@@ -304,7 +319,7 @@ class Document:
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
             # print(f"__doc rep = {document}")
-            return cls(**document) if document else None
+            return cls.from_dict(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
 
@@ -349,14 +364,13 @@ class Document:
             if limit is not None:
                 cursor = cursor.limit(limit)
             documents = await cursor.to_list(length=limit)
-            return [cls(**doc) for doc in documents]
+            return [cls.from_dict(**doc) for doc in documents]
         except Exception as e:
             raise ValueError(f"Error finding documents: {e}")
 
     @classmethod
     async def update_one(cls, query: dict, update_fields: dict) -> 'Document':
         """
-        TODO: ALLOW FOR update_one to handle case when update_fields does not include entire doc's fields
         Asynchronously updates a single document in the database collection based on the provided query and update fields.
 
         This method finds a single document matching the query criteria and updates it with the specified fields.
@@ -390,7 +404,7 @@ class Document:
 
         try:
             print(f"__update_one instance 1 {update_fields}")
-            instance = cls(**update_fields)
+            instance = cls.from_dict(**update_fields)
             print(f"__update_one instance {instance.to_dict()}")
         except TypeError as e:
             raise ValueError(f"Error initializing object: {e}")
@@ -404,7 +418,7 @@ class Document:
                 return_document=ReturnDocument.AFTER
             )
             if update_result is not None:
-                return cls(**update_result)
+                return cls.from_dict(**update_result)
         except Exception as e:
             raise ValueError(f"Error updating document: {e}")
 
@@ -448,7 +462,7 @@ class Document:
             # Note: this may not be efficient for a large number of documents
             if result.modified_count > 0:
                 updated_documents = await cls.db[collection_name].find(query).to_list(length=None)
-                return [cls(**doc) for doc in updated_documents], result.modified_count
+                return [cls.from_dict(**doc) for doc in updated_documents], result.modified_count
             else:
                 return [], 0
         except Exception as e:
@@ -545,7 +559,7 @@ class Document:
         document = await collection.find_one(query)
 
         if document:
-            return cls(**document), False  # Document found, not created
+            return cls.from_dict(**document), False  # Document found, not created
         else:
             defaults = defaults or {}
             new_document = {**query, **defaults}
@@ -578,7 +592,7 @@ class Document:
             updated_document = await collection.find_one_and_replace(
                 query, replacement, return_document=ReturnDocument.AFTER
             )
-            return cls(**updated_document) if updated_document else None
+            return cls.from_dict(**updated_document) if updated_document else None
         except Exception as e:
             raise ValueError(f"Error replacing document: {e}")
 
@@ -615,7 +629,7 @@ class Document:
             if fields_to_update:
                 updated_document = await cls.update_one(query, fields_to_update)
                 return updated_document, True  # Document updated
-            return cls(**existing_doc), False  # No update performed
+            return cls.from_dict(**existing_doc), False  # No update performed
         return None, False  # Document not found
 
     @classmethod
@@ -640,7 +654,7 @@ class Document:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             deleted_document = await collection.find_one_and_delete(query)
-            return cls(**deleted_document) if deleted_document else None
+            return cls.from_dict(**deleted_document) if deleted_document else None
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
 
@@ -691,6 +705,15 @@ class Document:
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
 
+    @classmethod
+    async def aggregate(cls, pipeline):
+        # TODO: Improve this implementation
+        db = await cls.db()
+        try:
+            return db[cls.get_collection_name()].aggregate(pipeline)
+        except Exception as e:
+            raise ValueError(f"Error executing pipeline: {e}")
+
     @staticmethod
     def _json_encoder(obj):
         """
@@ -719,10 +742,36 @@ class Document:
         """
         return json.dumps(self.to_dict(), default=self._json_encoder)
 
+    @classmethod
+    def from_dict(cls, **kwargs):
+        """
+        Factory method to instantiate objects of the correct subclass based on the document's
+        __type field. This method ensures that each document is deserialized into an instance
+        of the appropriate class.
+
+        Args:
+            document (dict): The dictionary representation of a document fetched from MongoDB.
+
+        Returns:
+            Document: An instance of the appropriate subclass of Document.
+        """
+        # Extract the class name from the document's __type field
+        class_name = kwargs.get(cls.__type_field)
+
+        # Find the correct class to instantiate
+        if class_name:
+            for subclass in cls._registered_documents:
+                if subclass.__name__ == class_name:
+                    # Instantiate the subclass with the document's data
+                    return subclass(**kwargs)
+
+        # Fallback to the base class if the class name is not found or __type is missing
+        return cls(**kwargs)
+
     def to_dict(self, id_as_string=True):
         """
-        Converts the document to a dictionary representation, using field-specific
-        __get__ methods for serialization where applicable.
+        Converts the document to a dictionary representation, including type information
+        and using field-specific __get__ methods for serialization where applicable.
 
         Args:
             id_as_string (bool, optional): If True, converts ObjectId instances to strings.
@@ -731,11 +780,23 @@ class Document:
         Returns:
             dict: A dictionary representation of the document.
         """
-        ## todo: should return __get__ on the value vs just the v.value?
-        return {
-            k: (str(v) if id_as_string and isinstance(v, ObjectId)
-                else (v.value if isinstance(v, Enum)
-                      else (v.to_dict() if isinstance(v, EmbeddedDocument) else v)))
-            for k, v in self.__dict__.items()
-            if "__" not in k and k != "Meta"
-        }
+        doc_dict = {}
+        for k, v in self.__dict__.items():
+            if "__" not in k and k != "Meta":
+                # Use custom serialization logic as before
+                value = (str(v) if id_as_string and isinstance(v, ObjectId) else v)
+                if isinstance(v, Enum):
+                    value = v.value
+                elif isinstance(v, EmbeddedDocument):
+                    value = v.to_dict()
+                # Assign the processed value to the key in the dictionary
+                doc_dict[k] = value
+
+        # Ensure the class type (__type) is included in the dictionary
+        doc_dict[self.__type_field] = self.__class__.__name__
+
+        # Ensure '_id' is processed according to id_as_string flag
+        if '_id' in self.__dict__:
+            doc_dict['_id'] = str(self._id) if id_as_string else self._id
+
+        return doc_dict
