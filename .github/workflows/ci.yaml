@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-poetry-
 
       - name: Install dependencies 🔽
-        run: poetry install
+        run: make install
 
   lint:
     name: 🧹 Lint with flake8
@@ -57,13 +57,13 @@ jobs:
 
       - name: Install dependencies 🔽 (Cache)
         if: needs.prepare-dependencies.outputs.cache-hit != 'true'
-        run: poetry install
+        run: make install
 
       - name: Run flake8 🔍
-        run: poetry run flake8 motormongo
+        run: make lint
 
       - name: Check import sorting ✔️
-        run: poetry run isort motormongo/ --check-only
+        run: make check-sort
 
   test:
     name: 🧪 Run tests
@@ -72,6 +72,10 @@ jobs:
     strategy:
       matrix:
         python-version: [3.8, 3.9, 3.10, 3.11]
+    env:
+      # TODO: Make this MONGODB_TEST_*
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      MONGODB_COLLECTION: ${{ secrets.MONGODB_COLLECTION }}
 
     steps:
       - uses: actions/checkout@v2
@@ -89,7 +93,7 @@ jobs:
 
       - name: Install dependencies 🔽 (Cache)
         if: needs.prepare-dependencies.outputs.cache-hit != 'true'
-        run: poetry install
+        run: make install
 
       - name: Run tests 🚀
-        run: poetry run test
+        run: make test-cov

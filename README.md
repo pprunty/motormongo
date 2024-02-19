@@ -138,6 +138,14 @@ else:
 python main.py
 ```
 
+or in a FastAPI application:
+
+```shell
+uvicorn main:app --reload
+```
+
+Please refer to [FastAPI Documentation](https://fastapi.tiangolo.com/tutorial/) for more details on how to get setup with FastAPI.
+
 ## Congratulations 🎉
 
 You've successfully created your first motormongo Object Document Mapper class. 🥳
@@ -173,8 +181,8 @@ The following class methods are supported by motormongo's `Document` class:
 |-----------|------------------------------------------------------------------------------------------------------------------------------------|
 | Create    | [`insert_one(document: dict, **kwargs) -> Document`](#insert_one)                                                                  |
 | Create    | [`insert_many(documents: List[dict]) -> Tuple[List[Document], Any]`](#insert_many)                                                 |
-| Read      | [`find_one(filter: dict, **kwargs) -> Document`](#find_one)                                                                        |
-| Read      | [`find_many(filter: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                                                    |
+| Read      | [`find_one(query: dict, **kwargs) -> Document`](#find_one)                                                                         |
+| Read      | [`find_many(query: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                                                     |
 | Update    | [`update_one(query: dict, update_fields: dict) -> Document`](#update_one)                                                          |
 | Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)                                      |
 | Delete    | [`delete_one(query: dict, **kwargs) -> bool`](#delete_one)                                                                         |
@@ -275,7 +283,7 @@ user = await User.find_one(
 )
 ```
 
-#### <a name="find_many"></a> `find_many(filter, limit, **kwargs) -> List[Document]`
+#### <a name="find_many"></a> `find_many(query, limit, **kwargs) -> List[Document]`
 
 ```python
 users =  await User.find_many(age={"$gt": 40}, alive=False, limit=20)
@@ -284,8 +292,8 @@ users =  await User.find_many(age={"$gt": 40}, alive=False, limit=20)
 or
 
 ```python
-filter_criteria = {"age": {"$gt": 40}, "alive": False}
-users = await User.find_many(**filter_criteria, limit=20)
+query = {"age": {"$gt": 40}, "alive": False}
+users = await User.find_many(**query, limit=20)
 ```
 
 ### Update

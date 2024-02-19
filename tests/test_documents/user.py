@@ -1,13 +1,27 @@
 import re
-import bcrypt
 from enum import Enum
-from motormongo import Document, EmbeddedDocument
-from motormongo import (EmbeddedDocumentField, DateTimeField, ReferenceField, FloatField, ListField,
-                               GeoJSONField, BooleanField, BinaryField, StringField, IntegerField, EnumField)
+
+import bcrypt
+
+from motormongo import (
+    BinaryField,
+    BooleanField,
+    DateTimeField,
+    Document,
+    EmbeddedDocument,
+    EmbeddedDocumentField,
+    EnumField,
+    FloatField,
+    GeoJSONField,
+    IntegerField,
+    ListField,
+    ReferenceField,
+    StringField,
+)
 
 
 def hash_password(password) -> bytes:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
 
 class Status(Enum):
@@ -22,7 +36,7 @@ class Gender(Enum):
 
 class User(Document):
     username = StringField(min_length=3, max_length=50)
-    email = StringField(regex=re.compile(r'^\S+@\S+\.\S+$'))
+    email = StringField(regex=re.compile(r"^\S+@\S+\.\S+$"))
     password = BinaryField(hash_function=hash_password)
     location = GeoJSONField(return_as_list=True)
     age = IntegerField()
@@ -34,10 +48,10 @@ class User(Document):
     class Meta:
         collection = "users"
         indexes = [
-            {'fields': ['location'], 'type': '2dsphere'},
-            {'fields': [('created_at', -1)]},  # Ascending index on username
+            {"fields": [("created_at", -1)]},  # Ascending index on username
         ]
-        timestamps = True
+        created_at_timestamp = True
+        updated_at_timestamp = True
 
 
 class Metadata(EmbeddedDocument):
@@ -55,4 +69,3 @@ class UserDetails(Document):
         collection = "user_details"
         created_at_timestamp = True  # < Provide a DateTimeField for document creation
         updated_at_timestamp = True  # < Provide a DateTimeField for document creation
-

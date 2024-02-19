@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Tuple
 
 from bson import ObjectId
 from pymongo import ReturnDocument
-from pymongo import IndexModel
 
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
@@ -156,10 +155,10 @@ class Document(metaclass=DocumentMeta):
         Converts the '_id' field in the query to an ObjectId, if necessary.
 
         Args:
-            query (dict): The query dictionary containing possibly a string '_id' field.
+            query (Dict): The query dictionary containing possibly a string '_id' field.
 
         Returns:
-            dict: The updated query with '_id' converted to ObjectId, if applicable.
+            Dict: The updated query with '_id' converted to ObjectId, if applicable.
 
         Raises:
             ValueError: If the '_id' format is invalid and cannot be converted to ObjectId.
@@ -170,13 +169,13 @@ class Document(metaclass=DocumentMeta):
                     query[key] = ObjectId(value)
                 except Exception:
                     pass  # Ignore if the string cannot be converted to ObjectId
-            elif isinstance(value, dict):
+            elif isinstance(value, Dict):
                 # Recursively convert for nested dictionaries
                 query[key] = cls.convert_id(value)
         return query
 
     @classmethod
-    async def insert_one(cls, document: dict = None, **kwargs):
+    async def insert_one(cls, document: Dict = None, **kwargs):
         """
         Asynchronously inserts a single document into the mongo.
 
@@ -195,7 +194,7 @@ class Document(metaclass=DocumentMeta):
             user = await MyClass.insert_one(**doc)
 
         Args:
-            document (dict, optional): A dictionary representing the document to be inserted.
+            document (Dict, optional): A dictionary representing the document to be inserted.
             **kwargs: Additional keyword arguments representing fields in the document.
 
         Returns:
@@ -268,7 +267,7 @@ class Document(metaclass=DocumentMeta):
         # First, process each document to ensure it adheres to the class's structure and add timestamps if necessary
         processed_documents = []
         for doc in documents:
-            if isinstance(doc, dict):
+            if isinstance(doc, Dict):
                 # Initialize the instance
                 try:
                     instance = cls.from_dict(**doc)
@@ -296,12 +295,12 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error inserting multiple documents: {e}")
 
     @classmethod
-    async def find_one(cls, filter: dict = None, **kwargs) -> "Document":
+    async def find_one(cls, query: Dict = None, **kwargs) -> "Document":
         """
         Asynchronously finds a single document in the mongo collection that matches the given filter.
 
         Args:
-            filter (dict, optional): A dictionary specifying the filter criteria for the query.
+            query (Dict, optional): A dictionary specifying the filter criteria for the query.
                                      Defaults to None.
             **kwargs: Additional filter criteria specified as keyword arguments.
 
@@ -321,7 +320,7 @@ class Document(metaclass=DocumentMeta):
         Note:
             If both filter and keyword arguments are provided, they are combined for the query.
         """
-        filter = {**(filter or {}), **kwargs}
+        filter = {**(query or {}), **kwargs}
 
         # Check if any value in the filter is a Document instance and replace it with its _id
         # todo: get this working
@@ -341,14 +340,14 @@ class Document(metaclass=DocumentMeta):
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
-            # logger.debug(f"__doc rep = {document}")
+            logger.debug(f"__doc rep = {document}")
             return cls.from_dict(**document) if document else None
         except Exception as e:
             raise ValueError(f"Error finding document: {e}")
 
     @classmethod
     async def find_many(
-        cls, filter: dict = None, limit: int = None, **kwargs
+        cls, query: Dict = None, limit: int = None, **kwargs
     ) -> List["Document"]:
         """
         Asynchronously retrieves multiple documents from the mongo collection that match the
@@ -359,7 +358,7 @@ class Document(metaclass=DocumentMeta):
         the number of documents to retrieve.
 
         Args:
-            filter (dict, optional): A dictionary specifying the filter criteria for the query.
+            query (Dict, optional): A dictionary specifying the filter criteria for the query.
                                      Defaults to None.
             limit (int, optional): The maximum number of documents to return. Defaults to None,
                                    which means no limit.
@@ -381,7 +380,7 @@ class Document(metaclass=DocumentMeta):
             - The `filter` argument and keyword arguments are combined for the query.
             - The `limit` argument restricts the number of returned documents.
         """
-        filter = {**(filter or {}), **kwargs}
+        filter = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -394,7 +393,7 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error finding documents: {e}")
 
     @classmethod
-    async def update_one(cls, query: dict, update_fields: dict) -> "Document":
+    async def update_one(cls, query: Dict, update_fields: Dict) -> "Document":
         """
         Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
 
@@ -403,8 +402,8 @@ class Document(metaclass=DocumentMeta):
         keyword arguments for further customization.
 
         Args:
-            query (dict): A dictionary specifying the filter criteria to identify the document to be updated.
-            update_fields (dict): A dictionary specifying the fields to be updated in the document.
+            query (Dict): A dictionary specifying the filter criteria to identify the document to be updated.
+            update_fields (Dict): A dictionary specifying the fields to be updated in the document.
 
         Returns:
             Document: An instance of the class representing the updated document. Returns None if no document
@@ -451,14 +450,14 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-        cls, query: dict, update_fields: dict
+        cls, query: Dict, update_fields: Dict
     ) -> Tuple[List["Document"], Any] | Tuple[List[Any], int]:
         """
         Asynchronously updates multiple documents in the mongo that match the given query.
 
         Args:
-            query (dict): The filter criteria to match documents that need to be updated.
-            update_fields (dict): The fields and their new values that will be set in the matched documents.
+            query (Dict): The filter criteria to match documents that need to be updated.
+            update_fields (Dict): The fields and their new values that will be set in the matched documents.
 
         Usage:
             # Update all users aged over 40 to set a new field 'category' to 'senior'
@@ -481,7 +480,6 @@ class Document(metaclass=DocumentMeta):
 
         # Connect to the mongo and perform the update
         try:
-            collection_name = cls.get_collection_name()
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             result = await collection.update_many(query, update_operation)
@@ -490,7 +488,7 @@ class Document(metaclass=DocumentMeta):
             # Note: this may not be efficient for a large number of documents
             if result.modified_count > 0:
                 updated_documents = (
-                    await cls.db[collection_name].find(query).to_list(length=None)
+                    await collection.find(query).to_list(length=None)
                 )
                 return [
                     cls.from_dict(**doc) for doc in updated_documents
@@ -501,12 +499,12 @@ class Document(metaclass=DocumentMeta):
             raise ValueError(f"Error updating multiple documents: {e}")
 
     @classmethod
-    async def delete_one(cls, query: dict, **kwargs) -> bool:
+    async def delete_one(cls, query: Dict = None, **kwargs) -> bool:
         """
         Asynchronously deletes a single document from the mongo that matches the given query.
 
         Args:
-            query (dict): The filter criteria to match the document that needs to be deleted.
+            query (Dict): The filter criteria to match the document that needs to be deleted.
             **kwargs: Additional keyword arguments that will be merged into the query.
 
         Usage:
@@ -528,18 +526,18 @@ class Document(metaclass=DocumentMeta):
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
-            delete_result = collection.delete_one(query)
+            delete_result = await collection.delete_one(query)
             return delete_result.deleted_count > 0
         except Exception as e:
             raise ValueError(f"Error deleting document: {e}")
 
     @classmethod
-    async def delete_many(cls, query: dict = None, **kwargs) -> int:
+    async def delete_many(cls, query: Dict = None, **kwargs) -> int:
         """
         Asynchronously deletes multiple documents from the mongo that match the given query.
 
         Args:
-            query (dict): The filter criteria to match the documents that need to be deleted.
+            query (Dict): The filter criteria to match the documents that need to be deleted.
             **kwargs: Additional keyword arguments that will be merged into the query or used as the query.
 
         Usage:
@@ -568,14 +566,14 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-        cls, query: dict, defaults: dict
+        cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
 
         Args:
-            query (dict): The filter criteria for the query.
-            defaults (dict, optional): Default values for the document if it needs to be created. Defaults to None.
+            query (Dict): The filter criteria for the query.
+            defaults (Dict, optional): Default values for the document if it needs to be created. Defaults to None.
 
         Usage:
             # Find a user by username or create a new one with default age
@@ -601,13 +599,13 @@ class Document(metaclass=DocumentMeta):
             return created_document, True  # Document created
 
     @classmethod
-    async def find_one_and_replace(cls, query: dict, replacement: dict) -> "Document":
+    async def find_one_and_replace(cls, query: Dict, replacement: Dict) -> "Document":
         """
         Asynchronously finds a single document and replaces it with the provided replacement document.
 
         Args:
-            query (dict): The filter criteria for the query.
-            replacement (dict): The new document to replace the existing one.
+            query (Dict): The filter criteria for the query.
+            replacement (Dict): The new document to replace the existing one.
 
         Usage:
             # Replace a user's details
@@ -632,15 +630,15 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-        cls, query: dict, update_fields: dict
+        cls, query: Dict, update_fields: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
         the provided values.
 
         Args:
-            query (dict): The filter criteria for the query.
-            update_fields (dict): The fields and their values to update if they are empty in the document.
+            query (Dict): The filter criteria for the query.
+            update_fields (Dict): The fields and their values to update if they are empty in the document.
 
         Usage:
             # Update the user's email and age if they are empty
@@ -656,6 +654,9 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in finding or updating the document.
         """
+        if not isinstance(query, dict):
+            raise TypeError(f"Expected query to be a dict, got {type(query).__name__} instead")
+
         db = await cls.db()
         collection = db[cls.get_collection_name()]
         existing_doc = await collection.find_one(query)
@@ -673,12 +674,12 @@ class Document(metaclass=DocumentMeta):
         return None, False  # Document not found
 
     @classmethod
-    async def find_one_and_delete(cls, query: dict) -> "Document":
+    async def find_one_and_delete(cls, query: Dict) -> "Document":
         """
         Asynchronously finds a single document matching the query and deletes it.
 
         Args:
-            query (dict): The filter criteria for the query.
+            query (Dict): The filter criteria for the query.
 
         Usage:
             # Find and delete a user by username
@@ -716,7 +717,7 @@ class Document(metaclass=DocumentMeta):
         document = add_timestamps_if_required(
             self, operation="update", **self.to_dict(id_as_string=False)
         )
-        logger.debug(f"doc dict represenatuon = {document}")
+        logger.debug(f"doc Dict represenatuon = {document}")
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
@@ -794,7 +795,7 @@ class Document(metaclass=DocumentMeta):
         of the appropriate class.
 
         Args:
-            document (dict): The dictionary representation of a document fetched from MongoDB.
+            document (Dict): The dictionary representation of a document fetched from MongoDB.
 
         Returns:
             Document: An instance of the appropriate subclass of Document.
@@ -822,7 +823,7 @@ class Document(metaclass=DocumentMeta):
                                            Defaults to True.
 
         Returns:
-            dict: A dictionary representation of the document.
+            Dict: A dictionary representation of the document.
         """
         doc_dict = {}
         for k, v in self.__dict__.items():
@@ -837,10 +838,16 @@ class Document(metaclass=DocumentMeta):
                 doc_dict[k] = value
 
         # Ensure the class type (__type) is included in the dictionary
-        doc_dict[self.__type_field] = self.__class__.__name__
+        # todo: might need to add this back for polymorphism
+        # doc_dict[self.__type_field] = self.__class__.__name__
 
         # Ensure '_id' is processed according to id_as_string flag
         if "_id" in self.__dict__:
             doc_dict["_id"] = str(self._id) if id_as_string else self._id
+
+        # todo: do we need this for any reason?
+        # doc_dict = add_timestamps_if_required(
+        #     self, operation="create", **doc_dict
+        # )
 
         return doc_dict

@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import re
 
 
 def add_timestamps_if_required(cls, operation: str = "update", **kwargs):
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     if hasattr(cls, "Meta"):
         if (
             getattr(cls.Meta, "created_at_timestamp", False)
