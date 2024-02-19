@@ -1,5 +1,5 @@
 import pytest
-from test_documents.user import User
+from tests.test_documents.user import User
 
 @pytest.fixture
 def setup_user():

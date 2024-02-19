@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Tuple
 
 from bson import ObjectId
 from pymongo import ReturnDocument
+from pymongo import IndexModel
 
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field

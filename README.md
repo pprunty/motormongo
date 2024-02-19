@@ -35,12 +35,12 @@ poetry add motormongo
 ### Step 1. Create a motormongo client:
 
 ```python
-from motormongo import connect
+from motormongo import DataBase
 
 
-def init_db():
+async def init_db():
     # This 'connect' method needs to be called inside of a function because it is asynchronous
-    await connect(uri="<mongo_uri>", database="<mongo_database>")
+    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>")
 
 if __name__ == "__main__":
     init_db()

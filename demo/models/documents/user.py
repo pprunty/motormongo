@@ -34,7 +34,10 @@ class User(Document):
 
     class Meta:
         collection = "users"
-        indexes = [{'fields': ['location'], 'type': '2dsphere'}]
+        indexes = [
+            {'fields': ['location'], 'type': '2dsphere'},
+            {'fields': [('created_at', -1)]},  # Ascending index on username
+        ]
         timestamps = True
 
 
