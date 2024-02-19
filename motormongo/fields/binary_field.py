@@ -6,23 +6,32 @@ from motormongo.fields.field import Field
 
 
 class BinaryField(Field):
-    # todo: add return_decoded parameter
     def __init__(
-        self, hash_function: Optional[Callable[[str], bytes]] = None, **kwargs
+        self,
+        hash_function: Optional[Callable[[str], bytes]] = None,
+        return_decoded: bool = False,
+        encode: Optional[Callable[[str], bytes]] = None,
+        decode: Optional[Callable[[bytes], str]] = None,
+        **kwargs,
     ):
         super().__init__(type=Binary, **kwargs)
         self.hash_function = hash_function
+        self.return_decoded = return_decoded
+        self.encode = encode if encode is not None else (lambda x: x.encode("utf-8"))
+        self.decode = decode if decode is not None else (lambda x: x.decode("utf-8"))
 
     def __set__(self, obj, value: Union[str, bytes, Binary]):
-        # Apply the hash function if it's provided and the value is a string
-        if self.hash_function is not None and isinstance(value, str):
-            value = self.hash_function(value)
-
-        # Check if the value is of appropriate type
-        if value is not None and not isinstance(value, (bytes, Binary)):
+        # Initial type check
+        if value is not None and not isinstance(value, (str, bytes, Binary)):
             raise ValueError(
-                f"Value for {self.name} must be a bytes object or bson.Binary"
+                f"Value must be a string, bytes object, or bson.Binary. Got {type(value).__name__}"
             )
+
+        # Apply encoding if value is a string (and potentially hash function afterwards)
+        if isinstance(value, str):
+            value = self.encode(value)
+            if self.hash_function is not None:
+                value = self.hash_function(value)
 
         # Convert bytes to bson.Binary for MongoDB storage
         if isinstance(value, bytes):
@@ -31,8 +40,14 @@ class BinaryField(Field):
         super().__set__(obj, value)
 
     def __get__(self, obj, objtype=None):
-        value = obj.__dict__.get(self.name, self.options.get("default"))
-        # Optionally, decode the value if it's stored as Binary
-        if isinstance(value, Binary):
-            return value.decode()  # or return as-is, depending on your needs
+        value = super().__get__(
+            obj, objtype
+        )  # Leverage Field's __get__ for default handling
+        # Decode the value if it's stored as Binary and return_decoded is True
+        if self.return_decoded:
+            try:
+                print(f"returning decoded value {self.decode(value)}")
+                return self.decode(value)
+            except Exception as e:
+                raise ValueError(f"Error decoding Binary field: {e}")
         return value

@@ -22,9 +22,11 @@ class DataBase:
             cls.db = cls.client[str(db) or str(os.getenv("MONGODB_DB"))]
             await cls.initialize_indexes()
         except Exception as e:
-            raise RuntimeError(f"Error connecting to MongoDB database: {e}.\nEnsure URI follows the format: "
-                               f"mongodb+srv://<username>:<password>@<cluster>.mongodb.net and specified "
-                               f"db exists.")
+            raise RuntimeError(
+                f"Error connecting to MongoDB database: {e}.\nEnsure URI follows the format: "
+                f"mongodb+srv://<username>:<password>@<cluster>.mongodb.net and specified "
+                f"db exists."
+            )
 
     @classmethod
     async def close(cls):
@@ -46,7 +48,9 @@ class DataBase:
             try:
                 collection_name = document_class.get_collection_name()
                 collection = cls.db[collection_name]
-                logger.debug(f"Index list for collection '{collection_name}' = {document_class.Meta.indexes}")
+                logger.debug(
+                    f"Index list for collection '{collection_name}' = {document_class.Meta.indexes}"
+                )
                 for index in document_class.Meta.indexes:
                     fields = index["fields"]
                     _options = {k: v for k, v in index.items() if k != "fields"}

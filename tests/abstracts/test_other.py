@@ -80,3 +80,28 @@ async def test_find_one_and_update_empty_fields():
         assert updated_found_result.password is not None
         assert updated_found_result.age == update_fields["age"]
     await User.delete_one(_id=updated_found_result._id)
+
+@pytest.mark.asyncio
+async def test_wrong_datatype():
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
+    user = {
+        "username": "johndoe",
+        "email": "johndoe@hotmail.com",
+    }
+    insert_result = await User.insert_one(user)
+    assert insert_result is not None
+    update_fields = {
+        "username": "johndoe",
+        "email": "johndoe@hotmail.com",
+        "password": "password123",
+        "age": 69,
+    }
+    # Using pytest.raises to assert that a TypeError is raised
+    with pytest.raises(TypeError):
+        updated_found_result, was_updated = await User.find_one_and_update_empty_fields(
+            insert_result._id, update_fields
+        )
+
+    await User.delete_many({})

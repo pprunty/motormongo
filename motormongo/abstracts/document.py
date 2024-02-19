@@ -7,7 +7,11 @@ from pymongo import ReturnDocument
 
 from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.fields.field import Field
-from motormongo.utils.formatter import add_timestamps_if_required, camel_to_snake
+from motormongo.utils.formatter import (
+    add_timestamps_if_required,
+    camel_to_snake_or_lower,
+    enforce_types,
+)
 from motormongo.utils.logging import logger
 
 
@@ -147,7 +151,7 @@ class Document(metaclass=DocumentMeta):
         """
         if hasattr(cls, "Meta") and hasattr(cls.Meta, "collection"):
             return cls.Meta.collection
-        return camel_to_snake(cls.__name__)
+        return camel_to_snake_or_lower(cls.__name__)
 
     @classmethod
     def convert_id(cls, query):
@@ -472,6 +476,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in updating documents in the mongo.
         """
+        enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
         # First, add timestamps to the update fields if required
         update_fields = add_timestamps_if_required(cls, **update_fields)
 
@@ -487,9 +492,7 @@ class Document(metaclass=DocumentMeta):
             # If you need to return the updated documents, you have to find them
             # Note: this may not be efficient for a large number of documents
             if result.modified_count > 0:
-                updated_documents = (
-                    await collection.find(query).to_list(length=None)
-                )
+                updated_documents = await collection.find(query).to_list(length=None)
                 return [
                     cls.from_dict(**doc) for doc in updated_documents
                 ], result.modified_count
@@ -568,6 +571,7 @@ class Document(metaclass=DocumentMeta):
     async def find_one_or_create(
         cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
+        enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
 
@@ -617,6 +621,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in replacing the document.
         """
+        enforce_types([(query, dict, "query"), (replacement, dict, "replacement")])
         replacement = add_timestamps_if_required(cls, **replacement)
         try:
             db = await cls.db()
@@ -654,9 +659,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in finding or updating the document.
         """
-        if not isinstance(query, dict):
-            raise TypeError(f"Expected query to be a dict, got {type(query).__name__} instead")
-
+        enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
         db = await cls.db()
         collection = db[cls.get_collection_name()]
         existing_doc = await collection.find_one(query)
@@ -674,7 +677,7 @@ class Document(metaclass=DocumentMeta):
         return None, False  # Document not found
 
     @classmethod
-    async def find_one_and_delete(cls, query: Dict) -> "Document":
+    async def find_one_and_delete(cls, query: Dict = None, **kwargs) -> "Document":
         """
         Asynchronously finds a single document matching the query and deletes it.
 
@@ -691,6 +694,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document.
         """
+        query = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -793,9 +797,6 @@ class Document(metaclass=DocumentMeta):
         Factory method to instantiate objects of the correct subclass based on the document's
         __type field. This method ensures that each document is deserialized into an instance
         of the appropriate class.
-
-        Args:
-            document (Dict): The dictionary representation of a document fetched from MongoDB.
 
         Returns:
             Document: An instance of the appropriate subclass of Document.

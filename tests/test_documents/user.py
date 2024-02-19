@@ -21,8 +21,9 @@ from motormongo import (
 
 
 def hash_password(password) -> bytes:
+    if isinstance(password, bytes):
+        password = password.decode('utf-8')  # Convert bytes to string if necessary
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-
 
 class Status(Enum):
     ACTIVE = "active"
@@ -44,6 +45,9 @@ class User(Document):
     status = EnumField(enum=Status)
     favorite_colors = ListField(field=StringField())
     net_worth = FloatField(min_value=0.0)
+
+    def verify_password(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode('utf-8'), self.password)
 
     class Meta:
         collection = "users"

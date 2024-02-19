@@ -49,7 +49,6 @@ if __name__ == "__main__":
 or, in a FastAPI application:
 
 ```python
-import os
 from fastapi import FastAPI
 from motormongo import DataBase
 
@@ -57,7 +56,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+    await DataBase.connect(uri="<mongo_uri>", db="<mongo_database>")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
