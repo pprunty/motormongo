@@ -35,15 +35,33 @@ poetry add motormongo
 ### Step 1. Create a motormongo client:
 
 ```python
+import asyncio
 from motormongo import DataBase
 
-
 async def init_db():
-    # This 'connect' method needs to be called inside of a function because it is asynchronous
+    # This 'connect' method needs to be called inside of an async function
     await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>")
 
 if __name__ == "__main__":
-    init_db()
+    asyncio.run(init_db())
+```
+
+or, in a FastAPI application:
+
+```python
+import os
+from fastapi import FastAPI
+from motormongo import DataBase
+
+app = FastAPI()
+
+@app.on_event("startup")
+async def startup_db_client():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    await DataBase.close()
 ```
 
 The `mongo_uri` should look something like this:

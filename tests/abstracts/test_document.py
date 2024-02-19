@@ -1,12 +1,13 @@
 import pytest
 from tests.test_documents.user import User
+from tests import init_db_fixture
 
 @pytest.fixture
 def setup_user():
     return NotImplemented
 
 @pytest.mark.asyncio
-async def test_insert_one():
+async def test_insert_one(init_db_fixture):
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
