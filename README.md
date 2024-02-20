@@ -29,8 +29,9 @@ version). Thank you 😎.
 4. [CRUD classmethods](#class-methods)
 5. [CRUD instance methods](#instance-methods)
 6. [Aggregation Operations](#aggregation)
-7. [FastAPI integration](#fastapi-integration)
-8. [License](#license)
+7. [Polymorphism and Inheritance](#polymorphism-and-inheritance)
+8. [FastAPI integration](#fastapi-integration)
+9. [License](#license)
 
 ## Installation
 
@@ -137,7 +138,8 @@ await User.insert_one(
     {
         "username": "johndoe",
         "email": "johndoe@portmarnock.ie",
-        "password": "password123" # < hash_functon will hash the string literal password and store binary field in the database
+        "password": "password123"
+        # < hash_functon will hash the string literal password and store binary field in the database
     }
 )
 ```
@@ -202,16 +204,30 @@ type is designed to handle specific data types and validations:
 
 ### BinaryField
 
-The `BinaryField` is designed for storing binary data within a database. It offers capabilities for encoding, hashing, and decoding data, making it versatile for handling various types of binary data, including but not limited to encrypted or hashed content.
+The `BinaryField` is designed for storing binary data within a database. It offers capabilities for encoding, hashing,
+and decoding data, making it versatile for handling various types of binary data, including but not limited to encrypted
+or hashed content.
 
 **Parameters:**
 
-- `hash_function`: (Optional) A callable that hashes input data. The function should have a type annotation to indicate whether it expects a `str` or `bytes` as input. This annotation is crucial as it dictates whether the `BinaryField` should encode the string before hashing. If the annotation indicates `str`, the field will pass the string directly to the `hash_function`. If `bytes`, the `BinaryField` will encode the string (using the provided `encode` function or default UTF-8 encoding) before hashing.
-- `return_decoded`: (Optional) A boolean indicating whether to decode binary data when it is retrieved from the database. If set to `True`, the stored binary data will be decoded back into a string using the provided `decode` function or default UTF-8 decoding. This is useful for data that was encoded but not hashed, as hashed data cannot be meaningfully decoded.
-- `encode`: (Optional) A function to encode a string to bytes before storage. If not provided, the class defaults to UTF-8 encoding. This function is used when the input data is a string and needs to be stored as binary data, or before hashing if the `hash_function` expects `bytes`.
-- `decode`: (Optional) A function to decode bytes back to a string when data is retrieved from the database. This parameter is only relevant if `return_decoded` is `True`. If not provided, the class defaults to UTF-8 decoding.
+- `hash_function`: (Optional) A callable that hashes input data. The function should have a type annotation to indicate
+  whether it expects a `str` or `bytes` as input. This annotation is crucial as it dictates whether the `BinaryField`
+  should encode the string before hashing. If the annotation indicates `str`, the field will pass the string directly to
+  the `hash_function`. If `bytes`, the `BinaryField` will encode the string (using the provided `encode` function or
+  default UTF-8 encoding) before hashing.
+- `return_decoded`: (Optional) A boolean indicating whether to decode binary data when it is retrieved from the
+  database. If set to `True`, the stored binary data will be decoded back into a string using the provided `decode`
+  function or default UTF-8 decoding. This is useful for data that was encoded but not hashed, as hashed data cannot be
+  meaningfully decoded.
+- `encode`: (Optional) A function to encode a string to bytes before storage. If not provided, the class defaults to
+  UTF-8 encoding. This function is used when the input data is a string and needs to be stored as binary data, or before
+  hashing if the `hash_function` expects `bytes`.
+- `decode`: (Optional) A function to decode bytes back to a string when data is retrieved from the database. This
+  parameter is only relevant if `return_decoded` is `True`. If not provided, the class defaults to UTF-8 decoding.
 
-**Important**: For the `hash_function` to work correctly with the `BinaryField`, it must include type annotations for its parameters. This enables the `BinaryField` to determine the correct processing strategy (i.e., whether to encode the string before hashing).
+**Important**: For the `hash_function` to work correctly with the `BinaryField`, it must include type annotations for
+its parameters. This enables the `BinaryField` to determine the correct processing strategy (i.e., whether to encode the
+string before hashing).
 
 ### Example Usage:
 
@@ -219,9 +235,11 @@ The `BinaryField` is designed for storing binary data within a database. It offe
 from motormongo import Document, BinaryField, StringField
 import bcrypt
 
+
 # Hash function with type annotation indicating it expects a 'str'
 def hash_password(password: str) -> bytes:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
 
 class User(Document):
     username = StringField(min_length=3, max_length=50)
@@ -231,6 +249,7 @@ class User(Document):
     def verify_password(self, password: str) -> bool:
         # Verifies if the provided password matches the stored hash
         return bcrypt.checkpw(password.encode("utf-8"), self.password)
+
 
 # Creating a user instance with a hashed password
 user = User(username="johndoe", password="secret")
@@ -306,6 +325,7 @@ This field allows you to include complex data structures as part of your documen
 from motormongo import Document, EmbeddedDocument, EmbeddedDocumentField, StringField
 from pydantic import BaseModel
 
+
 class Address(EmbeddedDocument):
     street = StringField()
     city = StringField()
@@ -315,9 +335,11 @@ class User(Document):
     name = StringField()
     address = EmbeddedDocumentField(document_type=Address)
 
+
 class PydanticAddress(BaseModel):
-    street: str 
+    street: str
     city: str
+
 
 # Create a user with an embedded address document
 user = User(name="John Doe", address={"street": "123 Elm St", "city": "Springfield"})
@@ -498,7 +520,8 @@ else:
     print("User not found or failed to fetch.")
 ```
 
-This example demonstrates how to access and asynchronously fetch the document referenced by a `ReferenceField`. The await
+This example demonstrates how to access and asynchronously fetch the document referenced by a `ReferenceField`. The
+await
 keyword is crucial because the operation is asynchronous, involving a database query to retrieve the referenced
 document.
 
@@ -814,12 +837,15 @@ for user in users:
 
 ### Aggregation
 
-The `aggregate` class method is designed to perform aggregation operations on the documents within the collection. It allows the execution of a sequence of data aggregation operations defined by the `pipeline` parameter. This method can return the results either as a list of documents or as a cursor, based on the `return_as_list` flag.
+The `aggregate` class method is designed to perform aggregation operations on the documents within the collection. It
+allows the execution of a sequence of data aggregation operations defined by the `pipeline` parameter. This method can
+return the results either as a list of documents or as a cursor, based on the `return_as_list` flag.
 
 **Parameters:**
 
 - `pipeline`: A list of dictionaries defining the aggregation operations to be performed on the collection.
-- `return_as_list` (optional): A boolean flag that determines the format of the returned results. If set to `True`, the method returns a list of documents. If `False` (default), it returns a cursor.
+- `return_as_list` (optional): A boolean flag that determines the format of the returned results. If set to `True`, the
+  method returns a list of documents. If `False` (default), it returns a cursor.
 
 **Returns:**
 
@@ -853,6 +879,94 @@ docs_list = await YourDocumentClass.aggregate(pipeline, return_as_list=True)
 print(docs_list)
 ```
 
+## Polymorphism and Inheritance
+
+This part of the documentation provides an overview of implementing and using polymorphism and inheritance using the
+motormongo framework, enabling flexible and organized data models for various use cases.
+
+## Base Model: Item
+
+The `Item` class serves as the base model for different types of items stored in a MongoDB collection. It defines common
+fields and methods that are shared across all item types.
+
+```python
+from motormongo import Document, StringField, FloatField
+
+
+class Item(Document):
+    name = StringField()
+    cost = FloatField()
+```
+
+## Subclass Models
+
+Subclasses of `Item` can introduce specific fields or override methods to cater to different item categories.
+
+### Book
+
+A `Book` represents a specific type of `Item` with additional attributes related to books.
+
+```python
+class Book(Item):
+    title = StringField()
+    author = StringField()
+    isbn = StringField()
+```
+
+### Electronics
+
+An `Electronics` item represents electronic goods with attributes like warranty period and brand.
+
+```python
+class Electronics(Item):
+    warranty_period = StringField()  # E.g., "2 years"
+    brand = StringField()
+```
+
+## Usage
+
+### Creating and Inserting Items
+
+To insert items into the database, use the `insert_one` method. The item's type is managed automatically.
+
+```python
+# Insert a book
+book = await Book.insert_one(title="1984", author="George Orwell", isbn="123456789", cost=20.0, name="Book")
+
+# Insert an electronics item
+electronics = await Electronics.insert_one(warranty_period="2 years", brand="TechBrand", cost=999.99, name="Laptop")
+```
+
+### Querying Items
+
+You can query items of any type using their base or specific models. Polymorphism allows retrieved instances to be of
+the correct subclass.
+
+```python
+# Find a book by ISBN
+found_book = await Book.find_one(isbn="123456789")
+
+# Find an electronics item by brand
+found_electronics = await Electronics.find_one(brand="TechBrand")
+```
+
+### Polymorphic Behavior
+
+**Note** - The following behaviour is currently being tested and not available in v0.1.9.
+
+Querying on the base `Item` model returns items of all types, correctly instantiated as their specific subclasses.
+
+```python
+# Find all items with a cost over 50
+expensive_items = await Item.find_many(cost={"$gt": 50})
+
+for item in expensive_items:
+    print(type(item))  # Prints the subclass (Book, Electronics, etc.)
+    if isinstance(item, Book):
+        print(f"Book: {item.title} by {item.author}")
+    elif isinstance(item, Electronics):
+        print(f"Electronics: {item.brand} with {item.warranty_period} warranty")
+```
 
 ## FastAPI integration
 
@@ -921,7 +1035,8 @@ async def is_authenticated(username: str, password: str):
     if not user.verify_password(password):
         raise HTTPException(status_code=401, detail="Unauthorized")
     else:
-      return "You are authenticated! You can see this!"
+        return "You are authenticated! You can see this!"
+
 
 @app.get("/users")
 async def get_users():

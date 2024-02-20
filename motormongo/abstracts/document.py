@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 from bson import ObjectId
 from pymongo import ReturnDocument
@@ -29,7 +29,7 @@ class DocumentMeta(type):
             cls._registered_documents = []
         else:
             cls._registered_documents.append(cls)
-
+            logger.debug(f"Registered document class: {cls.__name__}")
 
 class Document(metaclass=DocumentMeta):
     """
@@ -85,30 +85,23 @@ class Document(metaclass=DocumentMeta):
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
         self.__collection = self.get_collection_name()
-        self.__dict__[self.__type_field] = (
-            self.__class__.__name__
-        )  # Store class name in __type_field
+        self.__dict__[self.__type_field] = self.__class__.__name__
+        # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
 
-        # Handling _id separately
+        # Handling '_id' separately
         if "_id" in kwargs:
             logger.debug(f"Setting _id: {kwargs['_id']}")
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
         # Setting other attributes
-        for name, field in self.__class__.__dict__.items():
-            if isinstance(field, Field):
-                logger.debug(
-                    f"{name} and value = {kwargs.get(name, field.options.get('default'))}"
-                )
-                # For non-ReferenceField fields or if the value is not a string, set it directly
-                if kwargs.get(name, field.options.get("default")) is not None:
-                    setattr(self, name, kwargs.get(name, field.options.get("default")))
-            else:
-                # todo: valid warn
-                NotImplemented
+        for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
+            for name, field in cls.__dict__.items():
+                if isinstance(field, Field):
+                    attr_value = kwargs.get(name, field.options.get('default'))
+                    if attr_value is not None:
+                        setattr(self, name, attr_value)
 
-        # # TODO: This should be set elsewhere?
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
         if "updated_at" in kwargs:
@@ -143,16 +136,36 @@ class Document(metaclass=DocumentMeta):
         return await get_db()
 
     @classmethod
-    def get_collection_name(cls):
+    def get_collection_name(cls) -> Union[str, List[str]]:
         """
-        Retrieves the collection name for the document class.
+        Retrieves the collection name for the document class or a list of collection names for its subclasses,
+        preferring explicitly defined collection names in the subclass's Meta attribute if available.
 
         Returns:
-            str: The collection name. If defined in the class's 'Meta' attribute, it uses that;
-                 otherwise, converts the class name from CamelCase to snake_case.
+            Union[str, List[str]]: The collection name for the current class, or, if the class has subclasses,
+                                    a list of collection names derived from either the subclass Meta attribute
+                                    or the subclass names.
         """
+        # Check for an explicitly defined collection name in the current class's Meta attribute
+        # Check for subclasses
+        subclasses = cls.__subclasses__()
+        if subclasses:
+            # Initialize an empty list to store collection names for subclasses
+            subclass_collection_names = []
+            # Iterate over each subclass
+            for subcls in subclasses:
+                # Check for an explicitly defined collection name in the subclass's Meta attribute
+                if hasattr(subcls, "Meta") and hasattr(subcls.Meta, "collection"):
+                    subclass_collection_names.append(subcls.Meta.collection)
+                else:
+                    # If no explicit collection name is defined, convert the subclass name from CamelCase to snake_case
+                    subclass_collection_names.append(camel_to_snake_or_lower(subcls.__name__))
+            return subclass_collection_names
+
         if hasattr(cls, "Meta") and hasattr(cls.Meta, "collection"):
             return cls.Meta.collection
+
+        # If no subclasses exist, return the snake_case collection name for the current class
         return camel_to_snake_or_lower(cls.__name__)
 
     @classmethod
@@ -353,51 +366,69 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-            cls, query: Dict = None, limit: int = None, **kwargs
-    ) -> List["Document"]:
+            cls, query: Dict = None, limit: int = None, return_as_list: bool = True, **kwargs
+    ) -> Union[List["Document"], List[Any], Any]:
         """
-        Asynchronously retrieves multiple documents from the mongo collection that match the
-        given filter and limit.
+        Asynchronously retrieves multiple documents from one or more mongo collections that match the
+        given filter and limit. Optionally, it can return an AsyncIOMotorCursor instead of a list for each collection.
 
         This method allows you to query multiple documents based on the filter criteria. It supports
         both a filter dictionary and additional keyword arguments. You can also specify a limit on
-        the number of documents to retrieve.
+        the number of documents to retrieve and whether to return the results as a list or a cursor.
 
         Args:
             query (Dict, optional): A dictionary specifying the filter criteria for the query.
-                                     Defaults to None.
+                                    Defaults to None.
             limit (int, optional): The maximum number of documents to return. Defaults to None,
                                    which means no limit.
+            return_as_list (bool, optional): If True, returns a list of Documents. If False, returns a cursor.
+                                             Defaults to True.
             **kwargs: Additional filter criteria specified as keyword arguments.
 
         Returns:
-            List[Document]: A list of class instances representing the found documents. Returns an
-                            empty list if no documents match the filter criteria.
+            Union[List["Document"], List[AsyncIOMotorCursor], Any]: Depending on return_as_list, either a list of class instances
+                                                                    representing the found documents or an AsyncIOMotorCursor for each collection.
+                                                                    Returns an empty list if no documents match the filter criteria
+                                                                    and return_as_list is True.
 
         Raises:
             ValueError: If there is an error in finding the documents with the given filter.
-
-        Examples:
-            await MyClass.find_many(age={"$gt": 40}, alive=False, limit=20)
-            filter_criteria = {"age": {"$gt": 40}, "alive": False}
-            await MyClass.find_many(**filter_criteria, limit=20)
-
-        Note:
-            - The `filter` argument and keyword arguments are combined for the query.
-            - The `limit` argument restricts the number of returned documents.
         """
         filter = {**(query or {}), **kwargs}
+        combined_results = []  # Initialize a list to store combined results from all collections
+
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_name()]
-            cursor = collection.find(filter)
-            if limit is not None:
-                cursor = cursor.limit(limit)
-            documents = await cursor.to_list(length=limit)
-            return [cls.from_dict(**doc) for doc in documents]
-        except Exception as e:
-            raise DocumentNotFoundError(f"Error finding {cls.__name__} documents with query '{filter}': {e}")
+            collection_names = cls.get_collection_name()  # This might return a single name or a list of names
 
+            if isinstance(collection_names, list):
+                # If get_collection_name returns a list, iterate over each collection name
+                for collection_name in collection_names:
+                    collection = db[collection_name]
+                    cursor = collection.find(filter)
+                    if limit is not None:
+                        cursor = cursor.limit(limit)
+                    if return_as_list:
+                        documents = await cursor.to_list(length=limit)
+                        combined_results.extend([cls.from_dict(**doc) for doc in documents])
+                    else:
+                        combined_results.append(cursor)
+            else:
+                # Single collection name case
+                collection = db[collection_names]
+                cursor = collection.find(filter)
+                if limit is not None:
+                    cursor = cursor.limit(limit)
+                if return_as_list:
+                    documents = await cursor.to_list(length=limit)
+                    combined_results = [cls.from_dict(**doc) for doc in documents]
+                else:
+                    combined_results = cursor
+
+            return combined_results
+        except Exception as e:
+            logger.debug(f"Failed to retrieve documents for {cls.__name__} with query '{filter}': {str(e)}")
+            raise DocumentNotFoundError(f"Error finding {cls.__name__} documents with query '{filter}': {e}")
     @classmethod
     async def update_one(cls, query: Dict, update_fields: Dict) -> "Document":
         """
@@ -830,6 +861,29 @@ class Document(metaclass=DocumentMeta):
         return json.dumps(self.to_dict(), default=self._json_encoder)
 
     @classmethod
+    def _get_class_from_type(cls, type_name: str):
+        """
+        Finds the subclass based on the provided type name.
+
+        Args:
+            type_name (str): The name of the subclass as stored in the document's __type field.
+
+        Returns:
+            The class object corresponding to the type name, or None if no matching class is found.
+        """
+        if not type_name:
+            logger.debug("No type name provided for _get_class_from_type.")
+            return None
+
+        for subclass in cls._registered_documents:
+            if subclass.__name__ == type_name:
+                logger.debug(f"Found matching class '{type_name}' for document instantiation.")
+                return subclass
+
+        logger.warning(f"No matching class found for type name '{type_name}'.")
+        return None
+
+    @classmethod
     def from_dict(cls, **kwargs):
         """
         Factory method to instantiate objects of the correct subclass based on the document's
@@ -840,16 +894,20 @@ class Document(metaclass=DocumentMeta):
             Document: An instance of the appropriate subclass of Document.
         """
         # Extract the class name from the document's __type field
-        class_name = kwargs.get(cls.__type_field)
+        class_name = kwargs.get(cls.__type_field, None)
 
-        # Find the correct class to instantiate
         if class_name:
             for subclass in cls._registered_documents:
                 if subclass.__name__ == class_name:
-                    # Instantiate the subclass with the document's data
+                    logger.debug(f"Instantiating {class_name} from document data.")
                     return subclass(**kwargs)
+            # Log a warning if no registered subclass matches the class_name
+            logger.debug(
+                f"Unknown class name '{class_name}' in document data. Falling back to base class {cls.__name__}.")
+        else:
+            # Log a debug message if __type field is missing
+            logger.debug(f"__type field missing in document data. Instantiating base class {cls.__name__}.")
 
-        # Fallback to the base class if the class name is not found or __type is missing
         return cls(**kwargs)
 
     def to_dict(self, id_as_string=True):

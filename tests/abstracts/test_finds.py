@@ -116,6 +116,7 @@ async def test_find_many_w_query():
     assert result is not None
     query = {"age": {"$gt": 25}}
     found_result = await User.find_many(query)
+    print(f"found result = {[doc.to_dict() for doc in found_result]}")
     assert len(found_result) == 2
     await User.delete_many({})
 
