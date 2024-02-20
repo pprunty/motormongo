@@ -567,7 +567,7 @@ The following class methods are supported by motormongo's `Document` class:
 | Create    | [`insert_one(document: dict, **kwargs) -> Document`](#insert_one)                                                                  |
 | Create    | [`insert_many(documents: List[dict]) -> Tuple[List[Document], Any]`](#insert_many)                                                 |
 | Read      | [`find_one(query: dict, **kwargs) -> Document`](#find_one)                                                                         |
-| Read      | [`find_many(query: dict, limit: int, **kwargs) -> List[Document]`](#find_many)                                                     |
+| Read      | [`find_many(query: dict, limit: int = None, return_as_list: bool = True **kwargs) -> List[Document]`](#find_many)                  |
 | Update    | [`update_one(query: dict, update_fields: dict) -> Document`](#update_one)                                                          |
 | Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)                                      |
 | Delete    | [`delete_one(query: dict, **kwargs) -> bool`](#delete_one)                                                                         |
