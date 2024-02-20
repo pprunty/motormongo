@@ -5,11 +5,9 @@ on:
     branches: [ main ]
 
 jobs:
-  prepare-dependencies:
+  check-dependencies:
     name: 📦 Prepare Dependencies
     runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cache-dependencies.outputs.cache-hit }}
 
     steps:
       - uses: actions/checkout@v2
@@ -24,22 +22,12 @@ jobs:
 
       - name: Configure Poetry 🛠️
         run: poetry config virtualenvs.create false
-
-      - name: Cache Poetry dependencies
-        id: cache-dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
 
       - name: Install dependencies 🔽
         run: make install
 
   lint:
     name: 🧹 Lint with flake8
-    needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -55,8 +43,7 @@ jobs:
       - name: Configure Poetry 🛠️
         run: poetry config virtualenvs.create false
 
-      - name: Install dependencies 🔽 (Cache)
-        if: needs.prepare-dependencies.outputs.cache-hit != 'true'
+      - name: Install dependencies 🔽
         run: make install
 
       - name: Run flake8 🔍
@@ -67,15 +54,10 @@ jobs:
 
   test:
     name: 🧪 Run tests
-    needs: prepare-dependencies
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: 3.11
     env:
-      # TODO: Make this MONGODB_TEST_*
       MONGODB_URL: ${{ secrets.MONGODB_URL }}
-      MONGODB_COLLECTION: ${{ secrets.MONGODB_COLLECTION }}
+      MONGODB_DB: ${{ secrets.MONGODB_DB }}
 
     steps:
       - uses: actions/checkout@v2
@@ -83,7 +65,7 @@ jobs:
       - name: Set up Python 🐍
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
 
       - name: Install Poetry 📦
         run: curl -sSL https://install.python-poetry.org | python -
@@ -91,8 +73,7 @@ jobs:
       - name: Configure Poetry 🛠️
         run: poetry config virtualenvs.create false
 
-      - name: Install dependencies 🔽 (Cache)
-        if: needs.prepare-dependencies.outputs.cache-hit != 'true'
+      - name: Install dependencies 🔽
         run: make install
 
       - name: Run tests 🚀

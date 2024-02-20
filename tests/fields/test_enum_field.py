@@ -10,7 +10,7 @@ from tests.test_documents.user import Status, User
 @pytest.mark.asyncio
 async def test_enum_assignment():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     user = User(status=Status.ACTIVE)
@@ -20,7 +20,7 @@ async def test_enum_assignment():
 @pytest.mark.asyncio
 async def test_string_assignment():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     user = User(status="active")
@@ -30,7 +30,7 @@ async def test_string_assignment():
 @pytest.mark.asyncio
 async def test_invalid_string_assignment():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     with pytest.raises(InvalidEnumValueError):
@@ -40,7 +40,7 @@ async def test_invalid_string_assignment():
 @pytest.mark.asyncio
 async def test_invalid_type_assignment():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     with pytest.raises(InvalidEnumTypeError):

@@ -10,7 +10,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
