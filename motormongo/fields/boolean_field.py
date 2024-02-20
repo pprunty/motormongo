@@ -1,5 +1,5 @@
+from motormongo.fields.exceptions import BooleanFieldError
 from motormongo.fields.field import Field
-
 
 class BooleanField(Field):
     def __init__(self, **kwargs):
@@ -7,5 +7,5 @@ class BooleanField(Field):
 
     def __set__(self, obj, value):
         if value is not None and not isinstance(value, bool):
-            raise ValueError(f"Value for {self.name} must be a boolean")
+            raise BooleanFieldError(f"Value for {self.name} must be a boolean. Got {type(value)}")
         super().__set__(obj, value)

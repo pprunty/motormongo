@@ -1,13 +1,12 @@
 import asyncio
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
 from motormongo import DataBase
-from tests.test_documents.user import (  # Adjust the import according to your project structure
-    User,
-)
+from tests.test_documents.user import User
+from motormongo.fields.exceptions import DateTimeValueError, DateTimeFormatError
 
 
 @pytest.mark.asyncio
@@ -77,3 +76,21 @@ async def test_datetime_field_type_validation():
         # Assuming User has a 'signup_date' DateTimeField
         user = User(username="wrongdateuser", last_login="not a real date")
         await user.save()
+
+
+@pytest.mark.asyncio
+async def test_datetime_field_valid_assignment():
+    user = User(last_login="2023-01-01T12:00:00")
+    assert user.last_login.year == 2023
+
+
+@pytest.mark.asyncio
+async def test_datetime_field_invalid_format():
+    with pytest.raises(DateTimeFormatError):
+        User(last_login="01-01-2023 12:00:00")  # Assuming this format is not supported
+
+
+@pytest.mark.asyncio
+async def test_datetime_field_invalid_type():
+    with pytest.raises(DateTimeValueError):
+        User(last_login=123)  # Not a datetime object, date object, or string

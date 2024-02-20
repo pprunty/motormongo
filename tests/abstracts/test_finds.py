@@ -32,7 +32,7 @@ async def test_find_one_w_kwargs_filter_criteria():
         "username": "james",
         "email": "james@hotmail.com",
         "password": "password123",
-        "age": 2,
+        "age": 7,
     }
     result = await User.insert_one(user)
     found_result = await User.find_one(
@@ -75,7 +75,7 @@ async def test_find_many():
         "username": "johndoe",
         "email": "james@hotmail.com",
         "password": "password123",
-        "age": 2,
+        "age": 7,
     }
     result = await User.insert_one(user)
     assert result is not None
@@ -97,7 +97,7 @@ async def test_find_many_w_query():
             "username": "johndoe",
             "email": "james@hotmail.com",
             "password": "password123",
-            "age": 2,
+            "age": 5,
         },
         {
             "username": "johndoe",
@@ -136,7 +136,7 @@ async def test_find_many_w_limit():
             "username": "johndoe",
             "email": "johndoe2@hotmail.com",
             "password": "password123",
-            "age": 420,
+            "age": 42,
         },
         {
             "username": "johndoe",
@@ -148,7 +148,7 @@ async def test_find_many_w_limit():
             "username": "johndoe",
             "email": "johndoe2@hotmail.com",
             "password": "password123",
-            "age": 420,
+            "age": 42,
         },
     ]
     await User.insert_many(users)

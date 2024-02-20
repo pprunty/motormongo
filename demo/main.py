@@ -27,7 +27,6 @@ async def get_users():
     users = await User.find_many()
     if not users:
         raise HTTPException(status_code=404, detail="User not found")
-    print(f"---api returning {[user.to_dict() for user in users]}")
     return [user.to_dict() for user in users]
 
 @app.get("/users/{user_id}")
@@ -35,7 +34,6 @@ async def get_user(user_id: str):
     user = await User.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    print(f"---api returning {user.to_dict()}")
     return user.to_dict()
 
 @app.put("/users/{user_id}", status_code=200)
@@ -44,6 +42,14 @@ async def update_user(user_id: str, user_data: UserModelRequest):
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user.to_dict()
+
+@app.delete("/users/{user_id}", status_code=204)
+async def delete_user(user_id: str):
+    user = await User.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    await user.delete()
+    return {"status": "User deleted successfully"}
 
 @app.put("/users/kill/{user_id}", status_code=204)
 async def kill_user(user_id: str):
@@ -62,14 +68,6 @@ async def update_user_location(user_id: str, location: List[float]):
     user.location = location
     await user.save()
     return {"status": "Location updated"}
-
-@app.delete("/users/{user_id}", status_code=204)
-async def delete_user(user_id: str):
-    user = await User.find_one({"_id": user_id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    await user.delete()
-    return {"status": "User deleted successfully"}
 
 
 @app.post("/user-details/", response_model=UserDetailsRequest)

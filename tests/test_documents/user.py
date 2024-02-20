@@ -1,6 +1,5 @@
 import re
 from enum import Enum
-
 import bcrypt
 
 from motormongo import (
@@ -35,18 +34,22 @@ class Gender(Enum):
     MALE = "male"
     FEMALE = "female"
 
+class Profile(EmbeddedDocument):
+    bio = StringField()
+    website = StringField(default="somesite.com")
 
 class User(Document):
     username = StringField(min_length=3, max_length=50)
-    email = StringField(regex=re.compile(r"^\S+@\S+\.\S+$"))
+    email = StringField(regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50)
     password = BinaryField(hash_function=hash_password)
     location = GeoJSONField(return_as_list=True)
     last_login = DateTimeField(auto_now=True)
-    age = IntegerField()
+    age = IntegerField(min_value=5, max_value=100)
     alive = BooleanField(default=True)
     status = EnumField(enum=Status)
     favorite_colors = ListField(field=StringField())
-    net_worth = FloatField(min_value=0.0)
+    net_worth = FloatField(min_value=5.0, max_value=10)
+    profile = EmbeddedDocumentField(document_type=Profile)
 
     def verify_password(self, password: str) -> bool:
         return bcrypt.checkpw(password.encode("utf-8"), self.password)

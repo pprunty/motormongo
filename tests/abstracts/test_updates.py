@@ -58,7 +58,7 @@ async def test_update_many_success():
             "username": "johndoe2",
             "email": "johndoe2@hotmail.com",
             "alive": True,
-            "age": 420,
+            "age": 42,
         },
         {
             "username": "johndoe2",
@@ -73,7 +73,7 @@ async def test_update_many_success():
     query = {"age": {"$gt": 67}}
     update_result, update_count = await User.update_many(query, {"alive": False})
     assert update_result
-    assert update_count == 2
+    assert update_count == 1
     for user in update_result:
         assert user.alive == False
     await User.delete_many({})

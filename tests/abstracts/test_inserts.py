@@ -101,7 +101,7 @@ async def test_insert_many():
             "username": "johndoe",
             "email": "johndoe2@hotmail.com",
             "password": "password123",
-            "age": 420,
+            "age": 42,
         },
     ]
     inserted_users, inserted_user_ids = await User.insert_many(users)
