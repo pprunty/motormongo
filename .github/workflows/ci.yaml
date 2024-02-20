@@ -69,9 +69,6 @@ jobs:
     name: 🧪 Run tests
     needs: prepare-dependencies
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: 3.11
     env:
       # TODO: Make this MONGODB_TEST_*
       MONGODB_URL: ${{ secrets.MONGODB_URL }}
@@ -83,7 +80,7 @@ jobs:
       - name: Set up Python 🐍
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.11
 
       - name: Install Poetry 📦
         run: curl -sSL https://install.python-poetry.org | python -
