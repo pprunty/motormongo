@@ -915,7 +915,10 @@ async def is_authenticated(username: str, password: str):
     user = await User.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user.verify_password(password)
+    if not user.verify_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    else:
+      return "You are authenticated! You can see this!"
 
 
 @app.get("/users")
