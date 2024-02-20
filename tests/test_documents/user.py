@@ -1,5 +1,6 @@
 import re
 from enum import Enum
+
 import bcrypt
 
 from motormongo import (
@@ -34,13 +35,17 @@ class Gender(Enum):
     MALE = "male"
     FEMALE = "female"
 
+
 class Profile(EmbeddedDocument):
     bio = StringField()
     website = StringField(default="somesite.com")
 
+
 class User(Document):
     username = StringField(min_length=3, max_length=50)
-    email = StringField(regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50)
+    email = StringField(
+        regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50
+    )
     password = BinaryField(hash_function=hash_password)
     location = GeoJSONField(return_as_list=True)
     last_login = DateTimeField(auto_now=True)

@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from motormongo.fields.exceptions import InvalidBinaryTypeError, BinaryDecodingError
 from motormongo import BinaryField, DataBase, Document, StringField
+from motormongo.fields.exceptions import BinaryDecodingError, InvalidBinaryTypeError
 from tests.test_documents.user import User
 
 
@@ -86,9 +86,12 @@ async def test_custom_encode_decode_functions_w_bad_classname():
 
     await New__User.delete_one({"_id": user._id})
 
+
 @pytest.mark.asyncio
 async def test_decoding_error():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     # Custom decode function that raises an error
     def faulty_decode(input_bytes: bytes) -> str:
@@ -107,13 +110,18 @@ async def test_decoding_error():
     retrieved_user = await FaultyDecodeUser.find_one({"_id": user._id})
 
     with pytest.raises(BinaryDecodingError):
-        _ = retrieved_user.password  # Accessing should trigger decode and thus the error
+        _ = (
+            retrieved_user.password
+        )  # Accessing should trigger decode and thus the error
 
     await FaultyDecodeUser.delete_one({"_id": user._id})
 
+
 @pytest.mark.asyncio
 async def test_hash_function_application():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     # Custom hash function for testing
     def custom_hash(input_str: str) -> bytes:
@@ -136,9 +144,12 @@ async def test_hash_function_application():
 
     await HashFunctionUser.delete_one({"_id": user._id})
 
+
 @pytest.mark.asyncio
 async def test_none_value_handling():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     class NoneValueUser(Document):
         username = StringField(min_length=3, max_length=50)

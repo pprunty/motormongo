@@ -1,6 +1,7 @@
 import pytest
-from tests.test_documents.user import User
+
 from motormongo.fields.exceptions import BooleanFieldError
+from tests.test_documents.user import User
 
 
 @pytest.mark.asyncio

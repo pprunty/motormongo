@@ -5,8 +5,8 @@ from datetime import datetime
 import pytest
 
 from motormongo import DataBase
+from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from tests.test_documents.user import User
-from motormongo.fields.exceptions import DateTimeValueError, DateTimeFormatError
 
 
 @pytest.mark.asyncio
