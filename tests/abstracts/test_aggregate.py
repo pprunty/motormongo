@@ -9,7 +9,7 @@ from tests.test_documents.user import User, Status
 @pytest.mark.asyncio
 async def test_user_aggregation():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     users = [
         {"username": "user1", "email": "user1@example.com", "password": "password123", "age": 20,
@@ -43,7 +43,7 @@ async def test_user_aggregation():
 @pytest.mark.asyncio
 async def test_user_aggregation_w_list():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     users = [
         {"username": "user1", "email": "user1@example.com", "password": "password123", "age": 20,

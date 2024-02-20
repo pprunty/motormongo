@@ -9,7 +9,7 @@ from tests.test_documents.user import User
 @pytest.mark.asyncio
 async def test_find_one_success():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -26,7 +26,7 @@ async def test_find_one_success():
 @pytest.mark.asyncio
 async def test_find_one_w_kwargs_filter_criteria():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "james",
@@ -45,7 +45,7 @@ async def test_find_one_w_kwargs_filter_criteria():
 @pytest.mark.asyncio
 async def test_find_one_returns_none_w_kwargs():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     filter_criteria = {
         "username": "johndoe45",
@@ -57,7 +57,7 @@ async def test_find_one_returns_none_w_kwargs():
 @pytest.mark.asyncio
 async def test_find_one_returns_none_w_out_kwargs():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     filter_criteria = {
         "username": "johndoe45",
@@ -69,7 +69,7 @@ async def test_find_one_returns_none_w_out_kwargs():
 @pytest.mark.asyncio
 async def test_find_many():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -90,7 +90,7 @@ async def test_find_many():
 @pytest.mark.asyncio
 async def test_find_many_w_query():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     users = [
         {
@@ -124,7 +124,7 @@ async def test_find_many_w_query():
 @pytest.mark.asyncio
 async def test_find_many_w_limit():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     users = [
         {

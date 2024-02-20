@@ -56,9 +56,8 @@ jobs:
     name: 🧪 Run tests
     runs-on: ubuntu-latest
     env:
-      # TODO: Make this MONGODB_TEST_*
       MONGODB_URL: ${{ secrets.MONGODB_URL }}
-      MONGODB_COLLECTION: ${{ secrets.MONGODB_COLLECTION }}
+      MONGODB_DB: ${{ secrets.MONGODB_DB }}
 
     steps:
       - uses: actions/checkout@v2
