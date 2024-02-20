@@ -884,7 +884,7 @@ print(docs_list)
 This part of the documentation provides an overview of implementing and using polymorphism and inheritance using the
 motormongo framework, enabling flexible and organized data models for various use cases.
 
-## Base Model: Item
+### Base Model: Item
 
 The `Item` class serves as the base model for different types of items stored in a MongoDB collection. It defines common
 fields and methods that are shared across all item types.
@@ -898,11 +898,11 @@ class Item(Document):
     cost = FloatField()
 ```
 
-## Subclass Models
+### Subclass Models
 
 Subclasses of `Item` can introduce specific fields or override methods to cater to different item categories.
 
-### Book
+#### Book
 
 A `Book` represents a specific type of `Item` with additional attributes related to books.
 
@@ -913,7 +913,7 @@ class Book(Item):
     isbn = StringField()
 ```
 
-### Electronics
+#### Electronics
 
 An `Electronics` item represents electronic goods with attributes like warranty period and brand.
 
@@ -923,9 +923,9 @@ class Electronics(Item):
     brand = StringField()
 ```
 
-## Usage
+### Usage
 
-### Creating and Inserting Items
+#### Creating and Inserting Items
 
 To insert items into the database, use the `insert_one` method. The item's type is managed automatically.
 
@@ -937,7 +937,7 @@ book = await Book.insert_one(title="1984", author="George Orwell", isbn="1234567
 electronics = await Electronics.insert_one(warranty_period="2 years", brand="TechBrand", cost=999.99, name="Laptop")
 ```
 
-### Querying Items
+#### Querying Items
 
 You can query items of any type using their base or specific models. Polymorphism allows retrieved instances to be of
 the correct subclass.
@@ -950,7 +950,7 @@ found_book = await Book.find_one(isbn="123456789")
 found_electronics = await Electronics.find_one(brand="TechBrand")
 ```
 
-### Polymorphic Behavior
+#### Polymorphic Behavior
 
 **Note** - The following behaviour is currently being tested and not available in v0.1.9.
 
