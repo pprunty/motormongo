@@ -784,7 +784,7 @@ updated_user, updated = await User.find_one_and_update_empty_fields(
 
 ## Instance methods
 
-motormongo also supports the manimulation of fields on the [object instance](). This allows
+motormongo also supports the manipulation of fields on the [object instance](). This allows
 users to programmatically achieve the same operations listed above through the object instance
 itself.
 
@@ -952,9 +952,19 @@ found_electronics = await Electronics.find_one(brand="TechBrand")
 
 #### Polymorphic Behavior
 
-**Note** - The following behaviour is currently being tested and not available in v0.1.9.
+The following operations are supported over the base `Item` Document class, enabling complex querying over base `Item`
+Document class and all of its subclasses (i.e `Book` and `Electronics`):
 
-Querying on the base `Item` model returns items of all types, correctly instantiated as their specific subclasses.
+| CRUD Type | Operation                                                                                                         |
+|-----------|-------------------------------------------------------------------------------------------------------------------|
+| Read      | [`find_many(query: dict, limit: int = None, return_as_list: bool = True **kwargs) -> List[Document]`](#find_many) |
+| Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)                     |
+| Delete    | [`delete_many(query: dict, **kwargs) -> int`](#delete_many)                                                       |
+
+As well as `aggregate` operations, see the [Aggregation Operation](#aggregation) section for more details.
+
+Querying on the base `Item` model returns items of all types, correctly instantiated as their specific subclasses. See
+below for a logical example of polymorphic querying:
 
 ```python
 # Find all items with a cost over 50

@@ -509,6 +509,7 @@ class Document(metaclass=DocumentMeta):
 
         Raises:
             ValueError: If there is an error in updating documents in the mongo.
+        # TODO: Add polymorphic usage
         """
         enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
         # First, add timestamps to the update fields if required
@@ -591,6 +592,7 @@ class Document(metaclass=DocumentMeta):
 
         Raises:
             ValueError: If there is an error in deleting the documents from the mongo.
+        # TODO: Add polymorphic usage
         """
         query = {**(query or {}), **kwargs}
         try:
@@ -819,6 +821,7 @@ class Document(metaclass=DocumentMeta):
 
         Raises:
             ValueError: If an error occurs during pipeline execution.
+        # TODO: Add polymorphic usage
         """
         db = await cls.db()
         try:
