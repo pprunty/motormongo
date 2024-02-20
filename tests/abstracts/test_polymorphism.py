@@ -102,3 +102,43 @@ async def test_find_expensive_items():
     # Clean up
     await Book.delete_many({})
     await Electronics.delete_many({})
+
+@pytest.mark.asyncio
+async def test_polymorphic_aggregate():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+
+    # Assume Book and Electronics items are already inserted by previous tests or insert them here
+
+    # Perform a polymorphic aggregation to find items with cost greater than 50
+    expensive_items_pipeline = [
+        {"$match": {"cost": {"$gt": 50}}}
+    ]
+    expensive_items = await Item.aggregate(expensive_items_pipeline, return_as_list=True)
+    assert expensive_items, "No expensive items found"
+    for item in expensive_items:
+        assert item.cost > 50, "Found item is not expensive"
+
+@pytest.mark.asyncio
+async def test_polymorphic_update_many():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+
+    # Update all items where cost is greater than 50 by adding a 'high_value' flag
+    update_result, modified_count = await Item.update_many({"cost": {"$gt": 50}}, {"high_value": True})
+    assert modified_count > 0, "No documents were updated"
+
+    # Verify that the 'high_value' flag is set
+    high_value_items = await Item.find_many(high_value=True)
+    for item in high_value_items:
+        assert item.high_value is True, "Item does not have 'high_value' flag set"
+
+@pytest.mark.asyncio
+async def test_polymorphic_delete_many():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+
+    # Delete items that are considered high value
+    deleted_count = await Item.delete_many(high_value=True)
+    assert deleted_count > 0, "No high value items were deleted"
+
+    # Verify deletion
+    remaining_high_value_items = await Item.find_many(high_value=True)
+    assert not remaining_high_value_items, "High value items were not deleted"
