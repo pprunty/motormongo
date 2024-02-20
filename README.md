@@ -983,7 +983,7 @@ import re
 import bcrypt
 
 
-def hash_password(password) -> bytes:
+def hash_password(password: str) -> bytes:
     # Example hashing function
     return bcrypt.hashpw(password.encode('utf-8'), salt=bcrypt.gensalt())
 

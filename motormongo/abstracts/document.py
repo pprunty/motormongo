@@ -145,6 +145,7 @@ class Document(metaclass=DocumentMeta):
             Union[str, List[str]]: The collection name for the current class, or, if the class has subclasses,
                                     a list of collection names derived from either the subclass Meta attribute
                                     or the subclass names.
+        TODO: Always return list
         """
         # Check for an explicitly defined collection name in the current class's Meta attribute
         # Check for subclasses
