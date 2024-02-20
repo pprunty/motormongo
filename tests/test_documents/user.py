@@ -22,8 +22,9 @@ from motormongo import (
 
 def hash_password(password) -> bytes:
     if isinstance(password, bytes):
-        password = password.decode('utf-8')  # Convert bytes to string if necessary
+        password = password.decode("utf-8")  # Convert bytes to string if necessary
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
 
 class Status(Enum):
     ACTIVE = "active"
@@ -40,6 +41,7 @@ class User(Document):
     email = StringField(regex=re.compile(r"^\S+@\S+\.\S+$"))
     password = BinaryField(hash_function=hash_password)
     location = GeoJSONField(return_as_list=True)
+    last_login = DateTimeField(auto_now=True)
     age = IntegerField()
     alive = BooleanField(default=True)
     status = EnumField(enum=Status)
@@ -47,7 +49,7 @@ class User(Document):
     net_worth = FloatField(min_value=0.0)
 
     def verify_password(self, password: str) -> bool:
-        return bcrypt.checkpw(password.encode('utf-8'), self.password)
+        return bcrypt.checkpw(password.encode("utf-8"), self.password)
 
     class Meta:
         collection = "users"

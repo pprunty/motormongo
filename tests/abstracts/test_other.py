@@ -81,6 +81,7 @@ async def test_find_one_and_update_empty_fields():
         assert updated_found_result.age == update_fields["age"]
     await User.delete_one(_id=updated_found_result._id)
 
+
 @pytest.mark.asyncio
 async def test_wrong_datatype():
     await DataBase.connect(

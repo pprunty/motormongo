@@ -1,11 +1,12 @@
 from datetime import date, datetime
+from typing import List
 
 from motormongo.fields.field import Field
 
 
 class DateTimeField(Field):
     def __init__(
-        self, auto_now=False, auto_now_add=False, datetime_formats=None, **kwargs
+            self, auto_now: bool =False, auto_now_add: bool = False, datetime_formats: List[str] = None, **kwargs
     ):
         super().__init__(type=(datetime, date, str, None), **kwargs)
         self.auto_now = auto_now
@@ -13,7 +14,7 @@ class DateTimeField(Field):
         # Set default formats if none provided
         if datetime_formats is None:
             datetime_formats = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]
-        self.datetime_formats = datetime_formats
+        self.datetime_formats = [datetime_formats] if isinstance(datetime_formats, str) else datetime_formats
 
     def __set_name__(self, owner, name):
         super().__set_name__(owner, name)

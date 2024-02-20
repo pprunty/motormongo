@@ -80,11 +80,7 @@ Define a motormongo `User` document:
 ```python
 import re
 import bcrypt
-from motormongo.abstracts.document import Document
-from motormongo.fields.binary_field import BinaryField
-from motormongo.fields.string_field import StringField
-from motormongo.fields.integer_field import IntegerField
-from motormongo.fields.enum_field import EnumField
+from motormongo import Document, BinaryField, StringField
 
 def hash_password(password) -> bytes:
     # Example hashing function
@@ -94,9 +90,15 @@ class User(Document):
     username = StringField(help_text="The username for the user", min_length=3, max_length=50)
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
     password = BinaryField(help_text="The hashed password for the user", hash_function=hash_password)
-    age = IntegerField(help_text="The age of the user")
-    status = EnumField(enum=Status, help_text="Indicator for whether the user is active or not.")
-
+    
+    def verify_password(self, password: str) -> bool:
+        """ Utility function which can be used to validate user's salted password later...
+        
+        ex.     user = await User.find_one({"_id": request.user_id})
+                is_authenticated = user.verify_password(request.password)
+        """ 
+        return bcrypt.checkpw(password.encode("utf-8"), self.password)
+    
     class Meta:
         collection = "users"  # < If not provided, will default to class name (ex. User->user, UserDetails->user_details)
         created_at_timestamp = True  # < Provide a DateTimeField for document creation
@@ -112,14 +114,14 @@ await User.insert_one(
     {
         "username": "johndoe",
         "email": "johndoe@portmarnock.ie",
-        "password": "password123" #< hash_functon will hash the string literal password
+        "password": "password123" #< hash_functon will hash the string literal password and store binary field in the database
     }
 )
 ```
 
 ### Step 4: Validate user was created in your MongoDB collection
 
-You can do this using [MongoDB compass](), or alternatively, add a query to find all documents in the user
+You can do this by using [MongoDB compass]() GUI, or alternatively, add a query to find all documents in the user
 collection after doing the insert in step 3:
 
 ```python
@@ -143,7 +145,8 @@ or in a FastAPI application:
 uvicorn main:app --reload
 ```
 
-Please refer to [FastAPI Documentation](https://fastapi.tiangolo.com/tutorial/) for more details on how to get setup with FastAPI.
+Please refer to [FastAPI Documentation](https://fastapi.tiangolo.com/tutorial/) for more details on how to get setup
+with FastAPI.
 
 ## Congratulations 🎉
 
