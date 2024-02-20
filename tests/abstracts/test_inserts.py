@@ -9,7 +9,7 @@ from tests.test_documents.user import User
 @pytest.mark.asyncio
 async def test_insert_one_success():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -29,7 +29,7 @@ async def test_insert_one_success():
 @pytest.mark.asyncio
 async def test_insert_one_w_extra_field_ignored():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -47,7 +47,7 @@ async def test_insert_one_w_extra_field_ignored():
 @pytest.mark.asyncio
 async def test_insert_one_w_extra_field_ignored():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -65,7 +65,7 @@ async def test_insert_one_w_extra_field_ignored():
 @pytest.mark.asyncio
 async def test_insert_one_kwargs_explicit():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     user = {
         "username": "johndoe",
@@ -88,7 +88,7 @@ async def test_insert_one_kwargs_explicit():
 @pytest.mark.asyncio
 async def test_insert_many():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     users = [
         {
@@ -114,7 +114,7 @@ async def test_insert_many():
 # # TODO: Add this to field tests?
 # @pytest.mark.asyncio
 # async def test_insert_one_w_wrong_datatype_field():
-#     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+#     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 #     user = {
 #         "username": "johndoe",
 #         "email": "johndoe@hotmail.com",
