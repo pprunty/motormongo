@@ -182,22 +182,20 @@ async def test_polymorphic_delete_many():
         "isbn": "7777777777",
         "cost": 10.0,
         "name": "Book",
-        "to_delete": True
     }
     electronics_details = {
         "warranty_period": "1 year",
         "brand": "DisposableBrand",
         "cost": 50.99,
         "name": "Disposable Laptop",
-        "to_delete": True
     }
     await Book.insert_one(**book_details)
     await Electronics.insert_one(**electronics_details)
 
     # Delete items marked with 'to_delete'
-    deleted_count = await Item.delete_many(to_delete=True)
+    deleted_count = await Item.delete_many({"cost": {"$lt": 50}})
     assert deleted_count > 0, "No items marked for deletion were deleted"
 
     # Verify deletion
-    remaining_items = await Item.find_many(to_delete=True)
+    remaining_items = await Item.find_many({"cost": {"$gte": 50}})
     assert not remaining_items, "Items marked for deletion were not deleted"
