@@ -1,5 +1,6 @@
-from motormongo.fields.exceptions import ListValueTypeError, ListItemTypeError
+from motormongo.fields.exceptions import ListItemTypeError, ListValueTypeError
 from motormongo.fields.field import Field
+
 
 class ListField(Field):
     def __init__(self, field=None, **kwargs):
@@ -9,7 +10,9 @@ class ListField(Field):
     def __set__(self, obj, value):
         if value is not None:
             if not isinstance(value, list):
-                raise ListValueTypeError(f"Value for {self.name} must be a list. Got {type(value)}.")
+                raise ListValueTypeError(
+                    f"Value for {self.name} must be a list. Got {type(value)}."
+                )
 
             if self.field:
                 for item in value:

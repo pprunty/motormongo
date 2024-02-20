@@ -1,8 +1,10 @@
 from typing import Callable, Optional, Union
+
 from bson import Binary
 
 from motormongo.fields.exceptions import BinaryDecodingError, InvalidBinaryTypeError
 from motormongo.fields.field import Field
+
 
 class BinaryField(Field):
     def __init__(

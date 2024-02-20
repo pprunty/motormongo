@@ -1,13 +1,18 @@
+from pydantic import BaseModel
+
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from motormongo.fields.field import Field
-from pydantic import BaseModel
+
 
 class EmbeddedDocumentField(Field):
     def __init__(self, document_type, **kwargs):
         from motormongo.abstracts.embedded_document import EmbeddedDocument
+
         super().__init__(type=(dict, EmbeddedDocument), **kwargs)
         if not issubclass(document_type, (EmbeddedDocument, BaseModel)):
-            raise EmbeddedDocumentTypeError("document_type must be a subclass of EmbeddedDocument or BaseModel")
+            raise EmbeddedDocumentTypeError(
+                "document_type must be a subclass of EmbeddedDocument or BaseModel"
+            )
         self.document_type = document_type
 
     def __set__(self, obj, value):
