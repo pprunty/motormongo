@@ -225,11 +225,16 @@ def hash_password(password: str) -> bytes:
 class User(Document):
     username = StringField(min_length=3, max_length=50)
     password = BinaryField(hash_function=hash_password, return_decoded=False)
+    
+    def verify_password(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode("utf-8"), self.password)
 
 
 # Create a user with a hashed password
 user = User(username="johndoe", password="secret")
-await user.save()
+inserted_user = await user.save()
+is_authenticated = inserted_user.verify_password("wrongpassword") # Will return False
+is_authenticated = inserted_user.verify_password("secret") # Will return True
 ```
 
 ### BooleanField
@@ -295,7 +300,7 @@ This field allows you to include complex data structures as part of your documen
 
 ```python
 from motormongo import Document, EmbeddedDocument, EmbeddedDocumentField, StringField
-
+from pydantic import BaseModel
 
 class Address(EmbeddedDocument):
     street = StringField()
@@ -306,9 +311,14 @@ class User(Document):
     name = StringField()
     address = EmbeddedDocumentField(document_type=Address)
 
+class PydanticAddress(BaseModel):
+    street: str 
+    city: str
 
 # Create a user with an embedded address document
 user = User(name="John Doe", address={"street": "123 Elm St", "city": "Springfield"})
+# user = User(name="John Doe", address=Address(street="123 Elm St", city="Springfield")) # Also works
+# user = User(name="John Doe", address=PydanticAddress(street="123 Elm St", city="Springfield")) # Also works
 await user.save()
 ```
 
@@ -339,6 +349,7 @@ class User(Document):
 
 # Create a user and set their status using the EnumField
 user = User(status=UserStatus.ACTIVE)
+# user = User(status="active") # Also works
 await user.save()
 ```
 

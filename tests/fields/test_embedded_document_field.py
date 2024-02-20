@@ -2,6 +2,7 @@ import pytest
 
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from tests.test_documents.user import Profile, User
+from pydantic import BaseModel
 
 
 def test_embedded_document_field_valid_assignment():
@@ -20,9 +21,6 @@ def test_embedded_document_field_assignment_with_dict():
     user = User(profile={"bio": "Loves coding", "website": "coder.com"})
     assert user.profile.bio == "Loves coding"
     assert user.profile.website == "coder.com"
-
-
-from pydantic import BaseModel
 
 
 class PydanticProfile(BaseModel):
