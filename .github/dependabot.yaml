@@ -1,8 +1,8 @@
 version: 2
 updates:
-- package-ecosystem: "python"
-  directory: "/"
-  schedule:
-    interval: "daily"
-  open-pull-requests-limit: 3
-  versioning-strategy: "auto"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 5
+    versioning-strategy: "auto"
