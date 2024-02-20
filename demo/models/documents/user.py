@@ -7,7 +7,7 @@ from motormongo import (EmbeddedDocumentField, DateTimeField, ReferenceField, Fl
                                GeoJSONField, BooleanField, BinaryField, StringField, IntegerField, EnumField)
 
 
-def hash_password(password) -> bytes:
+def hash_password(password: str) -> bytes:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 
@@ -31,6 +31,9 @@ class User(Document):
     status = EnumField(enum=Status)
     favorite_colors = ListField(field=StringField())
     net_worth = FloatField(min_value=0.0)
+
+    def verify_password(self, password: str) -> bool:
+        return bcrypt.checkpw(password.encode("utf-8"), self.password)
 
     class Meta:
         collection = "users"

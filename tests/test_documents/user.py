@@ -20,7 +20,7 @@ from motormongo import (
 )
 
 
-def hash_password(password) -> bytes:
+def hash_password(password: str) -> bytes:
     if isinstance(password, bytes):
         password = password.decode("utf-8")  # Convert bytes to string if necessary
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())

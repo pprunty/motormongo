@@ -8,3 +8,7 @@ class InvalidBinaryTypeError(BinaryFieldError):
 
 class BinaryDecodingError(BinaryFieldError):
     """Exception raised during decoding errors in a BinaryField."""
+
+class MissingTypeAnnotationError(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)

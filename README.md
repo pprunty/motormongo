@@ -104,7 +104,7 @@ import bcrypt
 from motormongo import Document, BinaryField, StringField
 
 
-def hash_password(password) -> bytes:
+def hash_password(password: str) -> bytes:
     # Example hashing function
     return bcrypt.hashpw(password.encode('utf-8'), salt=bcrypt.gensalt())
 
@@ -137,8 +137,7 @@ await User.insert_one(
     {
         "username": "johndoe",
         "email": "johndoe@portmarnock.ie",
-        "password": "password123"
-        # < hash_functon will hash the string literal password and store binary field in the database
+        "password": "password123" # < hash_functon will hash the string literal password and store binary field in the database
     }
 )
 ```
@@ -203,39 +202,43 @@ type is designed to handle specific data types and validations:
 
 ### BinaryField
 
-The `BinaryField` is used for storing binary data in the database, with support for encoding, hashing, and decoding.
+The `BinaryField` is designed for storing binary data within a database. It offers capabilities for encoding, hashing, and decoding data, making it versatile for handling various types of binary data, including but not limited to encrypted or hashed content.
 
 **Parameters:**
 
-- `hash_function`: (Optional) A callable for hashing input strings to bytes.
-- `return_decoded`: (Optional) If `True`, decodes binary data when retrieved.
-- `encode`: (Optional) Function to encode a string to bytes. Defaults to UTF-8 encoding.
-- `decode`: (Optional) Function to decode bytes back to a string. Defaults to UTF-8 decoding.
+- `hash_function`: (Optional) A callable that hashes input data. The function should have a type annotation to indicate whether it expects a `str` or `bytes` as input. This annotation is crucial as it dictates whether the `BinaryField` should encode the string before hashing. If the annotation indicates `str`, the field will pass the string directly to the `hash_function`. If `bytes`, the `BinaryField` will encode the string (using the provided `encode` function or default UTF-8 encoding) before hashing.
+- `return_decoded`: (Optional) A boolean indicating whether to decode binary data when it is retrieved from the database. If set to `True`, the stored binary data will be decoded back into a string using the provided `decode` function or default UTF-8 decoding. This is useful for data that was encoded but not hashed, as hashed data cannot be meaningfully decoded.
+- `encode`: (Optional) A function to encode a string to bytes before storage. If not provided, the class defaults to UTF-8 encoding. This function is used when the input data is a string and needs to be stored as binary data, or before hashing if the `hash_function` expects `bytes`.
+- `decode`: (Optional) A function to decode bytes back to a string when data is retrieved from the database. This parameter is only relevant if `return_decoded` is `True`. If not provided, the class defaults to UTF-8 decoding.
 
-**Example Usage:**
+**Important**: For the `hash_function` to work correctly with the `BinaryField`, it must include type annotations for its parameters. This enables the `BinaryField` to determine the correct processing strategy (i.e., whether to encode the string before hashing).
+
+### Example Usage:
 
 ```python
 from motormongo import Document, BinaryField, StringField
 import bcrypt
 
-
+# Hash function with type annotation indicating it expects a 'str'
 def hash_password(password: str) -> bytes:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-
 class User(Document):
     username = StringField(min_length=3, max_length=50)
+    # Note: 'hash_function' requires a type annotation
     password = BinaryField(hash_function=hash_password, return_decoded=False)
-    
+
     def verify_password(self, password: str) -> bool:
+        # Verifies if the provided password matches the stored hash
         return bcrypt.checkpw(password.encode("utf-8"), self.password)
 
-
-# Create a user with a hashed password
+# Creating a user instance with a hashed password
 user = User(username="johndoe", password="secret")
 inserted_user = await user.save()
-is_authenticated = inserted_user.verify_password("wrongpassword") # Will return False
-is_authenticated = inserted_user.verify_password("secret") # Will return True
+
+# Authentication checks
+is_authenticated = inserted_user.verify_password("wrongpassword")  # Expected to return False
+is_authenticated = inserted_user.verify_password("secret")  # Expected to return True
 ```
 
 ### BooleanField
@@ -910,7 +913,7 @@ async def create_user(user: UserModelRequest):
     return new_user.to_dict()
 
 
-@app.post("/user/auth", status_code=201)
+@app.post("/user/auth", status_code=200)
 async def is_authenticated(username: str, password: str):
     user = await User.find_one({"username": username})
     if not user:
@@ -919,7 +922,6 @@ async def is_authenticated(username: str, password: str):
         raise HTTPException(status_code=401, detail="Unauthorized")
     else:
       return "You are authenticated! You can see this!"
-
 
 @app.get("/users")
 async def get_users():

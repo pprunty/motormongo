@@ -10,7 +10,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
@@ -28,6 +28,18 @@ async def get_users():
     if not users:
         raise HTTPException(status_code=404, detail="User not found")
     return [user.to_dict() for user in users]
+
+@app.post("/user/auth", status_code=200)
+async def is_authenticated(username: str, password: str):
+    user = await User.find_one({"username": username})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.verify_password(password):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    else:
+      return "You are authenticated! You can see this!"
+
+
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: str):

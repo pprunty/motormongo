@@ -140,7 +140,7 @@ async def test_hash_function_application():
     retrieved_user = await HashFunctionUser.find_one({"_id": user._id})
 
     # Assuming the hash function's result is directly accessible for comparison
-    assert retrieved_user.password == custom_hash("passwordToHash")
+    assert bytes(retrieved_user.password) == custom_hash("passwordToHash")
 
     await HashFunctionUser.delete_one({"_id": user._id})
 
