@@ -53,7 +53,7 @@ class Document(metaclass=DocumentMeta):
         __init__(self, **kwargs): Initialize a new document instance with the given attributes.
         __init_subclass__(cls, **kwargs): Class initialization hook for subclasses.
         db(cls): Asynchronously retrieves the Motor mongo client instance.
-        get_collection_names(cls): Retrieves the collection name for the document class.
+        get_collection_name(cls): Retrieves the collection name for the document class.
         convert_id(cls, query): Converts '_id' in the query to an ObjectId.
         insert_one(cls, document=None, **kwargs): Asynchronously inserts a single document.
         insert_many(cls, documents): Asynchronously inserts multiple documents.
@@ -90,7 +90,7 @@ class Document(metaclass=DocumentMeta):
         Note:
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
-        self.__collection = self.get_collection_names()
+        self.__collection = self.get_collection_name()
         self.__dict__[self.__type_field] = self.__class__.__name__
         # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
@@ -142,7 +142,7 @@ class Document(metaclass=DocumentMeta):
         return await get_db()
 
     @classmethod
-    def get_collection_names(cls) -> List[str]:
+    def get_collection_name(cls) -> Union[str, List[str]]:
         """
         Retrieves the collection name for the document class or a list of collection names for its subclasses,
         preferring explicitly defined collection names in the subclass's Meta attribute if available.
@@ -151,7 +151,6 @@ class Document(metaclass=DocumentMeta):
             Union[str, List[str]]: The collection name for the current class, or, if the class has subclasses,
                                     a list of collection names derived from either the subclass Meta attribute
                                     or the subclass names.
-        TODO: Always return list
         """
         # Check for an explicitly defined collection name in the current class's Meta attribute
         # Check for subclasses
@@ -172,10 +171,10 @@ class Document(metaclass=DocumentMeta):
             return subclass_collection_names
 
         if hasattr(cls, "Meta") and hasattr(cls.Meta, "collection"):
-            return [cls.Meta.collection]
+            return cls.Meta.collection
 
         # If no subclasses exist, return the snake_case collection name for the current class
-        return [camel_to_snake_or_lower(cls.__name__)]
+        return camel_to_snake_or_lower(cls.__name__)
 
     @classmethod
     def convert_id(cls, query):
@@ -250,7 +249,7 @@ class Document(metaclass=DocumentMeta):
         logger.debug(f"document w timestamp = {document_w_timestamps}")
 
         try:
-            collection_name = cls.get_collection_names()
+            collection_name = cls.get_collection_name()
             db = await cls.db()
             result = await db[collection_name].insert_one(document_w_timestamps)
             inserted_document = await db[collection_name].find_one(
@@ -316,7 +315,7 @@ class Document(metaclass=DocumentMeta):
         # Connect to the mongo and insert the documents
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             result = await collection.insert_many(processed_documents)
             return [
                 cls.from_dict(**doc) for doc in processed_documents
@@ -370,7 +369,7 @@ class Document(metaclass=DocumentMeta):
 
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
             logger.debug(f"__doc rep = {document}")
             return cls.from_dict(**document) if document else None
@@ -421,11 +420,11 @@ class Document(metaclass=DocumentMeta):
         try:
             db = await cls.db()
             collection_names = (
-                cls.get_collection_names()
+                cls.get_collection_name()
             )  # This might return a single name or a list of names
 
             if isinstance(collection_names, list):
-                # If get_collection_names returns a list, iterate over each collection name
+                # If get_collection_name returns a list, iterate over each collection name
                 for collection_name in collection_names:
                     collection = db[collection_name]
                     cursor = collection.find(filter)
@@ -504,7 +503,7 @@ class Document(metaclass=DocumentMeta):
 
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             update_result = await collection.find_one_and_update(
                 query,
                 {"$set": instance.to_dict(id_as_string=False)},
@@ -519,7 +518,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
@@ -548,13 +547,15 @@ class Document(metaclass=DocumentMeta):
             result = await collection.update_many(query, {"$set": update_fields})
             if result.modified_count > 0:
                 updated_documents = await collection.find(query).to_list(length=None)
-                return [cls.from_dict(**doc) for doc in updated_documents], result.modified_count
+                return [
+                    cls.from_dict(**doc) for doc in updated_documents
+                ], result.modified_count
             else:
                 return [], 0
 
         try:
             db = await cls.db()
-            collection_names = cls.get_collection_names()
+            collection_names = cls.get_collection_name()
             if isinstance(collection_names, list):
                 combined_results = []
                 total_modified = 0
@@ -599,7 +600,7 @@ class Document(metaclass=DocumentMeta):
         query = cls.convert_id(query)
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             delete_result = await collection.delete_one(query)
             return delete_result.deleted_count > 0
         except Exception as e:
@@ -639,7 +640,7 @@ class Document(metaclass=DocumentMeta):
 
         try:
             db = await cls.db()
-            collection_names = cls.get_collection_names()
+            collection_names = cls.get_collection_name()
             total_deleted = 0
 
             if isinstance(collection_names, list):
@@ -682,7 +683,7 @@ class Document(metaclass=DocumentMeta):
         """
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             document = await collection.find_one(query)
 
             if document:
@@ -725,7 +726,7 @@ class Document(metaclass=DocumentMeta):
         replacement = add_timestamps_if_required(cls, **replacement)
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             updated_document = await collection.find_one_and_replace(
                 query, replacement, return_document=ReturnDocument.AFTER
             )
@@ -769,7 +770,7 @@ class Document(metaclass=DocumentMeta):
         enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             existing_doc = await collection.find_one(query)
 
             if existing_doc:
@@ -814,7 +815,7 @@ class Document(metaclass=DocumentMeta):
         query = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
-            collection = db[cls.get_collection_names()]
+            collection = db[cls.get_collection_name()]
             deleted_document = await collection.find_one_and_delete(query)
             if deleted_document:
                 return cls.from_dict(**deleted_document)
@@ -848,7 +849,7 @@ class Document(metaclass=DocumentMeta):
         logger.debug(f"doc Dict represenatuon = {document}")
         try:
             db = await self.db()
-            collection = db[self.get_collection_names()]
+            collection = db[self.get_collection_name()]
             if not hasattr(self, "_id"):
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
@@ -871,7 +872,7 @@ class Document(metaclass=DocumentMeta):
         """
         try:
             db = await self.db()
-            collection = db[self.get_collection_names()]
+            collection = db[self.get_collection_name()]
             await collection.delete_one({"_id": self._id})
         except Exception as e:
             raise DocumentDeleteError(
@@ -880,9 +881,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-            cls,
-            pipeline: List[Dict],
-            return_as_list: bool = False,
+        cls,
+        pipeline: List[Dict],
+        return_as_list: bool = False,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
@@ -913,7 +914,9 @@ class Document(metaclass=DocumentMeta):
             """
             cursor = collection.aggregate(pipeline)
             if return_as_list:
-                documents = await cursor.to_list(length=None)  # Get all results without imposing a limit
+                documents = await cursor.to_list(
+                    length=None
+                )  # Get all results without imposing a limit
                 return [cls.from_dict(**doc) for doc in documents]
             else:
                 return cursor
@@ -921,7 +924,7 @@ class Document(metaclass=DocumentMeta):
         combined_results = []
         try:
             db = await cls.db()
-            collection_names = cls.get_collection_names()
+            collection_names = cls.get_collection_name()
 
             if isinstance(collection_names, list):
                 for collection_name in collection_names:
@@ -941,6 +944,7 @@ class Document(metaclass=DocumentMeta):
             raise DocumentAggregationError(
                 f"Error executing {cls.__name__} document pipeline with pipeline '{pipeline}': {e}"
             )
+
     @staticmethod
     def _json_encoder(obj):
         """
