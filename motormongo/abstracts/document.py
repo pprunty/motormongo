@@ -91,6 +91,7 @@ class Document(metaclass=DocumentMeta):
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
         self.__collection = self.get_collection_name()
+        self.__type_field = self.__class__.__name__
         self.__dict__[self.__type_field] = self.__class__.__name__
         # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
