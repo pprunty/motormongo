@@ -647,7 +647,7 @@ class Document(metaclass=DocumentMeta):
             total_deleted = 0
 
             if isinstance(collection_names, list):
-                for collection_name in collection_names:
+                for _, collection_name in collection_names:
                     collection = db[collection_name]
                     deleted_count = await perform_deletion(collection)
                     total_deleted += deleted_count
