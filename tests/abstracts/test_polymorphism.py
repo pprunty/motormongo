@@ -192,6 +192,7 @@ async def test_polymorphic_delete_many():
     book = await Book.insert_one(**book_details)
     assert book
     electronic = await Electronics.insert_one(**electronics_details)
+    print(f"ElectronicS = {electronic.to_dict()}")
     assert electronic
 
     # Delete items marked with 'to_delete'

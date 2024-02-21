@@ -104,9 +104,9 @@ class Document(metaclass=DocumentMeta):
         # TODO: Check if subclasses exist, do this if so, otherwise, do it the old way (check timing)
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
-                print(f"name = {name} and field = {field}")
                 if isinstance(field, Field):
                     attr_value = kwargs.get(name, field.options.get("default"))
+                    print(f"name = {name} and field = {field} and value = {attr_value}")
                     if attr_value is not None:
                         setattr(self, name, attr_value)
                     else:
