@@ -537,7 +537,7 @@ class Document(metaclass=DocumentMeta):
             DocumentUpdateError: If there is an error in updating documents.
         """
 
-        async def perform_update(collection):
+        async def perform_update(subcls, collection):
             """
             Perform an update operation on a given collection and return the updated documents and their count.
 
@@ -551,7 +551,7 @@ class Document(metaclass=DocumentMeta):
             if result.modified_count > 0:
                 updated_documents = await collection.find(query).to_list(length=None)
                 return [
-                    cls.from_dict(**doc) for doc in updated_documents
+                    cls.from_dict(subcls=subcls, **doc) for doc in updated_documents
                 ], result.modified_count
             else:
                 return [], 0
@@ -562,9 +562,11 @@ class Document(metaclass=DocumentMeta):
             if isinstance(collection_names, list):
                 combined_results = []
                 total_modified = 0
-                for collection_name in collection_names:
+                for subcls, collection_name in collection_names:
                     collection = db[collection_name]
-                    updated_docs, modified_count = await perform_update(collection)
+                    updated_docs, modified_count = await perform_update(
+                        subcls, collection
+                    )
                     combined_results.extend(updated_docs)
                     total_modified += modified_count
                 return combined_results, total_modified
@@ -905,7 +907,7 @@ class Document(metaclass=DocumentMeta):
             DocumentAggregationError: If an error occurs during pipeline execution.
         """
 
-        async def perform_aggregation(collection):
+        async def perform_aggregation(subcls, collection):
             """
             Perform aggregation on a single collection and process the results.
 
@@ -920,7 +922,7 @@ class Document(metaclass=DocumentMeta):
                 documents = await cursor.to_list(
                     length=None
                 )  # Get all results without imposing a limit
-                return [cls.from_dict(**doc) for doc in documents]
+                return [cls.from_dict(subcls=subcls, **doc) for doc in documents]
             else:
                 return cursor
 
@@ -930,9 +932,9 @@ class Document(metaclass=DocumentMeta):
             collection_names = cls.get_collection_name()
 
             if isinstance(collection_names, list):
-                for collection_name in collection_names:
+                for subcls, collection_name in collection_names:
                     collection = db[collection_name]
-                    results = await perform_aggregation(collection)
+                    results = await perform_aggregation(subcls, collection)
                     if return_as_list:
                         combined_results.extend(results)
                     else:
