@@ -1,5 +1,5 @@
 from datetime import date, datetime, timezone
-from typing import List, Iterable
+from typing import Iterable, List
 
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from motormongo.fields.field import Field
@@ -7,11 +7,11 @@ from motormongo.fields.field import Field
 
 class DateTimeField(Field):
     def __init__(
-            self,
-            auto_now: bool = False,
-            auto_now_add: bool = False,
-            datetime_formats: List[str] = None,
-            **kwargs,
+        self,
+        auto_now: bool = False,
+        auto_now_add: bool = False,
+        datetime_formats: List[str] = None,
+        **kwargs,
     ):
         super().__init__(type=(datetime, date, str, None), **kwargs)
         self.auto_now = auto_now
@@ -25,10 +25,14 @@ class DateTimeField(Field):
             self.datetime_formats = default_formats
         elif isinstance(datetime_formats, str):
             self.datetime_formats = [datetime_formats]
-        elif isinstance(datetime_formats, Iterable):  # Check if it's an iterable (list, tuple, etc.)
+        elif isinstance(
+            datetime_formats, Iterable
+        ):  # Check if it's an iterable (list, tuple, etc.)
             self.datetime_formats = list(datetime_formats)
         else:
-            raise ValueError("datetime_formats must be a string or an iterable of strings.")
+            raise ValueError(
+                "datetime_formats must be a string or an iterable of strings."
+            )
 
     def __set__(self, obj, value):
         if value is not None:

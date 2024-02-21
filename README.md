@@ -1,22 +1,25 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/motormongo)](https://pypi.org/project/motormongo/)
+[![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
+[![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo)
+
+[//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
 Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
-`motormongo` - An Object Document Mapper
-for [MongoDB](https://www.mongodb.com) built on-top of [Motor](https://github.com/mongodb/motor), the MongoDB
+`motormongo` - An Object Document Mapper (ODM) for [MongoDB](https://www.mongodb.com) built on top
+of [Motor](https://github.com/mongodb/motor), the MongoDB
 recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
 asyncio and enable non-blocking access to MongoDB.
 
 Asynchronous operations in a backend system, built using [FastAPI](https://github.com/tiangolo/fastapi) for
-example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple requests,
-leading to more efficient use of server resources.
+example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple I/O requests,
+leading to more efficient use of server resources. 
 
 The interface for instantiating Document classes follows similar logic
 to [mongoengine](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
-migration from `mongoengine` to `motormongo`.
+migration from `mongoengine` to the asynchronous `motormongo`.
 
 **Note:** I am currently working on patching any bugs in the latest releases, please contact me or create a GitHub issue
 for
@@ -30,18 +33,19 @@ version). Thank you 😎.
 5. [CRUD instance methods](#instance-methods)
 6. [Aggregation Operations](#aggregation)
 7. [Polymorphism and Inheritance](#polymorphism-and-inheritance)
-8. [FastAPI integration](#fastapi-integration)
-9. [License](#license)
+8. [Pooling Options and Configuration](#pooling-options-configuration)
+9. [FastAPI integration](#fastapi-integration)
+10. [License](#license)
 
 ## Installation
 
-To install motormongo, you can use `pip` inside your virtual environment:
+To install `motormongo`, you can use `pip` inside your virtual environment:
 
 ```shell
 python -m pip install motormongo
 ```
 
-Alternatively, to install motormongo into your `poetry` environment:
+Alternatively, to install `motormongo` into your `poetry` environment:
 
 ```shell
 poetry add motormongo
@@ -95,9 +99,36 @@ and `database` should be the name of an existing MongoDB database in your MongoD
 For details on how to set up a local or cloud MongoDB database instance,
 see [here](https://www.mongodb.com/cloud/atlas/lp/try4?utm_source=google&utm_campaign=search_gs_pl_evergreen_atlas_general_prosp-brand_gic-null_emea-ie_ps-all_desktop_eng_lead&utm_term=using%20mongodb&utm_medium=cpc_paid_search&utm_ad=p&utm_ad_campaign_id=9510384711&adgroup=150907565274&cq_cmp=9510384711&gad_source=1&gclid=Cj0KCQiAyeWrBhDDARIsAGP1mWQ6B0kPYX9Tqmzku-4r-uUzOGL1PKDgSTlfpYeZ0I6HE3C-dgh1xF4aArHqEALw_wcB).
 
+You can also specify and pass `pooling_options` to the Motor on the `DataBase.connect()` method, like so:
+
+```python
+import asyncio
+from motormongo import DataBase
+
+# Example pooling options
+pooling_options = {
+    'maxPoolSize': 50,
+    'minPoolSize': 10,
+    'maxIdleTimeMS': 30000,
+    'waitQueueTimeoutMS': 5000,
+    'connectTimeoutMS': 10000,
+    'socketTimeoutMS': 20000
+}
+
+async def init_db():
+    # This 'connect' method needs to be called inside of an async function
+    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>", **pooling_options)
+
+
+if __name__ == "__main__":
+    asyncio.run(init_db())
+```
+
+See [Pooling Options Configuration](#pooling-options-configuration) section for more details.
+
 ### Step 2. Define a motormongo Document:
 
-Define a motormongo `User` document:
+Define a `motormongo` `User` document:
 
 ```python
 import re
@@ -146,7 +177,7 @@ await User.insert_one(
 
 ### Step 4: Validate user was created in your MongoDB collection
 
-You can do this by using [MongoDB compass]() GUI, or alternatively, add a query to find all documents in the user
+You can do this by using [MongoDB compass](https://www.mongodb.com/products/tools/compass) GUI, or alternatively, add a query to find all documents in the user
 collection after doing the insert in step 3:
 
 ```python
@@ -176,12 +207,12 @@ with FastAPI.
 
 ## Congratulations 🎉
 
-You've successfully created your first motormongo Object Document Mapper class. 🥳
+You've successfully created your first `motormongo` Object Document Mapper class. 🥳
 
-The subsequent sections detail the datatype fields provided by motormongo, as well as the CRUD
-operations available on the classmethods and object instance methods of a motormongo document.
+The subsequent sections detail the datatype fields provided by `motormongo`, as well as the CRUD
+operations available on the classmethods and object instance methods of a `motormongo` document.
 
-If you wish to get straight into how to integrate motormongo with your `FastAPI` application, skip ahead to the
+If you wish to get straight into how to integrate `motormongo` with your `FastAPI` application, skip ahead to the
 [FastAPI Integration](#fastapi-integration) section.
 
 ## motormongo Fields
@@ -560,7 +591,7 @@ await profile.save()
 
 ## Operations
 
-The following class methods are supported by motormongo's `Document` class:
+The following class methods are supported by `motormongo`'s `Document` class:
 
 | CRUD Type | Operation                                                                                                                          |
 |-----------|------------------------------------------------------------------------------------------------------------------------------------|
@@ -577,7 +608,7 @@ The following class methods are supported by motormongo's `Document` class:
 | Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                                             |
 | Mixed     | [`find_one_and_update_empty_fields(query: dict, update_fields: dict) -> Tuple[Document, bool]`](#find_one_and_update_empty_fields) |
 
-All examples below assume `User` is a subclass of motormongo provided Document class.
+All examples below assume `User` is a subclass of `motormongo` provided Document class.
 
 ### Create
 
@@ -657,7 +688,7 @@ Alternatively, using `**kwargs`:
 user = await User.find_one(_id="655fc281c440f677fa1e117e")
 ```
 
-**Note:** The `_id` string datatype here is automatically converted to a BSON ObjectID, however, motormongo handles the
+**Note:** The `_id` string datatype here is automatically converted to a BSON ObjectID, however, `motormongo` handles the
 scenario when a
 BSON ObjectId is passed as the `_id` datatype:
 
@@ -784,13 +815,13 @@ updated_user, updated = await User.find_one_and_update_empty_fields(
 
 ## Instance methods
 
-motormongo also supports the manimulation of fields on the [object instance](). This allows
+`motormongo` also supports the manipulation of fields on the [object instance](). This allows
 users to programmatically achieve the same operations listed above through the object instance
 itself.
 
 ### Operations
 
-The following are object instance methods are supported by motormongo's `Document` class:
+The following are object instance methods are supported by `motormongo`'s `Document` class:
 
 | CRUD Type | Operation                     |
 |-----------|-------------------------------|
@@ -882,7 +913,7 @@ print(docs_list)
 ## Polymorphism and Inheritance
 
 This part of the documentation provides an overview of implementing and using polymorphism and inheritance using the
-motormongo framework, enabling flexible and organized data models for various use cases.
+`motormongo` framework, enabling flexible and organized data models for various use cases.
 
 ### Base Model: Item
 
@@ -952,9 +983,19 @@ found_electronics = await Electronics.find_one(brand="TechBrand")
 
 #### Polymorphic Behavior
 
-**Note** - The following behaviour is currently being tested and not available in v0.1.9.
+The following operations are supported over the base `Item` Document class, enabling complex querying over base `Item`
+Document class and all of its subclasses (i.e `Book` and `Electronics`):
 
-Querying on the base `Item` model returns items of all types, correctly instantiated as their specific subclasses.
+| CRUD Type | Operation                                                                                                         |
+|-----------|-------------------------------------------------------------------------------------------------------------------|
+| Read      | [`find_many(query: dict, limit: int = None, return_as_list: bool = True **kwargs) -> List[Document]`](#find_many) |
+| Update    | [`update_many(query: dict, update_fields: dict) -> Tuple[List[Document], int]`](#update_many)                     |
+| Delete    | [`delete_many(query: dict, **kwargs) -> int`](#delete_many)                                                       |
+
+As well as `aggregate` operations, see the [Aggregation Operation](#aggregation) section for more details.
+
+Querying on the base `Item` model returns items of all types, correctly instantiated as their specific subclasses. See
+below for a logical example of polymorphic querying:
 
 ```python
 # Find all items with a cost over 50
@@ -968,14 +1009,86 @@ for item in expensive_items:
         print(f"Electronics: {item.brand} with {item.warranty_period} warranty")
 ```
 
-## FastAPI integration
+## Pooling Options Configuration
 
-motormongo can be easily integrated in FastAPI APIs to leverage the asynchronous ability of
-FastAPI. To leverage motormongo's ease-of-use, Pydantic model's should be created to represent the MongoDB
-motormongo Document as a Pydantic model. Below is a light-weight CRUD FastAPI application using motormongo:
+In `motormongo`, you have the flexibility to customize the pooling options for the Motor client. This allows you to
+fine-tune the behavior of database connections according to your application's needs. Below are some of the parameters
+you can configure, along with their descriptions and example usage.
+
+### Configuration Parameters
+
+- **Max Pool Size**: The maximum number of connections in the connection pool.
+- **Min Pool Size**: The minimum number of connections in the connection pool.
+- **Max Idle Time**: The maximum time (in milliseconds) a connection can remain idle in the pool before being closed.
+- **Wait Queue Timeout**: The time (in milliseconds) a thread will wait for a connection to become available when the
+  pool is exhausted.
+- **Connect Timeout**: The time (in milliseconds) to wait for a connection to the MongoDB server to be established
+  before timing out.
+- **Socket Timeout**: The time (in milliseconds) to wait for a socket read or write to complete before timing out.
+
+### Example Configuration
 
 ```python
-import os
+import asyncio
+from motormongo import DataBase
+
+# Example pooling options
+pooling_options = {
+    'maxPoolSize': 50,
+    'minPoolSize': 10,
+    'maxIdleTimeMS': 30000,
+    'waitQueueTimeoutMS': 5000,
+    'connectTimeoutMS': 10000,
+    'socketTimeoutMS': 20000
+}
+
+async def init_db():
+    # This 'connect' method needs to be called inside of an async function
+    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>", **pooling_options)
+
+
+if __name__ == "__main__":
+    asyncio.run(init_db())
+```
+or in FastAPI:
+
+```python
+from fastapi import FastAPI
+from motormongo import DataBase
+
+app = FastAPI()
+
+# Example pooling options
+pooling_options = {
+    'maxPoolSize': 50,
+    'minPoolSize': 10,
+    'maxIdleTimeMS': 30000,
+    'waitQueueTimeoutMS': 5000,
+    'connectTimeoutMS': 10000,
+    'socketTimeoutMS': 20000
+}
+
+@app.on_event("startup")
+async def startup_db_client():
+    await DataBase.connect(uri="<mongodb_uri>", db="<mongodb_db>", **pooling_options)
+
+```
+
+This configuration demonstrates how to set up `motormongo` with specific pooling options to optimize performance
+and resource utilization in high-throughput environments.
+
+For more information, consult the official documentation:
+
+- [Motor: Asynchronous Python driver for MongoDB](https://motor.readthedocs.io/en/stable/)
+- [MongoDB Manual: Tuning Your Connection Pool Settings](https://www.mongodb.com/docs/manual/reference/connection-string/#mongodb-urioption-urioption.maxPoolSize)
+
+## FastAPI integration
+
+`motormongo` can be easily integrated in FastAPI APIs to leverage the asynchronous ability of
+FastAPI. To leverage `motormongo`'s ease-of-use, Pydantic model's should be created to represent the MongoDB
+`motormongo` Document as a Pydantic model. Below is a light-weight CRUD FastAPI application using `motormongo`:
+
+```python
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from motormongo import DataBase, Document, BinaryField, StringField
@@ -1013,7 +1126,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+    await DataBase.connect(uri="<mongodb_uri>", db="<mongodb_db>")
 
 
 @app.on_event("shutdown")
