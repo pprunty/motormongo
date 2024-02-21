@@ -72,8 +72,7 @@ async def test_datetime_field_type_validation():
         uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
-    with pytest.raises(ValueError):
-        # Assuming User has a 'signup_date' DateTimeField
+    with pytest.raises(DateTimeFormatError):
         user = User(username="wrongdateuser", last_login="not a real date")
         await user.save()
 
