@@ -1004,7 +1004,7 @@ class Document(metaclass=DocumentMeta):
         return None
 
     @classmethod
-    def from_dict(cls, subcls = None, **kwargs):
+    def from_dict(cls, subcls=None, **kwargs):
         """
         Factory method to instantiate objects of the correct subclass based on the document's
         __type field. This method ensures that each document is deserialized into an instance
