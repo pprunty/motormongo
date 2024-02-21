@@ -537,7 +537,7 @@ class Document(metaclass=DocumentMeta):
             DocumentUpdateError: If there is an error in updating documents.
         """
 
-        async def perform_update(subcls, collection):
+        async def perform_update(collection, subcls=None):
             """
             Perform an update operation on a given collection and return the updated documents and their count.
 
@@ -565,14 +565,14 @@ class Document(metaclass=DocumentMeta):
                 for subcls, collection_name in collection_names:
                     collection = db[collection_name]
                     updated_docs, modified_count = await perform_update(
-                        subcls, collection
+                        collection=collection, subcls=subcls
                     )
                     combined_results.extend(updated_docs)
                     total_modified += modified_count
                 return combined_results, total_modified
             else:
                 collection = db[collection_names]
-                return await perform_update(collection)
+                return await perform_update(collection=collection)
         except Exception as e:
             raise DocumentUpdateError(
                 f"Error updating {cls.__name__} documents with update fields '{update_fields}': {e}"
@@ -907,7 +907,7 @@ class Document(metaclass=DocumentMeta):
             DocumentAggregationError: If an error occurs during pipeline execution.
         """
 
-        async def perform_aggregation(subcls, collection):
+        async def perform_aggregation(collection, subcls=None):
             """
             Perform aggregation on a single collection and process the results.
 
@@ -934,14 +934,16 @@ class Document(metaclass=DocumentMeta):
             if isinstance(collection_names, list):
                 for subcls, collection_name in collection_names:
                     collection = db[collection_name]
-                    results = await perform_aggregation(subcls, collection)
+                    results = await perform_aggregation(
+                        collection=collection, subcls=subcls
+                    )
                     if return_as_list:
                         combined_results.extend(results)
                     else:
                         combined_results.append(results)
             else:
                 collection = db[collection_names]
-                results = await perform_aggregation(collection)
+                results = await perform_aggregation(collection=collection)
                 combined_results = results
 
             return combined_results
