@@ -5,9 +5,14 @@ from typing import Any, Dict, List, Tuple, Union
 from bson import ObjectId
 from pymongo import ReturnDocument
 
-from motormongo.abstracts.exceptions import DocumentInsertError, DocumentNotFoundError, DocumentUpdateError, \
-    DocumentDeleteError, DocumentAggregationError
 from motormongo.abstracts.embedded_document import EmbeddedDocument
+from motormongo.abstracts.exceptions import (
+    DocumentAggregationError,
+    DocumentDeleteError,
+    DocumentInsertError,
+    DocumentNotFoundError,
+    DocumentUpdateError,
+)
 from motormongo.fields.field import Field
 from motormongo.utils.formatter import (
     add_timestamps_if_required,
@@ -30,6 +35,7 @@ class DocumentMeta(type):
         else:
             cls._registered_documents.append(cls)
             logger.debug(f"Registered document class: {cls.__name__}")
+
 
 class Document(metaclass=DocumentMeta):
     """
@@ -94,13 +100,15 @@ class Document(metaclass=DocumentMeta):
             logger.debug(f"Setting _id: {kwargs['_id']}")
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
-        # Setting other attributes
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
-                    attr_value = kwargs.get(name, field.options.get('default'))
+                    attr_value = kwargs.get(name, field.options.get("default"))
                     if attr_value is not None:
                         setattr(self, name, attr_value)
+                    else:
+                        # TODO: Make this better
+                        NotImplemented
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
@@ -136,18 +144,16 @@ class Document(metaclass=DocumentMeta):
         return await get_db()
 
     @classmethod
-    def get_collection_name(cls) -> Union[str, List[str]]:
+    def get_collection_name(cls) -> Union[str, List[Tuple[object, str]]]:
         """
         Retrieves the collection name for the document class or a list of collection names for its subclasses,
         preferring explicitly defined collection names in the subclass's Meta attribute if available.
 
         Returns:
-            Union[str, List[str]]: The collection name for the current class, or, if the class has subclasses,
+            Union[str, List[Tuple[object, str]]]: The collection name for the current class, or, if the class has subclasses,
                                     a list of collection names derived from either the subclass Meta attribute
                                     or the subclass names.
-        TODO: Always return list
         """
-        # Check for an explicitly defined collection name in the current class's Meta attribute
         # Check for subclasses
         subclasses = cls.__subclasses__()
         if subclasses:
@@ -157,10 +163,12 @@ class Document(metaclass=DocumentMeta):
             for subcls in subclasses:
                 # Check for an explicitly defined collection name in the subclass's Meta attribute
                 if hasattr(subcls, "Meta") and hasattr(subcls.Meta, "collection"):
-                    subclass_collection_names.append(subcls.Meta.collection)
+                    subclass_collection_names.append((subcls, subcls.Meta.collection))
                 else:
                     # If no explicit collection name is defined, convert the subclass name from CamelCase to snake_case
-                    subclass_collection_names.append(camel_to_snake_or_lower(subcls.__name__))
+                    subclass_collection_names.append(
+                        (subcls, camel_to_snake_or_lower(subcls.__name__))
+                    )
             return subclass_collection_names
 
         if hasattr(cls, "Meta") and hasattr(cls.Meta, "collection"):
@@ -251,11 +259,13 @@ class Document(metaclass=DocumentMeta):
             logger.debug(f"__ insert = {inserted_document}")
             return cls.from_dict(**inserted_document)
         except Exception as e:
-            raise DocumentInsertError(f"Error inserting {cls.__name__} document '{document}': {e}")
+            raise DocumentInsertError(
+                f"Error inserting {cls.__name__} document '{document}': {e}"
+            )
 
     @classmethod
     async def insert_many(
-            cls, documents: List[Dict[str, Any]]
+        cls, documents: List[Dict[str, Any]]
     ) -> Tuple[List["Document"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
@@ -312,7 +322,9 @@ class Document(metaclass=DocumentMeta):
                 cls.from_dict(**doc) for doc in processed_documents
             ], result.inserted_ids
         except Exception as e:
-            raise DocumentInsertError(f"Error inserting multiple {cls.__name__} documents '{documents}': {e}")
+            raise DocumentInsertError(
+                f"Error inserting multiple {cls.__name__} documents '{documents}': {e}"
+            )
 
     @classmethod
     async def find_one(cls, query: Dict = None, **kwargs) -> "Document":
@@ -363,11 +375,17 @@ class Document(metaclass=DocumentMeta):
             logger.debug(f"__doc rep = {document}")
             return cls.from_dict(**document) if document else None
         except Exception as e:
-            raise DocumentNotFoundError(f"Error finding {cls.__name__} document with query '{filter}': {e}")
+            raise DocumentNotFoundError(
+                f"Error finding {cls.__name__} document with query '{filter}': {e}"
+            )
 
     @classmethod
     async def find_many(
-            cls, query: Dict = None, limit: int = None, return_as_list: bool = True, **kwargs
+        cls,
+        query: Dict = None,
+        limit: int = None,
+        return_as_list: bool = True,
+        **kwargs,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
@@ -396,22 +414,28 @@ class Document(metaclass=DocumentMeta):
             ValueError: If there is an error in finding the documents with the given filter.
         """
         filter = {**(query or {}), **kwargs}
-        combined_results = []  # Initialize a list to store combined results from all collections
+        combined_results = (
+            []
+        )  # Initialize a list to store combined results from all collections
 
         try:
             db = await cls.db()
-            collection_names = cls.get_collection_name()  # This might return a single name or a list of names
+            collection_names = (
+                cls.get_collection_name()
+            )  # This might return a single name or a list of names
 
             if isinstance(collection_names, list):
                 # If get_collection_name returns a list, iterate over each collection name
-                for collection_name in collection_names:
+                for subcls, collection_name in collection_names:
                     collection = db[collection_name]
                     cursor = collection.find(filter)
                     if limit is not None:
                         cursor = cursor.limit(limit)
                     if return_as_list:
                         documents = await cursor.to_list(length=limit)
-                        combined_results.extend([cls.from_dict(**doc) for doc in documents])
+                        combined_results.extend(
+                            [cls.from_dict(subcls=subcls, **doc) for doc in documents]
+                        )
                     else:
                         combined_results.append(cursor)
             else:
@@ -428,8 +452,13 @@ class Document(metaclass=DocumentMeta):
 
             return combined_results
         except Exception as e:
-            logger.debug(f"Failed to retrieve documents for {cls.__name__} with query '{filter}': {str(e)}")
-            raise DocumentNotFoundError(f"Error finding {cls.__name__} documents with query '{filter}': {e}")
+            logger.debug(
+                f"Failed to retrieve documents for {cls.__name__} with query '{filter}': {str(e)}"
+            )
+            raise DocumentNotFoundError(
+                f"Error finding {cls.__name__} documents with query '{filter}': {e}"
+            )
+
     @classmethod
     async def update_one(cls, query: Dict, update_fields: Dict) -> "Document":
         """
@@ -484,56 +513,68 @@ class Document(metaclass=DocumentMeta):
             if update_result is not None:
                 return cls.from_dict(**update_result)
         except Exception as e:
-            raise DocumentUpdateError(f"Error updating {cls.__name__} document with update fields '{update_fields}': {e}")
+            raise DocumentUpdateError(
+                f"Error updating {cls.__name__} document with update fields '{update_fields}': {e}"
+            )
 
     @classmethod
     async def update_many(
-            cls, query: Dict, update_fields: Dict
-    ) -> Tuple[List["Document"], Any] | Tuple[List[Any], int]:
+        cls, query: Dict, update_fields: Dict
+    ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
         """
-        Asynchronously updates multiple documents in the mongo that match the given query.
+        Asynchronously updates multiple documents in one or more collections that match the given query.
 
         Args:
             query (Dict): The filter criteria to match documents that need to be updated.
             update_fields (Dict): The fields and their new values that will be set in the matched documents.
 
-        Usage:
-            # Update all users aged over 40 to set a new field 'category' to 'senior'
-            await MyClass.update_many({'age': {'$gt': 40}}, {'category': 'senior'})
-
-            # Update users named 'John Doe' to increase their age by 1
-            await MyClass.update_many({'name': 'John Doe'}, {'$inc': {'age': 1}})
-
         Returns:
-            Tuple[List['Document'], int]: A tuple containing a list of updated document objects and the count of documents modified.
+            Union[Tuple[List['Document'], int], Tuple[List[Any], int]]: A tuple containing a list of updated document objects and the count of documents modified.
 
         Raises:
-            ValueError: If there is an error in updating documents in the mongo.
+            DocumentUpdateError: If there is an error in updating documents.
         """
-        enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
-        # First, add timestamps to the update fields if required
-        update_fields = add_timestamps_if_required(cls, **update_fields)
 
-        # The update fields should be structured as a MongoDB update operation
-        update_operation = {"$set": update_fields}
+        async def perform_update(collection, subcls=None):
+            """
+            Perform an update operation on a given collection and return the updated documents and their count.
 
-        # Connect to the mongo and perform the update
-        try:
-            db = await cls.db()
-            collection = db[cls.get_collection_name()]
-            result = await collection.update_many(query, update_operation)
+            Args:
+                collection: The collection to perform the update on.
 
-            # If you need to return the updated documents, you have to find them
-            # Note: this may not be efficient for a large number of documents
+            Returns:
+                A tuple containing a list of updated documents and the count of documents modified.
+            """
+            result = await collection.update_many(query, {"$set": update_fields})
             if result.modified_count > 0:
                 updated_documents = await collection.find(query).to_list(length=None)
                 return [
-                    cls.from_dict(**doc) for doc in updated_documents
+                    cls.from_dict(subcls=subcls, **doc) for doc in updated_documents
                 ], result.modified_count
             else:
                 return [], 0
+
+        try:
+            db = await cls.db()
+            collection_names = cls.get_collection_name()
+            if isinstance(collection_names, list):
+                combined_results = []
+                total_modified = 0
+                for subcls, collection_name in collection_names:
+                    collection = db[collection_name]
+                    updated_docs, modified_count = await perform_update(
+                        collection=collection, subcls=subcls
+                    )
+                    combined_results.extend(updated_docs)
+                    total_modified += modified_count
+                return combined_results, total_modified
+            else:
+                collection = db[collection_names]
+                return await perform_update(collection=collection)
         except Exception as e:
-            raise DocumentUpdateError(f"Error updating {cls.__name__} documents with update fields '{update_fields}': {e}")
+            raise DocumentUpdateError(
+                f"Error updating {cls.__name__} documents with update fields '{update_fields}': {e}"
+            )
 
     @classmethod
     async def delete_one(cls, query: Dict = None, **kwargs) -> bool:
@@ -566,44 +607,63 @@ class Document(metaclass=DocumentMeta):
             delete_result = await collection.delete_one(query)
             return delete_result.deleted_count > 0
         except Exception as e:
-            raise DocumentDeleteError(f"Error deleting {cls.__name__} document with query '{query}': {e}")
+            raise DocumentDeleteError(
+                f"Error deleting {cls.__name__} document with query '{query}': {e}"
+            )
 
     @classmethod
     async def delete_many(cls, query: Dict = None, **kwargs) -> int:
         """
-        Asynchronously deletes multiple documents from the mongo that match the given query.
+        Asynchronously deletes multiple documents from one or more collections that match the given query.
 
         Args:
-            query (Dict): The filter criteria to match the documents that need to be deleted.
+            query (Dict, optional): The filter criteria to match the documents that need to be deleted.
             **kwargs: Additional keyword arguments that will be merged into the query or used as the query.
 
-        Usage:
-            # Delete all users older than 40
-            deleted_count = await MyClass.delete_many({'age': {'$gt': 40}})
-
-            # Delete all users with a specific status
-            deleted_count = await MyClass.delete_many({'status': 'inactive'})
-                OR
-            deleted_count = await MyClass.delete_many(status='inactive')
-
         Returns:
-            int: The number of documents deleted from the mongo.
+            int: The total number of documents deleted across all relevant collections.
 
         Raises:
-            ValueError: If there is an error in deleting the documents from the mongo.
+            DocumentDeleteError: If there is an error in deleting the documents.
         """
         query = {**(query or {}), **kwargs}
-        try:
-            db = await cls.db()
-            collection = db[cls.get_collection_name()]
+
+        async def perform_deletion(collection):
+            """
+            Perform a deletion operation on a given collection and return the count of documents deleted.
+
+            Args:
+                collection: The collection to perform the deletion on.
+
+            Returns:
+                int: The number of documents deleted from the collection.
+            """
             delete_result = await collection.delete_many(query)
             return delete_result.deleted_count
+
+        try:
+            db = await cls.db()
+            collection_names = cls.get_collection_name()
+            total_deleted = 0
+
+            if isinstance(collection_names, list):
+                for _, collection_name in collection_names:
+                    collection = db[collection_name]
+                    deleted_count = await perform_deletion(collection)
+                    total_deleted += deleted_count
+            else:
+                collection = db[collection_names]
+                total_deleted = await perform_deletion(collection)
+
+            return total_deleted
         except Exception as e:
-            raise DocumentDeleteError(f"Error deleting {cls.__name__} documents with query '{query}': {e}")
+            raise DocumentDeleteError(
+                f"Error deleting {cls.__name__} documents with query '{query}': {e}"
+            )
 
     @classmethod
     async def find_one_or_create(
-            cls, query: Dict, defaults: Dict
+        cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
@@ -638,9 +698,14 @@ class Document(metaclass=DocumentMeta):
                     created_document = await cls.insert_one(new_document)
                     return created_document, True  # Document created
                 except Exception as e:
-                    raise DocumentInsertError(f"Error inserting {cls.__name__} document '{document}': {e}")
+                    raise DocumentInsertError(
+                        f"Error inserting {cls.__name__} document '{document}': {e}"
+                    )
         except Exception as e:
-            raise DocumentNotFoundError(f"Error finding {cls.__name__} document with query '{query}': {e}")
+            raise DocumentNotFoundError(
+                f"Error finding {cls.__name__} document with query '{query}': {e}"
+            )
+
     @classmethod
     async def find_one_and_replace(cls, query: Dict, replacement: Dict) -> "Document":
         """
@@ -671,13 +736,17 @@ class Document(metaclass=DocumentMeta):
             if updated_document:
                 return cls.from_dict(**updated_document)
             else:
-                raise DocumentNotFoundError(f"Error finding {cls.__name__} document with query {query}.")
+                raise DocumentNotFoundError(
+                    f"Error finding {cls.__name__} document with query {query}."
+                )
         except Exception as e:
-            raise DocumentUpdateError(f"Error replacing {cls.__name__} document with query {query}: {e}")
+            raise DocumentUpdateError(
+                f"Error replacing {cls.__name__} document with query {query}: {e}"
+            )
 
     @classmethod
     async def find_one_and_update_empty_fields(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
@@ -718,11 +787,15 @@ class Document(metaclass=DocumentMeta):
                     return updated_document, True  # Document updated
                 return cls.from_dict(**existing_doc), False  # No update performed
             else:
-                raise DocumentNotFoundError(f"Error finding {cls.__name__} document with query {query}.")
+                raise DocumentNotFoundError(
+                    f"Error finding {cls.__name__} document with query {query}."
+                )
         except DocumentNotFoundError:
             raise
         except Exception as e:
-            raise DocumentUpdateError(f"Error updating empty fields of {cls.__name__} document with query {query}: {e}")
+            raise DocumentUpdateError(
+                f"Error updating empty fields of {cls.__name__} document with query {query}: {e}"
+            )
 
     @classmethod
     async def find_one_and_delete(cls, query: Dict = None, **kwargs) -> "Document":
@@ -750,9 +823,13 @@ class Document(metaclass=DocumentMeta):
             if deleted_document:
                 return cls.from_dict(**deleted_document)
             else:
-                raise DocumentNotFoundError(f"Error finding {cls.__name__} document with query {query}.")
+                raise DocumentNotFoundError(
+                    f"Error finding {cls.__name__} document with query {query}."
+                )
         except Exception as e:
-            raise DocumentDeleteError(f"Error deleting {cls.__name__} document with query {query}: {e}")
+            raise DocumentDeleteError(
+                f"Error deleting {cls.__name__} document with query {query}: {e}"
+            )
 
     async def save(self) -> None:
         """
@@ -801,12 +878,18 @@ class Document(metaclass=DocumentMeta):
             collection = db[self.get_collection_name()]
             await collection.delete_one({"_id": self._id})
         except Exception as e:
-            raise DocumentDeleteError(f"Error deleting {self.__name__} document '{self.to_dict()}': {e}")
+            raise DocumentDeleteError(
+                f"Error deleting {self.__name__} document '{self.to_dict()}': {e}"
+            )
 
     @classmethod
-    async def aggregate(cls, pipeline, return_as_list=False):
+    async def aggregate(
+        cls,
+        pipeline: List[Dict],
+        return_as_list: bool = False,
+    ) -> Union[List["Document"], List[Any], Any]:
         """
-        Perform aggregation operations on the documents in the collection.
+        Perform aggregation operations on the documents in one or more collections.
 
         Args:
             pipeline (list): A sequence of data aggregation operations.
@@ -814,22 +897,58 @@ class Document(metaclass=DocumentMeta):
                 Defaults to False.
 
         Returns:
-            list or Cursor: A list of documents resulting from the aggregation pipeline if return_as_list is True,
-                otherwise returns a Cursor.
+            Union[List["Document"], List[Any], Any]: Depending on return_as_list, either a list of class instances
+                representing the documents resulting from the aggregation pipeline or an AsyncIOMotorCursor for each collection.
+                Returns an empty list if no documents are found and return_as_list is True.
 
         Raises:
-            ValueError: If an error occurs during pipeline execution.
+            DocumentAggregationError: If an error occurs during pipeline execution.
         """
-        db = await cls.db()
-        try:
-            cursor = db[cls.get_collection_name()].aggregate(pipeline)
+
+        async def perform_aggregation(collection, subcls=None):
+            """
+            Perform aggregation on a single collection and process the results.
+
+            Args:
+                collection: The collection to perform aggregation on.
+
+            Returns:
+                The processed aggregation results, either as a list of documents or a cursor.
+            """
+            cursor = collection.aggregate(pipeline)
             if return_as_list:
-                doc_list = await cursor.to_list(length=100)
-                return [cls.from_dict(**doc) for doc in doc_list]
+                documents = await cursor.to_list(
+                    length=None
+                )  # Get all results without imposing a limit
+                return [cls.from_dict(subcls=subcls, **doc) for doc in documents]
             else:
                 return cursor
+
+        combined_results = []
+        try:
+            db = await cls.db()
+            collection_names = cls.get_collection_name()
+
+            if isinstance(collection_names, list):
+                for subcls, collection_name in collection_names:
+                    collection = db[collection_name]
+                    results = await perform_aggregation(
+                        collection=collection, subcls=subcls
+                    )
+                    if return_as_list:
+                        combined_results.extend(results)
+                    else:
+                        combined_results.append(results)
+            else:
+                collection = db[collection_names]
+                results = await perform_aggregation(collection=collection)
+                combined_results = results
+
+            return combined_results
         except Exception as e:
-            raise DocumentAggregationError(f"Error executing {cls.__name__} document pipeline with pipeline '{pipeline}': {e}")
+            raise DocumentAggregationError(
+                f"Error executing {cls.__name__} document pipeline with pipeline '{pipeline}': {e}"
+            )
 
     @staticmethod
     def _json_encoder(obj):
@@ -878,14 +997,16 @@ class Document(metaclass=DocumentMeta):
 
         for subclass in cls._registered_documents:
             if subclass.__name__ == type_name:
-                logger.debug(f"Found matching class '{type_name}' for document instantiation.")
+                logger.debug(
+                    f"Found matching class '{type_name}' for document instantiation."
+                )
                 return subclass
 
         logger.warning(f"No matching class found for type name '{type_name}'.")
         return None
 
     @classmethod
-    def from_dict(cls, **kwargs):
+    def from_dict(cls, subcls=None, **kwargs):
         """
         Factory method to instantiate objects of the correct subclass based on the document's
         __type field. This method ensures that each document is deserialized into an instance
@@ -894,22 +1015,12 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Document: An instance of the appropriate subclass of Document.
         """
-        # Extract the class name from the document's __type field
-        class_name = kwargs.get(cls.__type_field, None)
-
-        if class_name:
-            for subclass in cls._registered_documents:
-                if subclass.__name__ == class_name:
-                    logger.debug(f"Instantiating {class_name} from document data.")
-                    return subclass(**kwargs)
-            # Log a warning if no registered subclass matches the class_name
-            logger.debug(
-                f"Unknown class name '{class_name}' in document data. Falling back to base class {cls.__name__}.")
+        if subcls:
+            print(f"from_dict: subclass {subcls.__name__}")
+            return subcls(**kwargs)
         else:
-            # Log a debug message if __type field is missing
-            logger.debug(f"__type field missing in document data. Instantiating base class {cls.__name__}.")
-
-        return cls(**kwargs)
+            print(f"from_dict: class {cls.__name__}")
+            return cls(**kwargs)
 
     def to_dict(self, id_as_string=True):
         """

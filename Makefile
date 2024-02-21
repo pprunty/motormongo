@@ -30,6 +30,10 @@ test:
 test-cov:
 	poetry run pytest --cov=motormongo
 
+.PHONY: test-cov-report
+test-cov-report:
+	poetry run pytest --cov=motormongo --cov-report=xml:coverage.xml
+
 .PHONY: demo
 demo:
 	export DEBUG_MODE=true
