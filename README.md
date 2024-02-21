@@ -3,6 +3,7 @@
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
 [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo)
+![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 [//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
@@ -23,7 +24,7 @@ migration from `mongoengine` to the asynchronous `motormongo`.
 
 **Note:** I am currently working on patching any bugs in the latest releases, please contact me or create a GitHub issue
 for
-any bugs you may find (try upgrading if you encounter any issues as the bug may already have been fixed in subsequent
+any bugs you may find (try upgrading if you encounter any issues, as the bug may already have been fixed in subsequent
 version). Thank you 😎.
 
 1. [Installation](#installation)
