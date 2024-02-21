@@ -101,6 +101,7 @@ class Document(metaclass=DocumentMeta):
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
         # Setting other attributes
+        # TODO: Check if subclasses exist, do this if so, otherwise, do it the old way (check timing)
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 print(f"name = {name} and field = {field}")
@@ -108,6 +109,8 @@ class Document(metaclass=DocumentMeta):
                     attr_value = kwargs.get(name, field.options.get("default"))
                     if attr_value is not None:
                         setattr(self, name, attr_value)
+                    else:
+                        print(f"attribute name {name} is None")
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
