@@ -77,4 +77,11 @@ jobs:
         run: make install
 
       - name: Run tests 🚀
-        run: make test-cov
+        run: make test-cov-report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.xml
+          name: motormongo-test-report
+          fail_ci_if_error: true

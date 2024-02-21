@@ -1,8 +1,10 @@
-from motormongo import Document, StringField, FloatField
+from motormongo import Document, StringField, FloatField, BooleanField
+
 
 class Item(Document):
     name = StringField()
     cost = FloatField()
+    high_value = BooleanField(default=False)
 
 class Book(Item):
     title = StringField()

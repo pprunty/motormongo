@@ -2,6 +2,7 @@
 [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)
 [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
+[![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo)
 
 [//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
