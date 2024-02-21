@@ -106,11 +106,11 @@ class Document(metaclass=DocumentMeta):
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
                     attr_value = kwargs.get(name, field.options.get("default"))
-                    print(f"name = {name} and field = {field} and value = {attr_value}")
                     if attr_value is not None:
                         setattr(self, name, attr_value)
                     else:
-                        print(f"attribute name {name} is None")
+                        # TODO: Make this better
+                        NotImplemented
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
@@ -1015,10 +1015,11 @@ class Document(metaclass=DocumentMeta):
         """
         # Extract the class name from the document's __type field
         class_name = kwargs.get(cls.__type_field, None)
-
+        print(f"--------------\nCreating dict for class: {class_name}:")
         if class_name:
             for subclass in cls._registered_documents:
                 if subclass.__name__ == class_name:
+                    print(f"{kwargs}\n------------ ")
                     logger.debug(f"Instantiating {class_name} from document data.")
                     return subclass(**kwargs)
             # Log a warning if no registered subclass matches the class_name
