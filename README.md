@@ -12,7 +12,7 @@ asyncio and enable non-blocking access to MongoDB.
 
 Asynchronous operations in a backend system, built using [FastAPI](https://github.com/tiangolo/fastapi) for
 example, enhances performance and scalability by enabling non-blocking, concurrent handling of multiple I/O requests,
-leading to more efficient use of server resources.
+leading to more efficient use of server resources. 
 
 The interface for instantiating Document classes follows similar logic
 to [mongoengine](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
@@ -36,13 +36,13 @@ version). Thank you 😎.
 
 ## Installation
 
-To install motormongo, you can use `pip` inside your virtual environment:
+To install `motormongo`, you can use `pip` inside your virtual environment:
 
 ```shell
 python -m pip install motormongo
 ```
 
-Alternatively, to install motormongo into your `poetry` environment:
+Alternatively, to install `motormongo` into your `poetry` environment:
 
 ```shell
 poetry add motormongo
@@ -125,7 +125,7 @@ See [Pooling Options Configuration](#pooling-options-configuration) section for 
 
 ### Step 2. Define a motormongo Document:
 
-Define a motormongo `User` document:
+Define a `motormongo` `User` document:
 
 ```python
 import re
@@ -204,12 +204,12 @@ with FastAPI.
 
 ## Congratulations 🎉
 
-You've successfully created your first motormongo Object Document Mapper class. 🥳
+You've successfully created your first `motormongo` Object Document Mapper class. 🥳
 
-The subsequent sections detail the datatype fields provided by motormongo, as well as the CRUD
-operations available on the classmethods and object instance methods of a motormongo document.
+The subsequent sections detail the datatype fields provided by `motormongo`, as well as the CRUD
+operations available on the classmethods and object instance methods of a `motormongo` document.
 
-If you wish to get straight into how to integrate motormongo with your `FastAPI` application, skip ahead to the
+If you wish to get straight into how to integrate `motormongo` with your `FastAPI` application, skip ahead to the
 [FastAPI Integration](#fastapi-integration) section.
 
 ## motormongo Fields
@@ -588,7 +588,7 @@ await profile.save()
 
 ## Operations
 
-The following class methods are supported by motormongo's `Document` class:
+The following class methods are supported by `motormongo`'s `Document` class:
 
 | CRUD Type | Operation                                                                                                                          |
 |-----------|------------------------------------------------------------------------------------------------------------------------------------|
@@ -605,7 +605,7 @@ The following class methods are supported by motormongo's `Document` class:
 | Mixed     | [`find_one_and_delete(query: dict) -> Document`](#find_one_and_delete)                                                             |
 | Mixed     | [`find_one_and_update_empty_fields(query: dict, update_fields: dict) -> Tuple[Document, bool]`](#find_one_and_update_empty_fields) |
 
-All examples below assume `User` is a subclass of motormongo provided Document class.
+All examples below assume `User` is a subclass of `motormongo` provided Document class.
 
 ### Create
 
@@ -685,7 +685,7 @@ Alternatively, using `**kwargs`:
 user = await User.find_one(_id="655fc281c440f677fa1e117e")
 ```
 
-**Note:** The `_id` string datatype here is automatically converted to a BSON ObjectID, however, motormongo handles the
+**Note:** The `_id` string datatype here is automatically converted to a BSON ObjectID, however, `motormongo` handles the
 scenario when a
 BSON ObjectId is passed as the `_id` datatype:
 
@@ -812,13 +812,13 @@ updated_user, updated = await User.find_one_and_update_empty_fields(
 
 ## Instance methods
 
-motormongo also supports the manipulation of fields on the [object instance](). This allows
+`motormongo` also supports the manipulation of fields on the [object instance](). This allows
 users to programmatically achieve the same operations listed above through the object instance
 itself.
 
 ### Operations
 
-The following are object instance methods are supported by motormongo's `Document` class:
+The following are object instance methods are supported by `motormongo`'s `Document` class:
 
 | CRUD Type | Operation                     |
 |-----------|-------------------------------|
@@ -910,7 +910,7 @@ print(docs_list)
 ## Polymorphism and Inheritance
 
 This part of the documentation provides an overview of implementing and using polymorphism and inheritance using the
-motormongo framework, enabling flexible and organized data models for various use cases.
+`motormongo` framework, enabling flexible and organized data models for various use cases.
 
 ### Base Model: Item
 
@@ -1071,7 +1071,7 @@ async def startup_db_client():
 
 ```
 
-This configuration demonstrates how to set up motormongo with specific pooling options to optimize performance
+This configuration demonstrates how to set up `motormongo` with specific pooling options to optimize performance
 and resource utilization in high-throughput environments.
 
 For more information, consult the official documentation:
@@ -1081,12 +1081,11 @@ For more information, consult the official documentation:
 
 ## FastAPI integration
 
-motormongo can be easily integrated in FastAPI APIs to leverage the asynchronous ability of
-FastAPI. To leverage motormongo's ease-of-use, Pydantic model's should be created to represent the MongoDB
-motormongo Document as a Pydantic model. Below is a light-weight CRUD FastAPI application using motormongo:
+`motormongo` can be easily integrated in FastAPI APIs to leverage the asynchronous ability of
+FastAPI. To leverage `motormongo`'s ease-of-use, Pydantic model's should be created to represent the MongoDB
+`motormongo` Document as a Pydantic model. Below is a light-weight CRUD FastAPI application using `motormongo`:
 
 ```python
-import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from motormongo import DataBase, Document, BinaryField, StringField
