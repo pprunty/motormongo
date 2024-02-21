@@ -103,6 +103,7 @@ class Document(metaclass=DocumentMeta):
         # Setting other attributes
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
+                print(f"name = {name} and field = {field}")
                 if isinstance(field, Field):
                     attr_value = kwargs.get(name, field.options.get("default"))
                     if attr_value is not None:
@@ -152,7 +153,6 @@ class Document(metaclass=DocumentMeta):
                                     a list of collection names derived from either the subclass Meta attribute
                                     or the subclass names.
         """
-        # Check for an explicitly defined collection name in the current class's Meta attribute
         # Check for subclasses
         subclasses = cls.__subclasses__()
         if subclasses:
