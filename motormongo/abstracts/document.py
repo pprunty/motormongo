@@ -100,17 +100,15 @@ class Document(metaclass=DocumentMeta):
             logger.debug(f"Setting _id: {kwargs['_id']}")
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
-        for name, field in self.__class__.__dict__.items():
-            if isinstance(field, Field):
-                logger.debug(
-                    f"{name} and value = {kwargs.get(name, field.options.get('default'))}"
-                )
-                # For non-ReferenceField fields or if the value is not a string, set it directly
-                if kwargs.get(name, field.options.get("default")) is not None:
-                    setattr(self, name, kwargs.get(name, field.options.get("default")))
-            else:
-                # todo: valid warn
-                NotImplemented
+        for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
+            for name, field in cls.__dict__.items():
+                if isinstance(field, Field):
+                    attr_value = kwargs.get(name, field.options.get("default"))
+                    if attr_value is not None:
+                        setattr(self, name, attr_value)
+                    else:
+                        # TODO: Make this better
+                        NotImplemented
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at")
