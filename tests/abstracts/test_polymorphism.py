@@ -6,7 +6,7 @@ from tests.test_documents.items import Item, Book, Electronics
 @pytest.mark.asyncio
 async def test_book_insert_and_update():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     # Insert a Book item
@@ -37,7 +37,7 @@ async def test_book_insert_and_update():
 @pytest.mark.asyncio
 async def test_electronics_insert_and_update():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
     # Insert an Electronics item
     electronics_details = {
@@ -65,7 +65,7 @@ async def test_electronics_insert_and_update():
 @pytest.mark.asyncio
 async def test_find_expensive_items():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     # Insert test data for Books and Electronics

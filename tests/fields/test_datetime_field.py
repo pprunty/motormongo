@@ -12,7 +12,7 @@ from tests.test_documents.user import User
 @pytest.mark.asyncio
 async def test_auto_now_field():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     # Assuming User has a field named 'last_login' with auto_now=True
@@ -33,7 +33,7 @@ async def test_auto_now_field():
 @pytest.mark.asyncio
 async def test_auto_now_add_field():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     # Assuming User has a field named 'created_at' with auto_now_add=True
@@ -54,7 +54,7 @@ async def test_auto_now_add_field():
 @pytest.mark.asyncio
 async def test_datetime_field_parsing():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     user = User(username="datetimeuser", last_login="2023-01-01T12:00:00")
@@ -69,7 +69,7 @@ async def test_datetime_field_parsing():
 @pytest.mark.asyncio
 async def test_datetime_field_type_validation():
     await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
     )
 
     with pytest.raises(ValueError):
