@@ -174,7 +174,7 @@ await User.insert_one(
 
 ### Step 4: Validate user was created in your MongoDB collection
 
-You can do this by using [MongoDB compass]() GUI, or alternatively, add a query to find all documents in the user
+You can do this by using [MongoDB compass](https://www.mongodb.com/products/tools/compass) GUI, or alternatively, add a query to find all documents in the user
 collection after doing the insert in step 3:
 
 ```python
