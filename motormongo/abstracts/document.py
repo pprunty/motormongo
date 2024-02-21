@@ -1016,10 +1016,8 @@ class Document(metaclass=DocumentMeta):
             Document: An instance of the appropriate subclass of Document.
         """
         if subcls:
-            print(f"from_dict: subclass {subcls.__name__}")
             return subcls(**kwargs)
         else:
-            print(f"from_dict: class {cls.__name__}")
             return cls(**kwargs)
 
     def to_dict(self, id_as_string=True):
