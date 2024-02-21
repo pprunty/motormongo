@@ -91,7 +91,6 @@ class Document(metaclass=DocumentMeta):
             - The 'created_at' attribute is set if provided in the keyword arguments.
         """
         self.__collection = self.get_collection_name()
-        self.__type_field = self.__class__.__name__
         self.__dict__[self.__type_field] = self.__class__.__name__
         # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
@@ -147,13 +146,13 @@ class Document(metaclass=DocumentMeta):
         return await get_db()
 
     @classmethod
-    def get_collection_name(cls) -> Union[str, List[str]]:
+    def get_collection_name(cls) -> Union[str, List[Tuple[object, str]]]:
         """
         Retrieves the collection name for the document class or a list of collection names for its subclasses,
         preferring explicitly defined collection names in the subclass's Meta attribute if available.
 
         Returns:
-            Union[str, List[str]]: The collection name for the current class, or, if the class has subclasses,
+            Union[str, List[Tuple[object, str]]]: The collection name for the current class, or, if the class has subclasses,
                                     a list of collection names derived from either the subclass Meta attribute
                                     or the subclass names.
         """
@@ -170,7 +169,7 @@ class Document(metaclass=DocumentMeta):
                 else:
                     # If no explicit collection name is defined, convert the subclass name from CamelCase to snake_case
                     subclass_collection_names.append(
-                        camel_to_snake_or_lower(subcls.__name__)
+                        (subcls, camel_to_snake_or_lower(subcls.__name__))
                     )
             return subclass_collection_names
 
@@ -429,7 +428,7 @@ class Document(metaclass=DocumentMeta):
 
             if isinstance(collection_names, list):
                 # If get_collection_name returns a list, iterate over each collection name
-                for collection_name in collection_names:
+                for subcls, collection_name in collection_names:
                     collection = db[collection_name]
                     cursor = collection.find(filter)
                     if limit is not None:
@@ -437,7 +436,7 @@ class Document(metaclass=DocumentMeta):
                     if return_as_list:
                         documents = await cursor.to_list(length=limit)
                         combined_results.extend(
-                            [cls.from_dict(**doc) for doc in documents]
+                            [cls.from_dict(subcls=subcls, **doc) for doc in documents]
                         )
                     else:
                         combined_results.append(cursor)
@@ -1005,7 +1004,7 @@ class Document(metaclass=DocumentMeta):
         return None
 
     @classmethod
-    def from_dict(cls, **kwargs):
+    def from_dict(cls, subcls = None, **kwargs):
         """
         Factory method to instantiate objects of the correct subclass based on the document's
         __type field. This method ensures that each document is deserialized into an instance
@@ -1014,26 +1013,12 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Document: An instance of the appropriate subclass of Document.
         """
-        # Extract the class name from the document's __type field
-        class_name = kwargs.get(cls.__type_field, None)
-        print(f"--------------\nCreating dict for class: {class_name}:")
-        if class_name:
-            for subclass in cls._registered_documents:
-                if subclass.__name__ == class_name:
-                    print(f"{kwargs}\n------------ ")
-                    logger.debug(f"Instantiating {class_name} from document data.")
-                    return subclass(**kwargs)
-            # Log a warning if no registered subclass matches the class_name
-            logger.debug(
-                f"Unknown class name '{class_name}' in document data. Falling back to base class {cls.__name__}."
-            )
+        if subcls:
+            print(f"from_dict: subclass {subcls.__name__}")
+            return subcls(**kwargs)
         else:
-            # Log a debug message if __type field is missing
-            logger.debug(
-                f"__type field missing in document data. Instantiating base class {cls.__name__}."
-            )
-
-        return cls(**kwargs)
+            print(f"from_dict: class {cls.__name__}")
+            return cls(**kwargs)
 
     def to_dict(self, id_as_string=True):
         """
