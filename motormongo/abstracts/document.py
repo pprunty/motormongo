@@ -165,7 +165,7 @@ class Document(metaclass=DocumentMeta):
             for subcls in subclasses:
                 # Check for an explicitly defined collection name in the subclass's Meta attribute
                 if hasattr(subcls, "Meta") and hasattr(subcls.Meta, "collection"):
-                    subclass_collection_names.append(subcls.Meta.collection)
+                    subclass_collection_names.append((subcls, subcls.Meta.collection))
                 else:
                     # If no explicit collection name is defined, convert the subclass name from CamelCase to snake_case
                     subclass_collection_names.append(
