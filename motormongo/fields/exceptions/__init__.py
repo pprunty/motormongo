@@ -30,3 +30,8 @@ from motormongo.fields.exceptions.string_field import (
     StringPatternError,
     StringValueError,
 )
+from motormongo.fields.exceptions.reference_field import (
+    ReferenceValueError,
+    ReferenceTypeError,
+    ReferenceConversionError
+)

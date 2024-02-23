@@ -1,11 +1,11 @@
+from motormongo.fields.exceptions import ReferenceTypeError
+from motormongo.fields.exceptions import ReferenceConversionError
+from motormongo.fields.exceptions import ReferenceValueError
 import os
-
 import pytest
-from motormongo import DataBase
+from motormongo import DataBase, Document, StringField
 from tests.test_documents.reference import User, Post
 from bson import ObjectId
-
-
 
 async def test_reference_field_set_with_instance():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
@@ -42,14 +42,8 @@ async def test_reference_field_set_invalid_type():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Attempt to create a post with an invalid author reference
-    with pytest.raises(ValueError):
+    with pytest.raises(ReferenceTypeError):
         Post(author=123)  # Using an integer instead of ObjectId or User instance
-
-import os
-import pytest
-from motormongo import DataBase
-from tests.test_documents.reference import User, Post
-from bson import ObjectId
 
 @pytest.mark.asyncio
 async def test_async_fetch_referenced_document():
@@ -67,3 +61,20 @@ async def test_async_fetch_referenced_document():
     referenced_user = await post.author
     assert referenced_user is not None, "Should asynchronously fetch and find the referenced user"
     assert referenced_user._id == user._id, "Referenced user ID should match the original user ID"
+
+# @pytest.mark.asyncio
+# async def test_reference_field_with_missing_id_attr():
+#     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+#
+#     user = User(name="Alex Smith")
+#     await user.save()
+#     del user._id
+#
+#     with pytest.raises(ReferenceValueError):
+#         post = Post(author=user)  # This should raise an error
+
+
+@pytest.mark.asyncio
+async def test_reference_field_with_invalid_string():
+    with pytest.raises(ReferenceConversionError):
+        post = Post(author="invalid_object_id_string")  # This should raise an error

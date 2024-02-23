@@ -1,5 +1,6 @@
 from bson import ObjectId
 
+from motormongo.fields.exceptions import ReferenceValueError, ReferenceConversionError, ReferenceTypeError
 from motormongo.fields.field import Field
 
 
@@ -11,25 +12,19 @@ class ReferenceField(Field):
     def __set__(self, obj, value):
         # If the value is an instance of the document_class, try to get its _id
         if isinstance(value, self.document_class):
+            # If the value is an object, attempt to retrieve its ObjectId
             if hasattr(value, "_id"):
                 value = ObjectId(value._id)
-            else:
-                raise ValueError(
-                    f"The {self.document_class.__name__} instance does not have an '_id' attribute."
-                )
         # If the value is a string, attempt to convert it to ObjectId
         elif isinstance(value, str):
             try:
                 value = ObjectId(value)
             except Exception:
-                raise ValueError(
-                    f"String value '{value}' cannot be converted to an ObjectId."
-                )
+                raise ReferenceConversionError(f"String value '{value}' cannot be converted to an ObjectId.")
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
         elif not isinstance(value, ObjectId):
-            raise ValueError(
-                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}."
-            )
+            raise ReferenceTypeError(
+                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}.")
 
         super().__set__(obj, value)
 
