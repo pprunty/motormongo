@@ -519,12 +519,10 @@ collections.
 **Example Usage:**
 
 ```python
-from motormongo import Document, ReferenceField
-from bson import ObjectId
-
+from motormongo import Document, ReferenceField, StringField
 
 class User(Document):
-    pass
+    name = StringField()
 
 
 class Post(Document):
@@ -532,10 +530,9 @@ class Post(Document):
 
 
 # Create a user and a post referencing the user
-user = User(_id=ObjectId())
+user = User(name="John Doe")
+await user.save()
 post = Post(author=user)
-
-# When accessing `post.author`, it fetches the User instance it references
 ```
 
 To fetch the referenced document, you must await the coroutine returned by accessing the reference field. This operation
@@ -544,10 +541,9 @@ asynchronously retrieves the related document instance from the database.
 ```python
 # Assuming `post` is an instance of the Post document with a reference to a User
 # Fetch the user referenced by the post's author field
-referenced_user = await post.author()
-
+referenced_user = await post.author
 if referenced_user:
-    print("Referenced User:", referenced_user.to_dict())
+    print("Referenced User:", referenced_user.to_dict()) # Should print, {'_id': '65d8bf2dad3fa2e9169d2f94', 'name': 'John Doe'}
 else:
     print("User not found or failed to fetch.")
 ```
