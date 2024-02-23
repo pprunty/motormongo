@@ -28,7 +28,7 @@ class GeoJSONField(Field):
                     )
             else:
                 raise GeoCoordinateError(
-                    "Value must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary"
+                    f"Value must be a list or tuple of [latitude, longitude] or a GeoJSON dictionary. Got {type(value)} of value: {value}"
                 )
 
         super().__set__(obj, value)

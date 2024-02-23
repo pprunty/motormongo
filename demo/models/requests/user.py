@@ -12,4 +12,4 @@ class UserModelRequest(BaseModel):
     status: str = Field(example=Status.ACTIVE)
     location: List[float] = Field(example=[38.8977, 77.0365])
     favorite_colors: List[str] = Field(example=["blue", "black"])
-    net_worth: float = Field(example=234.1)
+    net_worth: float = Field(example=7.0)

@@ -31,7 +31,7 @@ class EmbeddedDocumentField(Field):
         # Now check if value is None or an instance of the document_type or EmbeddedDocument
         if value is not None and not isinstance(value, self.document_type):
             raise EmbeddedDocumentTypeError(
-                f"Value must be an instance of {self.document_type.__name__}, a dictionary, or a BaseModel. Got {type(value).__name__}."
+                f"Value must be an instance of {self.document_type.__name__}, a dictionary, or a BaseModel. Got {type(value).__name__} of value: {value}."
             )
 
         super().__set__(obj, value)

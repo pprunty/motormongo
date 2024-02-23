@@ -16,7 +16,9 @@ class StringField(Field):
     def __set__(self, obj, value):
         if value is not None:
             if not isinstance(value, str):
-                raise StringValueError(f"Value for {self.name} must be a string")
+                raise StringValueError(
+                    f"Value for {self.name} must be a string. Got {type(value)} of value: {value}."
+                )
             if self.min_length is not None and len(value) < self.min_length:
                 raise StringLengthError(
                     f"Value for {self.name} must be at least {self.min_length} characters"

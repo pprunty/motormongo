@@ -8,9 +8,7 @@ from tests.test_documents.user import User
 
 @pytest.mark.asyncio
 async def test_insert_one_success():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -28,45 +26,22 @@ async def test_insert_one_success():
 
 @pytest.mark.asyncio
 async def test_insert_one_w_extra_field_ignored():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
         "password": "password123",
-        "age": 69,
-        "dob": "should not be here",
+        "bad": "should not be here",
     }
     result = await User.insert_one(user)
     result_dict = result.to_dict()
-    assert "dob" not in result_dict
+    assert "bad" not in result_dict
     await User.delete_one(_id=result_dict["_id"])
 
 
 @pytest.mark.asyncio
-async def test_insert_one_w_extra_field_ignored():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
-    user = {
-        "username": "johndoe",
-        "email": "johndoe@hotmail.com",
-        "password": "password123",
-        "age": 69,
-        "dob": "should not be here",
-    }
-    result = await User.insert_one(user)
-    result_dict = result.to_dict()
-    assert "dob" not in result_dict
-    await User.delete_one(**user)
-
-
-@pytest.mark.asyncio
 async def test_insert_one_kwargs_explicit():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -87,9 +62,7 @@ async def test_insert_one_kwargs_explicit():
 
 @pytest.mark.asyncio
 async def test_insert_many():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     users = [
         {
             "username": "johndoe",

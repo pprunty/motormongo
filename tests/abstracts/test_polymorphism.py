@@ -1,13 +1,14 @@
 import os
+
 import pytest
+
 from motormongo import DataBase
-from tests.test_documents.items import Item, Book, Electronics
+from tests.test_documents.items import Book, Electronics, Item
+
 
 @pytest.mark.asyncio
 async def test_book_insert_and_update():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Insert a Book item
     book_details = {
@@ -15,7 +16,7 @@ async def test_book_insert_and_update():
         "author": "George Orwell",
         "isbn": "123456789",
         "cost": 20.0,
-        "name": "Book"
+        "name": "Book",
     }
     book = await Book.insert_one(**book_details)
     assert book.title == "1984"
@@ -36,15 +37,13 @@ async def test_book_insert_and_update():
 
 @pytest.mark.asyncio
 async def test_electronics_insert_and_update():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     # Insert an Electronics item
     electronics_details = {
         "warranty_period": "2 years",
         "brand": "TechBrand",
         "cost": 999.99,
-        "name": "Laptop"
+        "name": "Laptop",
     }
     electronics = await Electronics.insert_one(**electronics_details)
     assert electronics.warranty_period == "2 years"
@@ -53,9 +52,13 @@ async def test_electronics_insert_and_update():
     assert electronics.name == "Laptop"
 
     # Update the Electronics item
-    updated_electronics = await Electronics.update_one({"_id": electronics._id}, {"cost": 1000.99})
+    updated_electronics = await Electronics.update_one(
+        {"_id": electronics._id}, {"cost": 1000.99}
+    )
     assert updated_electronics.cost == 1000.99
-    assert updated_electronics.brand == electronics.brand  # Ensure other fields remain unchanged
+    assert (
+        updated_electronics.brand == electronics.brand
+    )  # Ensure other fields remain unchanged
     assert updated_electronics._id == electronics._id
 
     # Clean up
@@ -64,9 +67,7 @@ async def test_electronics_insert_and_update():
 
 @pytest.mark.asyncio
 async def test_find_expensive_items():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Insert test data for Books and Electronics
     book_details = {
@@ -74,13 +75,13 @@ async def test_find_expensive_items():
         "author": "Famous Author",
         "isbn": "9999999999",
         "cost": 100.0,
-        "name": "Book"
+        "name": "Book",
     }
     electronics_details = {
         "warranty_period": "5 years",
         "brand": "HighEndBrand",
         "cost": 2000.99,
-        "name": "High-End Laptop"
+        "name": "High-End Laptop",
     }
     await Book.insert_one(**book_details)
     await Electronics.insert_one(**electronics_details)
@@ -103,9 +104,12 @@ async def test_find_expensive_items():
     await Book.delete_many({})
     await Electronics.delete_many({})
 
+
 @pytest.mark.asyncio
 async def test_polymorphic_aggregate():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     # Insert test data
     book_details = {
@@ -113,22 +117,22 @@ async def test_polymorphic_aggregate():
         "author": "Famous Author",
         "isbn": "9999999999",
         "cost": 100.0,
-        "name": "Book"
+        "name": "Book",
     }
     electronics_details = {
         "warranty_period": "5 years",
         "brand": "HighEndBrand",
         "cost": 2000.99,
-        "name": "High-End Laptop"
+        "name": "High-End Laptop",
     }
     await Book.insert_one(**book_details)
     await Electronics.insert_one(**electronics_details)
 
     # Perform a polymorphic aggregation to find items with cost greater than 50
-    expensive_items_pipeline = [
-        {"$match": {"cost": {"$gt": 50}}}
-    ]
-    expensive_items = await Item.aggregate(expensive_items_pipeline, return_as_list=True)
+    expensive_items_pipeline = [{"$match": {"cost": {"$gt": 50}}}]
+    expensive_items = await Item.aggregate(
+        expensive_items_pipeline, return_as_list=True
+    )
     assert expensive_items, "No expensive items found"
     for item in expensive_items:
         assert item.cost > 50, "Found item is not expensive"
@@ -137,9 +141,12 @@ async def test_polymorphic_aggregate():
     await Book.delete_many({})
     await Electronics.delete_many({})
 
+
 @pytest.mark.asyncio
 async def test_polymorphic_update_many():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     # Insert test data
     book_details = {
@@ -147,19 +154,21 @@ async def test_polymorphic_update_many():
         "author": "Moderate Author",
         "isbn": "8888888888",
         "cost": 60.0,
-        "name": "Book"
+        "name": "Book",
     }
     electronics_details = {
         "warranty_period": "2 years",
         "brand": "ModerateBrand",
         "cost": 150.99,
-        "name": "Moderate Laptop"
+        "name": "Moderate Laptop",
     }
     await Book.insert_one(**book_details)
     await Electronics.insert_one(**electronics_details)
 
     # Update all items where cost is greater than 50 by adding a 'high_value' flag
-    update_result, modified_count = await Item.update_many({"cost": {"$gt": 50}}, {"high_value": True})
+    update_result, modified_count = await Item.update_many(
+        {"cost": {"$gt": 50}}, {"high_value": True}
+    )
     assert modified_count > 0, "No documents were updated"
 
     # Verify that the 'high_value' flag is set
@@ -171,9 +180,12 @@ async def test_polymorphic_update_many():
     await Book.delete_many({})
     await Electronics.delete_many({})
 
+
 @pytest.mark.asyncio
 async def test_polymorphic_delete_many():
-    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION"))
+    await DataBase.connect(
+        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_COLLECTION")
+    )
 
     # Insert test data with a 'to_delete' flag for easy identification
     book_details = {

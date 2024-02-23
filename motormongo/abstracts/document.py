@@ -1,4 +1,5 @@
 import json
+from datetime import timezone
 from enum import Enum
 from typing import Any, Dict, List, Tuple, Union
 
@@ -94,6 +95,7 @@ class Document(metaclass=DocumentMeta):
         self.__dict__[self.__type_field] = self.__class__.__name__
         # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
+        logger.debug(f"Creating class for collection {self.__collection}")
 
         # Handling '_id' separately
         if "_id" in kwargs:
@@ -106,14 +108,11 @@ class Document(metaclass=DocumentMeta):
                     attr_value = kwargs.get(name, field.options.get("default"))
                     if attr_value is not None:
                         setattr(self, name, attr_value)
-                    else:
-                        # TODO: Make this better
-                        NotImplemented
 
         if "created_at" in kwargs:
-            self.created_at = kwargs.get("created_at")
+            self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
         if "updated_at" in kwargs:
-            self.updated_at = kwargs.get("updated_at")
+            self.updated_at = kwargs.get("updated_at").replace(tzinfo=timezone.utc)
 
     def __init_subclass__(cls, **kwargs):
         """
@@ -846,18 +845,27 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in saving the document to the mongo.
         """
+        document = self.to_dict(id_as_string=False)
+
         document = add_timestamps_if_required(
-            self, operation="update", **self.to_dict(id_as_string=False)
+            self, operation="update" if hasattr(self, "_id") else "create", **document
         )
-        logger.debug(f"doc Dict represenatuon = {document}")
+        logger.debug(f"doc = {document}")
+
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
             if not hasattr(self, "_id"):
+                # This is a new document, insert it
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
+                self.created_at = document.get("created_at")
+                self.updated_at = document.get("updated_at")
             else:
+                # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
+                # Only update 'updated_at' for existing documents
+                self.updated_at = document.get("updated_at")
         except Exception as e:
             raise DocumentInsertError(f"Error saving document '{document}': {e}")
 
@@ -1043,18 +1051,11 @@ class Document(metaclass=DocumentMeta):
                     value = v.to_dict()
                 # Assign the processed value to the key in the dictionary
                 doc_dict[k] = value
-
         # Ensure the class type (__type) is included in the dictionary
         # todo: might need to add this back for polymorphism
         # doc_dict[self.__type_field] = self.__class__.__name__
-
         # Ensure '_id' is processed according to id_as_string flag
         if "_id" in self.__dict__:
             doc_dict["_id"] = str(self._id) if id_as_string else self._id
-
-        # todo: do we need this for any reason?
-        # doc_dict = add_timestamps_if_required(
-        #     self, operation="create", **doc_dict
-        # )
 
         return doc_dict
