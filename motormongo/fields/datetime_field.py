@@ -34,39 +34,41 @@ class DateTimeField(Field):
                 "datetime_formats must be a string or an iterable of strings."
             )
 
-    def __set__(self, obj, value):
+    def _parse_string_to_datetime(self, value):
+        for fmt in self.datetime_formats:
+            try:
+                return datetime.strptime(value, fmt), True
+            except ValueError:
+                continue
+        return value, False
 
-        # If auto_now_add and field is empty, set value = now
-        if self.auto_now_add and not obj.__dict__.get(self.name):
+    def _convert_to_datetime(self, value):
+        if isinstance(value, str):
+            value, parsed = self._parse_string_to_datetime(value)
+            if not parsed:
+                raise DateTimeFormatError(
+                    f"Value for {self.name} must be a datetime object, a date object, or a string in one of the formats: {', '.join(self.datetime_formats)}. Got {type(value)} of value: {value}."
+                )
+        elif isinstance(value, date) and not isinstance(value, datetime):
+            value = datetime(value.year, value.month, value.day)
+        elif not isinstance(value, (datetime, date)):
+            raise DateTimeValueError(
+                f"Value for {self.name} must be a datetime object, a date object, or a string representation of datetime. Got {type(value)} of value: {value}."
+            )
+        return value
+
+    def __set__(self, obj, value):
+        if self.auto_now_add:
+            existing_value = obj.__dict__.get(self.name)
+            value = (
+                existing_value or datetime.now(timezone.utc)
+                if not existing_value
+                else value
+            )
+        elif self.auto_now:
             value = datetime.now(timezone.utc)
-            super().__set__(obj, value)
-            return
-        # Else, if auto_now_add and field is non-empty, set value = value
-        elif self.auto_now_add and obj.__dict__.get(self.name):
-            value = obj.__dict__.get(self.name)
-            super().__set__(obj, value)
-            return
-        else:
-            # Handle string or date inputs (as before)
-            if value is not None:
-                if isinstance(value, str):
-                    parsed = False
-                    for fmt in self.datetime_formats:
-                        try:
-                            value = datetime.strptime(value, fmt)
-                            parsed = True
-                            break
-                        except ValueError:
-                            continue
-                    if not parsed:
-                        raise DateTimeFormatError(
-                            f"Value for {self.name} must be a datetime object, a date object, or a string in one of the formats: {', '.join(self.datetime_formats)}. Got {type(value)} of value: {value}."
-                        )
-                elif isinstance(value, date) and not isinstance(value, datetime):
-                    value = datetime(value.year, value.month, value.day)
-                elif not isinstance(value, (datetime, date)):
-                    raise DateTimeValueError(
-                        f"Value for {self.name} must be a datetime object, a date object, or a string representation of datetime. Got {type(value)} of value: {value}."
-                    )
+
+        if value is not None:
+            value = self._convert_to_datetime(value)
 
         super().__set__(obj, value)
