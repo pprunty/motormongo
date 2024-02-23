@@ -1,8 +1,8 @@
 import pytest
+from pydantic import BaseModel
 
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from tests.test_documents.user import Profile, User
-from pydantic import BaseModel
 
 
 def test_embedded_document_field_valid_assignment():

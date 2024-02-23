@@ -12,7 +12,7 @@ class IntegerField(Field):
         if value is not None:
             if not isinstance(value, int):
                 raise IntegerValueError(
-                    f"Value for {self.name} must be an integer. Got {type(value)}."
+                    f"Value for {self.name} must be an integer. Got {type(value)} of value: {value}."
                 )
             if self.min_value is not None and value < self.min_value:
                 raise IntegerRangeError(

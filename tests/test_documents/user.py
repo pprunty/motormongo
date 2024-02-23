@@ -47,6 +47,7 @@ class User(Document):
         regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50
     )
     password = BinaryField(hash_function=hash_password)
+    dob = DateTimeField()
     location = GeoJSONField(return_as_list=True)
     last_login = DateTimeField(auto_now=True)
     age = IntegerField(min_value=5, max_value=100)
