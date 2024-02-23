@@ -7,11 +7,11 @@ from motormongo.fields.field import Field
 
 class DateTimeField(Field):
     def __init__(
-            self,
-            auto_now: bool = False,
-            auto_now_add: bool = False,
-            datetime_formats: List[str] = None,
-            **kwargs,
+        self,
+        auto_now: bool = False,
+        auto_now_add: bool = False,
+        datetime_formats: List[str] = None,
+        **kwargs,
     ):
         super().__init__(type=(datetime, date, str), **kwargs)
         self.auto_now = auto_now
@@ -26,7 +26,7 @@ class DateTimeField(Field):
         elif isinstance(datetime_formats, str):
             self.datetime_formats = [datetime_formats]
         elif isinstance(
-                datetime_formats, Iterable
+            datetime_formats, Iterable
         ):  # Check if it's an iterable (list, tuple, etc.)
             self.datetime_formats = list(datetime_formats)
         else:
