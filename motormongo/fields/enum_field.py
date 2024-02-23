@@ -29,7 +29,7 @@ class EnumField(Field):
                 )
         elif value is not None and not isinstance(value, self.enum):
             raise InvalidEnumTypeError(
-                f"Value for {self.name} must be an instance of {self.enum.__name__} or a matching string. Got {type(value)}."
+                f"Value for {self.name} must be an instance of {self.enum.__name__} or a matching string. Got {type(value)} of value: {value}."
             )
 
         super().__set__(obj, value)
