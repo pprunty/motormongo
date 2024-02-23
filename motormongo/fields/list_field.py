@@ -11,7 +11,7 @@ class ListField(Field):
         if value is not None:
             if not isinstance(value, list):
                 raise ListValueTypeError(
-                    f"Value for {self.name} must be a list. Got {type(value)}."
+                    f"Value for {self.name} must be a list. Got {type(value)} of value: {value}."
                 )
 
             if self.field:

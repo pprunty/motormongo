@@ -32,7 +32,7 @@ class BinaryField(Field):
     def __set__(self, obj, value: Union[str, bytes, Binary]):
         if value is not None and not isinstance(value, (str, bytes, Binary)):
             raise InvalidBinaryTypeError(
-                f"Value must be a string, bytes object, or bson.Binary. Got {type(value).__name__}"
+                f"Value must be a string, bytes object, or bson.Binary. Got {type(value).__name__} of value {value}."
             )
 
         if isinstance(value, str) and self.hash_function:

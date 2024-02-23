@@ -28,7 +28,7 @@ class ReferenceField(Field):
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
         elif not isinstance(value, ObjectId):
             raise ValueError(
-                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}."
+                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)} of value: {value}."
             )
 
         super().__set__(obj, value)

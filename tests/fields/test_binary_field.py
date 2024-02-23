@@ -9,9 +9,7 @@ from tests.test_documents.user import User
 
 @pytest.mark.asyncio
 async def test_password_verification_direct():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     user_data = {
         "username": "janedoe",
@@ -37,9 +35,7 @@ async def test_password_verification_direct():
 
 @pytest.mark.asyncio
 async def test_type_validation():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     user_data = {
         "username": "typevalidationuser",
@@ -55,9 +51,7 @@ async def test_type_validation():
 
 @pytest.mark.asyncio
 async def test_custom_encode_decode_functions_w_bad_classname():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Custom encode/decode functions for testing
     def custom_encode(input_str: str) -> bytes:
@@ -89,9 +83,7 @@ async def test_custom_encode_decode_functions_w_bad_classname():
 
 @pytest.mark.asyncio
 async def test_decoding_error():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Custom decode function that raises an error
     def faulty_decode(input_bytes: bytes) -> str:
@@ -119,9 +111,7 @@ async def test_decoding_error():
 
 @pytest.mark.asyncio
 async def test_hash_function_application():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     # Custom hash function for testing
     def custom_hash(input_str: str) -> bytes:
@@ -147,9 +137,7 @@ async def test_hash_function_application():
 
 @pytest.mark.asyncio
 async def test_none_value_handling():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     class NoneValueUser(Document):
         username = StringField(min_length=3, max_length=50)

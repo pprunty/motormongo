@@ -8,9 +8,7 @@ from tests.test_documents.user import User
 
 @pytest.mark.asyncio
 async def test_find_one_or_create_finds():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -35,9 +33,7 @@ async def test_find_one_or_create_finds():
 
 @pytest.mark.asyncio
 async def test_find_one_or_create_creates():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -55,9 +51,7 @@ async def test_find_one_or_create_creates():
 
 @pytest.mark.asyncio
 async def test_find_one_and_update_empty_fields():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -84,9 +78,7 @@ async def test_find_one_and_update_empty_fields():
 
 @pytest.mark.asyncio
 async def test_wrong_datatype():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",

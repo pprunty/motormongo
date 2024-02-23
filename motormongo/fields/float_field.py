@@ -14,7 +14,7 @@ class FloatField(Field):
                 value, (float, int)
             ):  # Accept integers as they can be cast to float
                 raise FloatValueError(
-                    f"Value for {self.name} must be a float or int. Got {type(value)}"
+                    f"Value for {self.name} must be a float or int. Got {type(value)} of value: {value}."
                 )
 
             value = float(value)  # Convert integers to float for consistent storage

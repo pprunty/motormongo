@@ -8,9 +8,7 @@ from tests.test_documents.user import User
 
 @pytest.mark.asyncio
 async def test_update_success():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
@@ -29,9 +27,7 @@ async def test_update_success():
 
 @pytest.mark.asyncio
 async def test_update_w_criteria():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
         "username": "johndoe-unique12",
     }
@@ -44,9 +40,7 @@ async def test_update_w_criteria():
 
 @pytest.mark.asyncio
 async def test_update_many_success():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     users = [
         {
             "username": "johndoe1",

@@ -15,6 +15,6 @@ class Field:
         if not any(isinstance(value, t) for t in self.type if t is not None):
             allowed_types = ", ".join(t.__name__ for t in self.type if t is not None)
             raise TypeError(
-                f"Value for {self.name} must be of type {allowed_types}. Got {type(value)}."
+                f"Value for {self.name} must be of type {allowed_types}. Got {type(value)} of value: {value}."
             )
         obj.__dict__[self.name] = value
