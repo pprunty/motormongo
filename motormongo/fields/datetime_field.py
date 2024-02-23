@@ -7,11 +7,11 @@ from motormongo.fields.field import Field
 
 class DateTimeField(Field):
     def __init__(
-        self,
-        auto_now: bool = False,
-        auto_now_add: bool = False,
-        datetime_formats: List[str] = None,
-        **kwargs,
+            self,
+            auto_now: bool = False,
+            auto_now_add: bool = False,
+            datetime_formats: List[str] = None,
+            **kwargs,
     ):
         super().__init__(type=(datetime, date, str), **kwargs)
         self.auto_now = auto_now
@@ -26,7 +26,7 @@ class DateTimeField(Field):
         elif isinstance(datetime_formats, str):
             self.datetime_formats = [datetime_formats]
         elif isinstance(
-            datetime_formats, Iterable
+                datetime_formats, Iterable
         ):  # Check if it's an iterable (list, tuple, etc.)
             self.datetime_formats = list(datetime_formats)
         else:
@@ -34,17 +34,16 @@ class DateTimeField(Field):
                 "datetime_formats must be a string or an iterable of strings."
             )
 
-    def _parse_string_to_datetime(self, value):
-        for fmt in self.datetime_formats:
-            try:
-                return datetime.strptime(value, fmt), True
-            except ValueError:
-                continue
-        return value, False
-
-    def _convert_to_datetime(self, value):
+    def _handle_string_or_date_input(self, value):
         if isinstance(value, str):
-            value, parsed = self._parse_string_to_datetime(value)
+            parsed = False
+            for fmt in self.datetime_formats:
+                try:
+                    value = datetime.strptime(value, fmt)
+                    parsed = True
+                    break
+                except ValueError:
+                    continue
             if not parsed:
                 raise DateTimeFormatError(
                     f"Value for {self.name} must be a datetime object, a date object, or a string in one of the formats: {', '.join(self.datetime_formats)}. Got {type(value)} of value: {value}."
@@ -58,17 +57,19 @@ class DateTimeField(Field):
         return value
 
     def __set__(self, obj, value):
-        if self.auto_now_add:
-            existing_value = obj.__dict__.get(self.name)
-            value = (
-                existing_value or datetime.now(timezone.utc)
-                if not existing_value
-                else value
-            )
-        elif self.auto_now:
+        # If auto_now_add and field is empty, set value = now
+        if self.auto_now_add and not obj.__dict__.get(self.name):
             value = datetime.now(timezone.utc)
-
-        if value is not None:
-            value = self._convert_to_datetime(value)
+            super().__set__(obj, value)
+            return
+        # Else, if auto_now_add and field is non-empty, set value = value
+        elif self.auto_now_add and obj.__dict__.get(self.name):
+            value = obj.__dict__.get(self.name)
+            super().__set__(obj, value)
+            return
+        else:
+            # Handle string or date inputs (as before)
+            if value is not None:
+                value = self._handle_string_or_date_input(value)
 
         super().__set__(obj, value)
