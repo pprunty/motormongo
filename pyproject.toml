@@ -24,7 +24,7 @@ multi_line_output = 3
 include_trailing_comma = true
 
 [tool.poetry.group.dev.dependencies]
-fastapi = {extras = ["all"], version = "^0.104.1"}
+fastapi = {extras = ["all"], version = ">=0.104.1,<0.110.0"}
 bcrypt = "^4.0.1"
 pytest = "^8.0.1"
 pre-commit = "^3.5.0"
