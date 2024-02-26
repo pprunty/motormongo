@@ -859,13 +859,19 @@ class Document(metaclass=DocumentMeta):
                 # This is a new document, insert it
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
-                self.created_at = document.get("created_at")
-                self.updated_at = document.get("updated_at")
+                if hasattr(self, "Meta"):
+                    if getattr(self, "created_at_timestamp", True):
+                        self.created_at = document.get("created_at")
+                    if getattr(self, "updated_at_timestamp", True):
+                        self.updated_at = document.get("updated_at")
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
                 # Only update 'updated_at' for existing documents
-                self.updated_at = document.get("updated_at")
+                if hasattr(self, "Meta") and getattr(
+                    self, "updated_at_timestamp", True
+                ):
+                    self.updated_at = document.get("updated_at")
         except Exception as e:
             raise DocumentInsertError(f"Error saving document '{document}': {e}")
 

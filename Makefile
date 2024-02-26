@@ -30,6 +30,14 @@ test:
 test-cov:
 	poetry run pytest --cov=motormongo
 
+.PHONY: pre-commit-install
+pre-commit-install:
+	poetry run pre-commit install
+
+.PHONY: pre-commit
+pre-commit:
+	poetry run pre-commit run --all-files
+
 .PHONY: test-cov-report
 test-cov-report:
 	poetry run pytest --cov=motormongo --cov-report=xml:coverage.xml

@@ -1,6 +1,7 @@
 import pytest
 from pydantic import BaseModel
 
+from motormongo import EmbeddedDocument, StringField, Document, EmbeddedDocumentField
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from tests.test_documents.user import Profile, User
 
@@ -51,3 +52,9 @@ def test_partial_dict_assignment_to_embedded_document():
     assert user.profile.bio == "Partial info"
     # Assuming 'website' is optional or has a default value
     assert user.profile.website is None or isinstance(user.profile.website, str)
+
+
+def test_embedded_document_invalid_assignment():
+    with pytest.raises(EmbeddedDocumentTypeError):
+        class Doc(Document):
+            metadata = EmbeddedDocumentField(document_type=object)

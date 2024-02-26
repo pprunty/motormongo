@@ -11,7 +11,7 @@ class EmbeddedDocumentField(Field):
         super().__init__(type=(dict, EmbeddedDocument), **kwargs)
         if not issubclass(document_type, (EmbeddedDocument, BaseModel)):
             raise EmbeddedDocumentTypeError(
-                "document_type must be a subclass of EmbeddedDocument or BaseModel"
+                f"document_type must be a subclass of EmbeddedDocument or Pydantic BaseModel. Got {type(document_type)}."
             )
         self.document_type = document_type
 
@@ -23,7 +23,7 @@ class EmbeddedDocumentField(Field):
             try:
                 # Attempt to instantiate document_type with the dictionary
                 value = self.document_type(**value_dict)
-            except TypeError as e:
+            except Exception as e:
                 raise EmbeddedDocumentTypeError(
                     f"Failed to instantiate {self.document_type.__name__} with provided value. Error: {e}"
                 )
