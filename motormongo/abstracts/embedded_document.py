@@ -1,15 +1,17 @@
+from motormongo import Document
 from motormongo.fields.field import Field
 
 
-class EmbeddedDocument:
-    def __init__(self, **kwargs):
-        for name, field in self.__class__.__dict__.items():
-            if isinstance(field, Field):
-                setattr(self, name, kwargs.get(name, field.options.get("default")))
+class EmbeddedDocument(Document):
+    _fields = {}
 
-    def to_dict(self):
-        return {
-            k: (v.to_dict() if isinstance(v, EmbeddedDocument) else v)
-            for k, v in self.__dict__.items()
-            if "__" not in k and k != "Meta"
-        }
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._fields = {}  # Ensure this is explicitly done if not inherited automatically
+
+    # def to_dict(self):
+    #     return {
+    #         k: (v.to_dict() if isinstance(v, EmbeddedDocument) else v)
+    #         for k, v in self.__dict__.items()
+    #         if "__" not in k and k != "Meta"
+    #     }

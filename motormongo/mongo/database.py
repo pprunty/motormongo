@@ -17,9 +17,9 @@ class DataBase:
 
         try:
             cls.client = AsyncIOMotorClient(
-                uri or os.getenv("MONGODB_URL"), **pooling_options
+                uri, **pooling_options
             )
-            cls.db = cls.client[str(db) or str(os.getenv("MONGODB_DB"))]
+            cls.db = cls.client[str(db)]
             await cls.initialize_indexes()
         except Exception as e:
             raise RuntimeError(
@@ -43,10 +43,10 @@ class DataBase:
     @classmethod
     async def create_indexes_for_document(cls, document_class):
         global _options
-
+        collection_name = document_class.get_collection_name()
+        logger.debug(f"Creating indexes for MongoDB document collection: {collection_name}.")
         if hasattr(document_class, "Meta") and hasattr(document_class.Meta, "indexes"):
             try:
-                collection_name = document_class.get_collection_name()
                 collection = cls.db[collection_name]
                 logger.debug(
                     f"Index list for collection '{collection_name}' = {document_class.Meta.indexes}"
@@ -54,7 +54,7 @@ class DataBase:
                 for index in document_class.Meta.indexes:
                     fields = index["fields"]
                     _options = {k: v for k, v in index.items() if k != "fields"}
-                    logger.debug(f"Fields = {fields} and options = {_options}")
+                    logger.debug(f"Creating index for fields = {fields} and options = {_options}")
                     await collection.create_index(fields, **_options)
             except OperationFailure as e:
                 if "index option" in str(e).lower() and "atlas tier" in str(e).lower():
@@ -65,6 +65,13 @@ class DataBase:
                         "index definition on your Document class to remove this warning.\033[0m"
                     )
                     warnings.warn(message)
+    # @classmethod
+    # async def _create_indexes(cls, document_instance):
+    #     document_class = document_instance.__class__
+    #     if not document_class._indexes_created:
+    #         await cls.create_indexes_for_document(document_class)
+    #         document_class._indexes_created = True
+    #         logger.debug(f"Indexes created for {document_class.__name__}")
 
 
 async def get_db():

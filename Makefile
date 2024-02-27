@@ -45,4 +45,4 @@ test-cov-report:
 .PHONY: demo
 demo:
 	export DEBUG_MODE=true
-	poetry run uvicorn demo.main:app --reload
+	poetry run uvicorn demo.main:app --reload --log-config=./demo/logging.yaml

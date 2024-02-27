@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Tuple, Union
 from bson import ObjectId
 from pymongo import ReturnDocument
 
-from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.abstracts.exceptions import (
     DocumentAggregationError,
     DocumentDeleteError,
@@ -77,6 +76,8 @@ class Document(metaclass=DocumentMeta):
 
     _registered_documents = []
     __type_field = "__type"  # Field to store the document's class type
+    _fields = {}
+    _indexes_created = False  # Track whether indexes have been created for this Document subclass
 
     def __init__(self, **kwargs):
         """
@@ -105,9 +106,11 @@ class Document(metaclass=DocumentMeta):
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
-                    attr_value = kwargs.get(name, field.options.get("default"))
-                    if attr_value is not None:
-                        setattr(self, name, attr_value)
+                    value = kwargs.get(name, field.options.get("default"))
+                    if value is None and field.required:
+                        raise ValueError(f"The field '{name}' is required.")
+                    elif value is not None:
+                        setattr(self, name, value)
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
@@ -125,6 +128,11 @@ class Document(metaclass=DocumentMeta):
             - This method registers each subclass in the '_registered_documents' list for tracking purposes.
         """
         super().__init_subclass__(**kwargs)
+        cls._fields = {}
+        for attr_name, attr_value in cls.__dict__.items():
+            if isinstance(attr_value, Field):
+                cls._fields[attr_name] = attr_value
+                attr_value.__set_name__(cls, attr_name)
         Document._registered_documents.append(cls)
 
     @classmethod
@@ -141,6 +149,13 @@ class Document(metaclass=DocumentMeta):
             - This is an asynchronous method and should be awaited.
         """
         return await get_db()
+
+    # @classmethod
+    # async def ensure_indexes(cls):
+    #     from motormongo import DataBase
+    #     if not cls._indexes_created:
+    #         await DataBase._create_indexes(cls)
+    #         cls._indexes_created = True
 
     @classmethod
     def get_collection_name(cls) -> Union[str, List[Tuple[object, str]]]:
@@ -230,6 +245,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error initializing the class instance or inserting the document into the mongo.
         """
+        # await cls.ensure_indexes()
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
 
@@ -264,7 +280,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_many(
-        cls, documents: List[Dict[str, Any]]
+            cls, documents: List[Dict[str, Any]]
     ) -> Tuple[List["Document"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
@@ -380,11 +396,11 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-        cls,
-        query: Dict = None,
-        limit: int = None,
-        return_as_list: bool = True,
-        **kwargs,
+            cls,
+            query: Dict = None,
+            limit: int = None,
+            return_as_list: bool = True,
+            **kwargs,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
@@ -518,7 +534,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-        cls, query: Dict, update_fields: Dict
+            cls, query: Dict, update_fields: Dict
     ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
@@ -662,7 +678,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-        cls, query: Dict, defaults: Dict
+            cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
@@ -745,7 +761,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-        cls, query: Dict, update_fields: Dict
+            cls, query: Dict, update_fields: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
@@ -869,7 +885,7 @@ class Document(metaclass=DocumentMeta):
                 await collection.replace_one({"_id": self._id}, document)
                 # Only update 'updated_at' for existing documents
                 if hasattr(self, "Meta") and getattr(
-                    self, "updated_at_timestamp", True
+                        self, "updated_at_timestamp", True
                 ):
                     self.updated_at = document.get("updated_at")
         except Exception as e:
@@ -898,9 +914,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-        cls,
-        pipeline: List[Dict],
-        return_as_list: bool = False,
+            cls,
+            pipeline: List[Dict],
+            return_as_list: bool = False,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
@@ -1046,6 +1062,8 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Dict: A dictionary representation of the document.
         """
+        from motormongo.abstracts.embedded_document import EmbeddedDocument
+
         doc_dict = {}
         for k, v in self.__dict__.items():
             if "__" not in k and k != "Meta":
