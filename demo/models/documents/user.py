@@ -22,7 +22,7 @@ class Gender(Enum):
 
 
 class User(Document):
-    username = StringField(min_length=3, max_length=50)
+    username = StringField(min_length=3, max_length=50, unique=True)
     email = StringField(regex=re.compile(r'^\S+@\S+\.\S+$'))
     password = BinaryField(hash_function=hash_password)
     location = GeoJSONField(return_as_list=True)
