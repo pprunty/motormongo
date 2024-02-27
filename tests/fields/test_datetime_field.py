@@ -1,12 +1,13 @@
 import asyncio
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
-from motormongo import DataBase
+from motormongo import DataBase, Document, StringField, BooleanField, DateTimeField
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from tests.test_documents.user import User
+
 
 # @pytest.mark.asyncio
 # async def test_auto_now_field():
@@ -139,6 +140,29 @@ async def test_datetime_fields_work():
     assert user.created_at == created_at
     assert user.updated_at > old_updated_at
     await User.delete_many({})
+
+
+@pytest.mark.asyncio
+async def test_datetime_created_at():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+    class Session(Document):
+        is_active = BooleanField(default=False)
+        created_at = DateTimeField(default=datetime.now(timezone.utc))
+
+        class Meta:
+            indexes = [
+                {'fields': ['created_at'], 'expireAfterSeconds': 300}  # 5-minute expiration
+            ]
+
+    session = Session(is_active=True)
+    await session.save()
+    session_dict = session.to_dict()
+
+    assert "created_at" in session_dict
+    assert "updated_at" not in session_dict
+
+    # await Session.delete_many({})
 
 
 @pytest.mark.asyncio

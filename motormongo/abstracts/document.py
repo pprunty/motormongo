@@ -153,10 +153,16 @@ class Document(metaclass=DocumentMeta):
     @classmethod
     async def ensure_indexes(cls):
         from motormongo import DataBase
-        if not cls._indexes_created:
-            print(f" class name = {cls.__name__}")
-            await DataBase._create_indexes(cls)
-            cls._indexes_created = True
+        subclasses = cls.__subclasses__()
+        if subclasses:
+            for subcls in subclasses:
+                if not subcls._indexes_created:
+                    await DataBase._create_indexes(subcls)
+                    subcls._indexes_created = True
+        else:
+            if not cls._indexes_created:
+                await DataBase._create_indexes(cls)
+                cls._indexes_created = True
 
     @classmethod
     def get_collection_name(cls) -> Union[str, List[Tuple[object, str]]]:
@@ -891,18 +897,17 @@ class Document(metaclass=DocumentMeta):
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
                 if hasattr(self, "Meta"):
-                    if getattr(self, "created_at_timestamp", True):
+                    if hasattr(self.Meta, "created_at_timestamp"):
                         self.created_at = document.get("created_at")
-                    if getattr(self, "updated_at_timestamp", True):
+                    if hasattr(self.Meta, "updated_at_timestamp"):
                         self.updated_at = document.get("updated_at")
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
                 # Only update 'updated_at' for existing documents
-                if hasattr(self, "Meta") and getattr(
-                        self, "updated_at_timestamp", True
-                ):
-                    self.updated_at = document.get("updated_at")
+                if hasattr(self, "Meta"):
+                    if hasattr(self.Meta, "updated_at_timestamp"):
+                        self.updated_at = document.get("updated_at")
         except Exception as e:
             raise DocumentInsertError(f"Error saving document '{document}': {e}")
 
