@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from motormongo import DataBase
+from motormongo import DataBase, Document, IntegerField, StringField
 from tests.test_documents.user import User
 
 
@@ -58,6 +58,32 @@ async def test_insert_one_kwargs_explicit():
     for k, v in user.items():
         assert k in result_dict
     await User.delete_one(_id=result._id)
+
+
+@pytest.mark.asyncio
+async def test_insert_w_out_required_field_fails():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+    class Example(Document):
+        name = StringField(required=True)
+        age = IntegerField()
+
+    with pytest.raises(ValueError):
+        await Example.insert_one(age=12)
+
+
+@pytest.mark.asyncio
+async def test_insert_w_required_field_and_default():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+    class Example(Document):
+        name = StringField(required=True, default="John Doe")
+        age = IntegerField()
+
+    inserted_doc = await Example.insert_one(age=12)
+    assert inserted_doc
+
+    await Example.delete_many({})
 
 
 @pytest.mark.asyncio

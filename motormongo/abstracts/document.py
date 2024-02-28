@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Tuple, Union
 from bson import ObjectId
 from pymongo import ReturnDocument
 
-from motormongo.abstracts.embedded_document import EmbeddedDocument
 from motormongo.abstracts.exceptions import (
     DocumentAggregationError,
     DocumentDeleteError,
@@ -77,6 +76,10 @@ class Document(metaclass=DocumentMeta):
 
     _registered_documents = []
     __type_field = "__type"  # Field to store the document's class type
+    _fields = {}
+    _indexes_created = (
+        False  # Track whether indexes have been created for this Document subclass
+    )
 
     def __init__(self, **kwargs):
         """
@@ -105,9 +108,11 @@ class Document(metaclass=DocumentMeta):
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
-                    attr_value = kwargs.get(name, field.options.get("default"))
-                    if attr_value is not None:
-                        setattr(self, name, attr_value)
+                    value = kwargs.get(name, field.options.get("default"))
+                    if value is None and field.required:
+                        raise ValueError(f"The field '{name}' is required.")
+                    elif value is not None:
+                        setattr(self, name, value)
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
@@ -125,6 +130,11 @@ class Document(metaclass=DocumentMeta):
             - This method registers each subclass in the '_registered_documents' list for tracking purposes.
         """
         super().__init_subclass__(**kwargs)
+        cls._fields = {}
+        for attr_name, attr_value in cls.__dict__.items():
+            if isinstance(attr_value, Field):
+                cls._fields[attr_name] = attr_value
+                attr_value.__set_name__(cls, attr_name)
         Document._registered_documents.append(cls)
 
     @classmethod
@@ -141,6 +151,21 @@ class Document(metaclass=DocumentMeta):
             - This is an asynchronous method and should be awaited.
         """
         return await get_db()
+
+    @classmethod
+    async def ensure_indexes(cls):
+        from motormongo import DataBase
+
+        subclasses = cls.__subclasses__()
+        if subclasses:
+            for subcls in subclasses:
+                if not subcls._indexes_created:
+                    await DataBase._create_indexes(subcls)
+                    subcls._indexes_created = True
+        else:
+            if not cls._indexes_created:
+                await DataBase._create_indexes(cls)
+                cls._indexes_created = True
 
     @classmethod
     def get_collection_name(cls) -> Union[str, List[Tuple[object, str]]]:
@@ -230,6 +255,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error initializing the class instance or inserting the document into the mongo.
         """
+        await cls.ensure_indexes()
         # Consolidate document creation
         document = {**(document or {}), **kwargs}
 
@@ -293,6 +319,7 @@ class Document(metaclass=DocumentMeta):
             docs_to_insert = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
             inserted_docs, inserted_ids = await MyClass.insert_many(docs_to_insert)
         """
+        await cls.ensure_indexes()
         # First, process each document to ensure it adheres to the class's structure and add timestamps if necessary
         processed_documents = []
         for doc in documents:
@@ -351,6 +378,7 @@ class Document(metaclass=DocumentMeta):
         Note:
             If both filter and keyword arguments are provided, they are combined for the query.
         """
+        await cls.ensure_indexes()
         filter = {**(query or {}), **kwargs}
 
         # Check if any value in the filter is a Document instance and replace it with its _id
@@ -412,6 +440,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in finding the documents with the given filter.
         """
+        await cls.ensure_indexes()
         filter = {**(query or {}), **kwargs}
         combined_results = (
             []
@@ -487,6 +516,7 @@ class Document(metaclass=DocumentMeta):
         Note:
             - The `update_fields` should not include the '_id' field as it is automatically popped from the update data.
         """
+        await cls.ensure_indexes()
         update_fields = add_timestamps_if_required(
             cls, **update_fields, operation="update"
         )
@@ -533,6 +563,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentUpdateError: If there is an error in updating documents.
         """
+        await cls.ensure_indexes()
 
         async def perform_update(collection, subcls=None):
             """
@@ -597,6 +628,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document from the mongo.
         """
+        await cls.ensure_indexes()
         # Consolidate document creation
         query = {**(query or {}), **kwargs}
         query = cls.convert_id(query)
@@ -625,6 +657,8 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentDeleteError: If there is an error in deleting the documents.
         """
+        await cls.ensure_indexes()
+
         query = {**(query or {}), **kwargs}
 
         async def perform_deletion(collection):
@@ -683,6 +717,8 @@ class Document(metaclass=DocumentMeta):
             DocumentNotFoundError: If there is an error in finding the document.
             DocumentInsertError: If there is an error in creating the document.
         """
+        await cls.ensure_indexes()
+
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -724,6 +760,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in replacing the document.
         """
+        await cls.ensure_indexes()
         enforce_types([(query, dict, "query"), (replacement, dict, "replacement")])
         replacement = add_timestamps_if_required(cls, **replacement)
         try:
@@ -769,6 +806,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in finding or updating the document.
         """
+        await cls.ensure_indexes()
         enforce_types([(query, dict, "query"), (update_fields, dict, "update_fields")])
         try:
             db = await cls.db()
@@ -814,6 +852,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document.
         """
+        await cls.ensure_indexes()
         query = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
@@ -845,6 +884,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in saving the document to the mongo.
         """
+        await self.ensure_indexes()
         document = self.to_dict(id_as_string=False)
 
         document = add_timestamps_if_required(
@@ -860,18 +900,17 @@ class Document(metaclass=DocumentMeta):
                 result = await collection.insert_one(document)
                 self._id = result.inserted_id
                 if hasattr(self, "Meta"):
-                    if getattr(self, "created_at_timestamp", True):
+                    if hasattr(self.Meta, "created_at_timestamp"):
                         self.created_at = document.get("created_at")
-                    if getattr(self, "updated_at_timestamp", True):
+                    if hasattr(self.Meta, "updated_at_timestamp"):
                         self.updated_at = document.get("updated_at")
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
                 # Only update 'updated_at' for existing documents
-                if hasattr(self, "Meta") and getattr(
-                    self, "updated_at_timestamp", True
-                ):
-                    self.updated_at = document.get("updated_at")
+                if hasattr(self, "Meta"):
+                    if hasattr(self.Meta, "updated_at_timestamp"):
+                        self.updated_at = document.get("updated_at")
         except Exception as e:
             raise DocumentInsertError(f"Error saving document '{document}': {e}")
 
@@ -887,6 +926,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document from the mongo.
         """
+        await self.ensure_indexes()
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
@@ -918,6 +958,7 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentAggregationError: If an error occurs during pipeline execution.
         """
+        await cls.ensure_indexes()
 
         async def perform_aggregation(collection, subcls=None):
             """
@@ -1046,6 +1087,8 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Dict: A dictionary representation of the document.
         """
+        from motormongo.abstracts.embedded_document import EmbeddedDocument
+
         doc_dict = {}
         for k, v in self.__dict__.items():
             if "__" not in k and k != "Meta":

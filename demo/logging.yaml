@@ -1,0 +1,32 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  colored:
+    (): colorlog.ColoredFormatter
+    format: '%(log_color)s%(asctime)s %(levelname)s %(name)s %(bold_white)s%(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: colored
+    level: DEBUG
+loggers:
+  '':
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  core:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  uvicorn:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  fastapi:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+root:
+  level: DEBUG
+  handlers: [console]
+  propagate: no

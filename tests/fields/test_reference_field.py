@@ -1,11 +1,16 @@
-from motormongo.fields.exceptions import ReferenceTypeError
-from motormongo.fields.exceptions import ReferenceConversionError
-from motormongo.fields.exceptions import ReferenceValueError
 import os
+
 import pytest
-from motormongo import DataBase, Document, StringField
-from tests.test_documents.reference import User, Post
 from bson import ObjectId
+
+from motormongo import DataBase, Document, StringField
+from motormongo.fields.exceptions import (
+    ReferenceConversionError,
+    ReferenceTypeError,
+    ReferenceValueError,
+)
+from tests.test_documents.reference import Post, User
+
 
 async def test_reference_field_set_with_instance():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
@@ -14,10 +19,13 @@ async def test_reference_field_set_with_instance():
     await user.save()
     post = Post(author=user._id)
 
-    referenced_user = await post.author  # Correctly await the coroutine to fetch the referenced document
+    referenced_user = (
+        await post.author
+    )  # Correctly await the coroutine to fetch the referenced document
     assert "_id" in referenced_user.to_dict()
     assert "name" in referenced_user.to_dict()
     assert referenced_user is not None, "Referenced user should not be None"
+
 
 @pytest.mark.asyncio
 async def test_reference_field_set_with_string_id():
@@ -34,7 +42,9 @@ async def test_reference_field_set_with_string_id():
     # Fetch the referenced user
     referenced_user = await post.author
     assert referenced_user is not None, "Referenced user should not be None"
-    assert referenced_user._id == ObjectId(user_id_str), "Referenced user ID should match the original user ID"
+    assert referenced_user._id == ObjectId(
+        user_id_str
+    ), "Referenced user ID should match the original user ID"
 
 
 @pytest.mark.asyncio
@@ -44,6 +54,7 @@ async def test_reference_field_set_invalid_type():
     # Attempt to create a post with an invalid author reference
     with pytest.raises(ReferenceTypeError):
         Post(author=123)  # Using an integer instead of ObjectId or User instance
+
 
 @pytest.mark.asyncio
 async def test_async_fetch_referenced_document():
@@ -59,8 +70,13 @@ async def test_async_fetch_referenced_document():
 
     # Fetch the referenced user
     referenced_user = await post.author
-    assert referenced_user is not None, "Should asynchronously fetch and find the referenced user"
-    assert referenced_user._id == user._id, "Referenced user ID should match the original user ID"
+    assert (
+        referenced_user is not None
+    ), "Should asynchronously fetch and find the referenced user"
+    assert (
+        referenced_user._id == user._id
+    ), "Referenced user ID should match the original user ID"
+
 
 # @pytest.mark.asyncio
 # async def test_reference_field_with_missing_id_attr():

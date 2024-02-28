@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel
 
-from motormongo import EmbeddedDocument, StringField, Document, EmbeddedDocumentField
+from motormongo import Document, EmbeddedDocument, EmbeddedDocumentField, StringField
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from tests.test_documents.user import Profile, User
 
@@ -56,5 +56,6 @@ def test_partial_dict_assignment_to_embedded_document():
 
 def test_embedded_document_invalid_assignment():
     with pytest.raises(EmbeddedDocumentTypeError):
+
         class Doc(Document):
             metadata = EmbeddedDocumentField(document_type=object)
