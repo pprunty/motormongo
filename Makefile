@@ -30,6 +30,26 @@ test:
 test-cov:
 	poetry run pytest --cov=motormongo
 
+.PHONY: metrics-motormongo
+metrics-motormongo:
+	poetry run uvicorn metrics.motormongo.main:app --port 8000 &
+	UVICORN_PID=$$!; \
+	sleep 15; \
+	poetry run locust -f metrics/locustfile.py --host http://127.0.0.1:8000 --headless -u 10 -r 1 -t 30s; \
+	sleep 20; \
+	kill $$UVICORN_PID; \
+	open http://localhost:8089
+
+.PHONY: metrics-mongoengine
+metrics-mongoengine:
+	poetry run uvicorn metrics.mongoengine.main:app --port 8000 &
+	UVICORN_PID=$$!; \
+	sleep 15; \
+	poetry run locust -f metrics/locustfile.py --host http://127.0.0.1:8000 --headless -u 10 -r 1 -t 30s; \
+	sleep 20; \
+	kill $$UVICORN_PID; \
+	open http://localhost:8089
+
 .PHONY: pre-commit-install
 pre-commit-install:
 	poetry run pre-commit install
