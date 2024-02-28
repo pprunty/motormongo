@@ -5,6 +5,7 @@ import uuid
 
 class UserBehavior(SequentialTaskSet):
     host = "http://127.0.0.1:8000 "
+
     def on_start(self):
         """Generate unique user data for each simulated user."""
         self.username = f"user_{uuid.uuid4()}"
@@ -50,9 +51,14 @@ class UserBehavior(SequentialTaskSet):
     def update_user(self):
         """Update the created user's email."""
         new_email = f"new_{self.email}"
-        response = self.client.put(f"/users/{self.username}", json={"email": new_email})
+        new_username = f"new_{self.username}"
+
+        response = self.client.put(f"/users/{self.username}", json={"email": new_email,
+                                                                    "username": new_username})
         if response.ok:
             print(f"Updated user {self.username} email to {new_email}")
+            self.email = new_email
+            self.username = new_username
         else:
             print(f"Failed to update user {self.username}")
 

@@ -13,7 +13,7 @@ def hash_password(password: str) -> bytes:
 
 
 class User(Document):
-    username = StringField(help_text="The username for the user", min_length=3, max_length=50)
+    username = StringField(help_text="The username for the user", min_length=3, max_length=150)
     email = StringField(help_text="The email for the user", regex=re.compile(r'^\S+@\S+\.\S+$'))  # Simple email regex
     password = BinaryField(help_text="The hashed password for the user", hash_function=hash_password)
 
@@ -25,6 +25,11 @@ class UserModelRequest(BaseModel):
     username: str = Field(example="johndoe")
     email: str = Field(example="johndoe@coldmail.com")
     password: str = Field(example="password123")
+
+
+class UpdateUserModelRequest(BaseModel):
+    username: str = Field(example="johndoe")
+    email: str = Field(example="johndoe@coldmail.com")
 
 
 class UserAuthModelRequest(BaseModel):
@@ -54,7 +59,7 @@ async def create_user(user: UserModelRequest):
 @app.post("/user/auth", status_code=200)
 async def is_authenticated(request: UserAuthModelRequest):
     user = await User.find_one({"username": request.username})
-    if not user or request.password:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.verify_password(request.password):
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -70,26 +75,27 @@ async def get_users():
     return [user.to_dict() for user in users]
 
 
-@app.get("/users/{user_id}")
-async def get_user(user_id: str):
-    user = await User.find_one({"_id": user_id})
+@app.get("/users/{username}")
+async def get_user(username: str):
+    user = await User.find_one({"username": username})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user.to_dict()
 
 
-@app.put("/users/{user_id}", status_code=200)
-async def update_user(user_id: str, user_data: UserModelRequest):
-    del user_data["password"]
-    updated_user = await User.update_one({"_id": user_id}, user_data.model_dump())
+@app.put("/users/{username}", status_code=200)
+async def update_user(username: str, request: UpdateUserModelRequest):
+    updated_user = await User.update_one({"username": username}, {"email": request.email})
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user.to_dict()
 
 
-@app.delete("/users/{user_id}", status_code=204)
-async def delete_user(user_id: str):
-    user = await User.find_one({"_id": user_id})
+@app.delete("/users/{username}", status_code=204)
+async def delete_user(username: str):
+    print(f"delete username = {username}")
+    user = await User.find_one({"username": username})
+    print(f"user = {user.to_dict()}")
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     await user.delete()

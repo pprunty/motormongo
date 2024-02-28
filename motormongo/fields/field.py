@@ -1,9 +1,10 @@
 class Field:
-    def __init__(self, type=None, required=False, unique=False, **kwargs):
+    def __init__(self, type=None, required=False, unique=False, primary_key=False, **kwargs):
         self.type = type if isinstance(type, tuple) else (type,)
         self.required = required
         self.unique = unique
         self.options = kwargs
+        self.primary_key = primary_key
 
     def __set_name__(self, owner, name):
         self.name = name

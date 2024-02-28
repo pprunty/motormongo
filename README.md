@@ -1,11 +1,11 @@
-| Description             | Badge                                                                                                             |
-|-------------------------|-------------------------------------------------------------------------------------------------------------------|
-| **PyPI - Version**      | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)               |
-| **Downloads**           | [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)            |
-| **PyPI License**        | [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)            |
+| Description             | Badge                                                                                                                                                  |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **PyPI - Version**      | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)                                                    |
+| **Downloads**           | [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)                                                  |
+| **PyPI License**        | [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)                                                  |
 | **GitHub Contributors** | [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors) |
-| **Code Coverage**       | [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo) |
-| **Code Style**          | ![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)                                 |
+| **Code Coverage**       | [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo)                      |
+| **Code Style**          | ![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)                                                                       |
 
 [//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
@@ -330,6 +330,19 @@ type is designed to handle specific data types and validations:
 - [ListField](#listfield): Handles lists of items, which can be of any type.
 - [ReferenceField](#referencefield): Creates a reference to another document.
 - [StringField](#stringfield): Handles string data with options for minimum and maximum length, and regex validation.
+
+All fields have the following default parameters:
+
+* **`default`**: Specifies the default value for the field if no value is provided. This parameter can be a static value
+  or a callable object. The callable object is useful for dynamic values like generating timestamps or unique
+  identifiers.
+* **`required`**: A boolean indicating whether the field is mandatory. If set to True, the document cannot be saved
+  without providing a value for this field.
+* **`unique`**: A boolean specifying if the field value should be unique across the collection. This is crucial for
+  fields like email addresses or usernames.
+* **`primary_key`**: A boolean indicating if the field should be used as the primary key. Only one field in a document
+  schema can be marked as primary_key. If `True`, it ensures the field value is unique and automatically sets `required` to
+  `True`.
 
 ### BinaryField
 
