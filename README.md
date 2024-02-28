@@ -1,16 +1,18 @@
-[![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)
-[![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)
-[![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)
-[![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors)
-[![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo)
-![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+| Description               | Badge                                                                                                             |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------|
+| **PyPI - Version**        | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)               |
+| **Downloads**             | [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)            |
+| **PyPI License**          | [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)            |
+| **GitHub Contributors**   | [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors) |
+| **Codecov**               | [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo) |
+| **Code Style: black**     | ![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)                                 |
 
 [//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
 Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
 `motormongo` - An Object Document Mapper (ODM) for [MongoDB](https://www.mongodb.com) built on top
-of [Motor](https://github.com/mongodb/motor), the MongoDB
+of [`motor`](https://github.com/mongodb/motor), the MongoDB
 recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
 asyncio and enable non-blocking access to MongoDB.
 
@@ -21,7 +23,7 @@ maximized across concurrent requests. For more low-level details on the advantag
 existing MongoDB ODMs, such as `mongoengine` [see here](#why-use-motormongo).
 
 The interface for instantiating Document classes follows similar logic
-to [mongoengine](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
+to [`mongoengine`](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
 migration from `mongoengine` to the asynchronous `motormongo`.
 
 1. [Installation](#installation)
