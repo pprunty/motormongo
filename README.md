@@ -1269,7 +1269,7 @@ async def get_user(user_id: str):
 
 @app.put("/users/{user_id}", status_code=200)
 async def update_user(user_id: str, user_data: UserModelRequest):
-    updated_user = await User.update_one({"_id": user_id}, user_data.dict())
+    updated_user = await User.update_one({"_id": user_id}, user_data.model_dump())
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user.to_dict()
