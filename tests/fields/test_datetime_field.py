@@ -4,10 +4,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from motormongo import DataBase, Document, StringField, BooleanField, DateTimeField
+from motormongo import BooleanField, DataBase, DateTimeField, Document, StringField
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from tests.test_documents.user import User
-
 
 # @pytest.mark.asyncio
 # async def test_auto_now_field():
@@ -152,7 +151,10 @@ async def test_datetime_created_at():
 
         class Meta:
             indexes = [
-                {'fields': ['created_at'], 'expireAfterSeconds': 300}  # 5-minute expiration
+                {
+                    "fields": ["created_at"],
+                    "expireAfterSeconds": 300,
+                }  # 5-minute expiration
             ]
 
     session = Session(is_active=True)

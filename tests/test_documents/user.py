@@ -8,6 +8,7 @@ from motormongo import (
     BooleanField,
     DateTimeField,
     Document,
+    EmbeddedDocument,
     EmbeddedDocumentField,
     EnumField,
     FloatField,
@@ -15,7 +16,7 @@ from motormongo import (
     IntegerField,
     ListField,
     ReferenceField,
-    StringField, EmbeddedDocument,
+    StringField,
 )
 
 

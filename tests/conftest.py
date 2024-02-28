@@ -1,16 +1,14 @@
+import asyncio
 import os
 
 from motormongo import DataBase
 from tests.test_documents.items import Book, Electronics
+from tests.test_documents.reference import Post, User
 from tests.test_documents.user import User as Users
-from tests.test_documents.reference import User, Post
-import asyncio
 
 
 async def my_async_cleanup():
-    await DataBase.connect(
-        uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB")
-    )
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     await Users.delete_many({})
     await Book.delete_many({})
     await Electronics.delete_many({})
