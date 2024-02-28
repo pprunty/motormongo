@@ -1,5 +1,4 @@
 from motormongo import Document
-from motormongo.fields.field import Field
 
 
 class EmbeddedDocument(Document):
