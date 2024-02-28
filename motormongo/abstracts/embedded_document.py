@@ -7,7 +7,9 @@ class EmbeddedDocument(Document):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls._fields = {}  # Ensure this is explicitly done if not inherited automatically
+        cls._fields = (
+            {}
+        )  # Ensure this is explicitly done if not inherited automatically
 
     # def to_dict(self):
     #     return {
