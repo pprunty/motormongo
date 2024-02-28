@@ -33,14 +33,9 @@ class DataBase:
             cls.client = None
             cls.db = None
 
-    # @classmethod
-    # async def initialize_indexes(cls):
-    #     for document_class in Document._registered_documents:
-    #         await cls.create_indexes_for_document(document_class)
-
     @classmethod
     async def remove_outdated_indexes(
-        cls, document_class, defined_indexes, existing_indexes
+            cls, document_class, defined_indexes, existing_indexes
     ):
         # Identify indexes that need to be removed
         indexes_to_remove = set(existing_indexes) - set(defined_indexes)
@@ -57,10 +52,8 @@ class DataBase:
                 )
                 await collection.drop_index(index_name)
 
-    from pymongo import ASCENDING
-
     @classmethod
-    async def create_indexes_for_document(cls, document_class):
+    async def create_indexes_for_document(cls, document_class):  # noqa: C901
         collection_name = document_class.get_collection_name()
         collection = cls.db[collection_name]
         logger.debug(

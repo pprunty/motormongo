@@ -1,11 +1,11 @@
-| Description               | Badge                                                                                                             |
-|---------------------------|-------------------------------------------------------------------------------------------------------------------|
-| **PyPI - Version**        | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)               |
-| **Downloads**             | [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)            |
-| **PyPI License**          | [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)            |
-| **GitHub Contributors**   | [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors) |
-| **Codecov**               | [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo) |
-| **Code Style: black**     | ![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)                                 |
+| Description             | Badge                                                                                                             |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------|
+| **PyPI - Version**      | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)               |
+| **Downloads**           | [![Downloads](https://static.pepy.tech/badge/motormongo/month)](https://pepy.tech/project/motormongo)            |
+| **PyPI License**        | [![PyPI License](https://img.shields.io/pypi/l/motormongo.svg)](https://pypi.org/project/motormongo/)            |
+| **GitHub Contributors** | [![GitHub Contributors](https://img.shields.io/github/contributors/pprunty/motormongo.svg)](https://github.com/pprunty/motormongo/graphs/contributors) |
+| **Code Coverage**       | [![codecov](https://codecov.io/gh/pprunty/motormongo/graph/badge.svg?token=XSNQ1ZBWIF)](https://codecov.io/gh/pprunty/motormongo) |
+| **Code Style**          | ![code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)                                 |
 
 [//]: # ([![PyPI - Downloads]&#40;https://img.shields.io/pypi/dm/motormongo&#41;]&#40;https://pypi.org/project/motormongo/&#41;)
 
