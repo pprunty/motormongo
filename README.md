@@ -27,6 +27,8 @@ The interface for instantiating Document classes follows similar logic
 to [`mongoengine`](https://github.com/MongoEngine/mongoengine), enabling ease-of-transition and
 migration from `mongoengine` to the asynchronous `motormongo`.
 
+Check out the documentation site [here](https://motormongo.readthedocs.io).
+
 1. [Installation](#installation)
 2. [Quickstart](#quickstart)
 3. [Why use motormongo?](#why-use-motormongo)
