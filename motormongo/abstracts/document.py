@@ -877,7 +877,7 @@ class Document(metaclass=DocumentMeta):
                 f"Error deleting {cls.__name__} document with query {query}: {e}"
             )
 
-    async def save(self) -> None: # noqa: C901
+    async def save(self) -> None:  # noqa: C901
         """
         Asynchronously saves the current document instance to the mongo. If the document does not exist,
         it is inserted; otherwise, it is updated.
