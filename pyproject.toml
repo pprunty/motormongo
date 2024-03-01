@@ -12,7 +12,6 @@ include = [
 
 [tool.poetry.scripts]
 test = "pytest:main"
-docs = "sphinx-build -b html docs/source docs/build"
 
 [tool.poetry.dependencies]
 python = "^3.11"
