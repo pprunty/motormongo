@@ -1,4 +1,4 @@
-name: Update Read the Docs
+name: Update Read the Docs 📖
 
 on:
   push:
