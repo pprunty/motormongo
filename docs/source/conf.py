@@ -10,6 +10,7 @@ project = 'motormongo'
 copyright = '2024, Patrick Prunty'
 author = 'Patrick Prunty'
 release = '0.1.13'
+html_theme = 'sphinx_rtd_theme'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
