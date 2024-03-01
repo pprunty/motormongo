@@ -21,12 +21,12 @@ extensions = [
 templates_path = ['_templates']
 exclude_patterns = []
 
-import os
-import sys
-sys.path.insert(0, os.path.abspath('../..'))
-
-# Set the path to your package's modules
-import motormongo
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('../..'))
+#
+# # Set the path to your package's modules
+# import motormongo
 
 
 # -- Options for HTML output -------------------------------------------------
