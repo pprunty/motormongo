@@ -141,11 +141,11 @@ class DataBase:
             logger.error(f"Error creating index: {e}")
 
     @classmethod
-    async def _create_indexes(cls, document_instance):
-        document_class = document_instance.__class__
-        if issubclass(document_instance, Document):
-            if not document_instance._indexes_created:
-                await cls.create_indexes_for_document(document_class=document_instance)
+    async def _create_indexes(cls, document_class: object):
+        document_class = document_class.__class__
+        if issubclass(document_class, Document):
+            if not document_class._indexes_created:
+                await cls.create_indexes_for_document(document_class=document_class)
                 document_class._indexes_created = True
                 logger.debug(f"Indexes created for {document_class.__name__}")
 

@@ -157,9 +157,11 @@ async def test_datetime_created_at():
                 }  # 5-minute expiration
             ]
 
-    session = Session(is_active=True)
+    session = Session()
     await session.save()
-    session_dict = session.to_dict()
+
+    found_session = await Session.find_one(_id=session.id)
+    session_dict = found_session.to_dict()
 
     assert "created_at" in session_dict
     assert "updated_at" not in session_dict

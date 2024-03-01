@@ -1,0 +1,24 @@
+name: Update Read the Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Trigger Read the Docs Build
+        uses: docker://readthedocs/build:latest
+        env:
+          RTD_TOKEN: ${{ secrets.RTD_TOKEN }}
+        with:
+          args: >
+            curl -X POST
+            -d "branches=main"
+            -d "token=${RTD_TOKEN}"
+            https://readthedocs:org/api/v2/webhook/motormongo/263977/

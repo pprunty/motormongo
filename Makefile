@@ -62,6 +62,10 @@ pre-commit:
 test-cov-report:
 	poetry run pytest --cov=motormongo --cov-report=xml:coverage.xml
 
+.PHONY: docs
+docs:
+	poetry run sphinx-build -b html docs/source docs/build
+
 .PHONY: demo
 demo:
 	export DEBUG_MODE=true

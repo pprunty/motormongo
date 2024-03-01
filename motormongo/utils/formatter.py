@@ -5,11 +5,14 @@ from datetime import datetime, timezone
 def add_timestamps_if_required(cls, operation: str = "update", **kwargs):
     now = datetime.now(timezone.utc)
     if hasattr(cls, "Meta"):
-        if getattr(cls.Meta, "created_at_timestamp", True):
-            if "created_at" not in kwargs and operation != "update":
-                kwargs["created_at"] = now
-        if getattr(cls.Meta, "updated_at_timestamp", True):
-            kwargs["updated_at"] = now
+        print("has meta")
+        if hasattr(cls.Meta, "created_at_timestamp"):
+            if getattr(cls.Meta, "created_at_timestamp"):
+                if "created_at" not in kwargs and operation != "update":
+                    kwargs["created_at"] = now
+        if hasattr(cls.Meta, "updated_at_timestamp"):
+            if getattr(cls.Meta, "updated_at_timestamp"):
+                kwargs["updated_at"] = now
     return kwargs
 
 

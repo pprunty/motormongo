@@ -12,6 +12,7 @@ include = [
 
 [tool.poetry.scripts]
 test = "pytest:main"
+docs = "sphinx-build -b html docs/source docs/build"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -37,6 +38,8 @@ pytest-cov = "^4.1.0"
 colorlog = "^6.8.0"
 locust = "^2.23.1"
 mongoengine = "^0.27.0"
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^2.0.0"
 
 [tool.yapf]
 based_on_style = "google"

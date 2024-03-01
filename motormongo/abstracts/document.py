@@ -137,6 +137,14 @@ class Document(metaclass=DocumentMeta):
                 attr_value.__set_name__(cls, attr_name)
         Document._registered_documents.append(cls)
 
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        self._id = value
+
     @classmethod
     async def db(cls):
         from motormongo import get_db
@@ -290,7 +298,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_many(
-        cls, documents: List[Dict[str, Any]]
+            cls, documents: List[Dict[str, Any]]
     ) -> Tuple[List["Document"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
@@ -408,11 +416,11 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-        cls,
-        query: Dict = None,
-        limit: int = None,
-        return_as_list: bool = True,
-        **kwargs,
+            cls,
+            query: Dict = None,
+            limit: int = None,
+            return_as_list: bool = True,
+            **kwargs,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
@@ -548,7 +556,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-        cls, query: Dict, update_fields: Dict
+            cls, query: Dict, update_fields: Dict
     ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
@@ -696,7 +704,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-        cls, query: Dict, defaults: Dict
+            cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
@@ -782,7 +790,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-        cls, query: Dict, update_fields: Dict
+            cls, query: Dict, update_fields: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
@@ -890,7 +898,7 @@ class Document(metaclass=DocumentMeta):
         document = add_timestamps_if_required(
             self, operation="update" if hasattr(self, "_id") else "create", **document
         )
-        logger.debug(f"doc = {document}")
+        print(f"doc = {document}")
 
         try:
             db = await self.db()
@@ -901,9 +909,11 @@ class Document(metaclass=DocumentMeta):
                 self._id = result.inserted_id
                 if hasattr(self, "Meta"):
                     if hasattr(self.Meta, "created_at_timestamp"):
-                        self.created_at = document.get("created_at")
+                        if getattr(self.Meta, "created_at_timestamp"):
+                            self.created_at = document.get("created_at")
                     if hasattr(self.Meta, "updated_at_timestamp"):
-                        self.updated_at = document.get("updated_at")
+                        if getattr(self.Meta, "updated_at_timestamp"):
+                            self.updated_at = document.get("updated_at")
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
@@ -938,9 +948,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-        cls,
-        pipeline: List[Dict],
-        return_as_list: bool = False,
+            cls,
+            pipeline: List[Dict],
+            return_as_list: bool = False,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
