@@ -21,4 +21,4 @@ jobs:
             curl -X POST
             -d "branches=main"
             -d "token=${RTD_TOKEN}"
-            https://readthedocs:org/api/v2/webhook/motormongo/263977/
+            https://readthedocs.org/api/v2/webhook/motormongo/263977/
