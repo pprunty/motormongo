@@ -1,5 +1,7 @@
 class Field:
-    def __init__(self, type=None, required=False, unique=False, primary_key=False, **kwargs):
+    def __init__(
+        self, type=None, required=False, unique=False, primary_key=False, **kwargs
+    ):
         self.type = type if isinstance(type, tuple) else (type,)
         self.required = required
         self.unique = unique

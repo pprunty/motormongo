@@ -35,7 +35,7 @@ class DataBase:
 
     @classmethod
     async def remove_outdated_indexes(
-            cls, document_class, defined_indexes, existing_indexes
+        cls, document_class, defined_indexes, existing_indexes
     ):
         # Identify indexes that need to be removed
         indexes_to_remove = set(existing_indexes) - set(defined_indexes)

@@ -298,7 +298,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_many(
-            cls, documents: List[Dict[str, Any]]
+        cls, documents: List[Dict[str, Any]]
     ) -> Tuple[List["Document"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
@@ -416,11 +416,11 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-            cls,
-            query: Dict = None,
-            limit: int = None,
-            return_as_list: bool = True,
-            **kwargs,
+        cls,
+        query: Dict = None,
+        limit: int = None,
+        return_as_list: bool = True,
+        **kwargs,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
@@ -556,7 +556,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
@@ -704,7 +704,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-            cls, query: Dict, defaults: Dict
+        cls, query: Dict, defaults: Dict
     ) -> Tuple["Document", bool]:
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
@@ -790,7 +790,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Tuple["Document", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
@@ -948,9 +948,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-            cls,
-            pipeline: List[Dict],
-            return_as_list: bool = False,
+        cls,
+        pipeline: List[Dict],
+        return_as_list: bool = False,
     ) -> Union[List["Document"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
