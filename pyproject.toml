@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "motormongo"
-version = "0.1.12"
+version = "0.1.13"
 description = "An asynchronous Object Document Mapper (ODM) for MongoDB built on top of Motor."
 authors = ["pprunty <pprunty@tcd.ie>"]
 readme = "README.md"
@@ -37,6 +37,8 @@ pytest-cov = "^4.1.0"
 colorlog = "^6.8.0"
 locust = "^2.23.1"
 mongoengine = "^0.27.0"
+sphinx = "^7.2.6"
+sphinx-rtd-theme = "^2.0.0"
 
 [tool.yapf]
 based_on_style = "google"

@@ -137,6 +137,14 @@ class Document(metaclass=DocumentMeta):
                 attr_value.__set_name__(cls, attr_name)
         Document._registered_documents.append(cls)
 
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        self._id = value
+
     @classmethod
     async def db(cls):
         from motormongo import get_db
@@ -869,7 +877,7 @@ class Document(metaclass=DocumentMeta):
                 f"Error deleting {cls.__name__} document with query {query}: {e}"
             )
 
-    async def save(self) -> None:
+    async def save(self) -> None:  # noqa: C901
         """
         Asynchronously saves the current document instance to the mongo. If the document does not exist,
         it is inserted; otherwise, it is updated.
@@ -890,7 +898,7 @@ class Document(metaclass=DocumentMeta):
         document = add_timestamps_if_required(
             self, operation="update" if hasattr(self, "_id") else "create", **document
         )
-        logger.debug(f"doc = {document}")
+        print(f"doc = {document}")
 
         try:
             db = await self.db()
@@ -901,9 +909,11 @@ class Document(metaclass=DocumentMeta):
                 self._id = result.inserted_id
                 if hasattr(self, "Meta"):
                     if hasattr(self.Meta, "created_at_timestamp"):
-                        self.created_at = document.get("created_at")
+                        if getattr(self.Meta, "created_at_timestamp"):
+                            self.created_at = document.get("created_at")
                     if hasattr(self.Meta, "updated_at_timestamp"):
-                        self.updated_at = document.get("updated_at")
+                        if getattr(self.Meta, "updated_at_timestamp"):
+                            self.updated_at = document.get("updated_at")
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)

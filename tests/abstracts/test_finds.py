@@ -22,6 +22,20 @@ async def test_find_one_success():
 
 
 @pytest.mark.asyncio
+async def test_find_one_and_print_id_success():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+    user = {
+        "username": "johndoe",
+        "email": "johndoe@hotmail.com",
+        "password": "password123",
+        "age": 69,
+    }
+    result = await User.insert_one(user)
+    found_result = await User.find_one(_id=result._id)
+    assert found_result.id is not None
+    await User.delete_one(_id=result.id)
+
+@pytest.mark.asyncio
 async def test_find_one_w_kwargs_filter_criteria():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
     user = {
