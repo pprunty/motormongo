@@ -13,30 +13,29 @@ Typically, a web server handling multiple requests that involve fetching documen
 with synchronous database operations:
 
 ```python
+from mongoengine import connect, Document, StringField, BooleanField
 from fastapi import FastAPI, HTTPException
-from mongoengine import connect, Document, StringField
 from fastapi.encoders import jsonable_encoder
 
 connect(db="testdb", host="mongodb://localhost:27017/", alias="default")
 
-
 class User(Document):
     name = StringField(required=True)
-
+    active = BooleanField()
 
 app = FastAPI()
 
-
-@app.get("/get_data/")
-async def get_data(name: str):
-    user = User.objects(name=name).first()
-    if user:
-        return jsonable_encoder(user.to_mongo().to_dict())
+@app.get("/users/")
+async def get_users_with_interests(active: bool):
+    users = User.objects(active=active)
+    if users:
+        return [jsonable_encoder(user.to_mongo().to_dict()) for user in users]
     else:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="No users are currently active")
+
 ```
 
-In this setup, operations such as `User.objects(name=name).first()` block the thread until completion, hindering the
+In this setup, operations such as `User.objects(active=active)` block the thread until completion, hindering the
 server's ability to process other requests concurrently, leading to inefficient resource use and potential performance
 bottlenecks.
 
@@ -45,29 +44,27 @@ bottlenecks.
 Switching to an asynchronous ODM like `motormongo` allows FastAPI to handle database operations without blocking:
 
 ```python
-from fastapi import FastAPI
-from motormongo import DataBase, Document, StringField
-
+from fastapi import FastAPI, HTTPException
+from motormongo import DataBase, Document, StringField, BooleanField
 
 class User(Document):
     name = StringField(required=True)
-
+    active = BooleanField()
 
 app = FastAPI()
-
 
 @app.on_event("startup")
 async def startup_db_client():
     await DataBase.connect(uri="mongodb://localhost:27017/", db="testdb")
 
-
-@app.get("/get_data/")
-async def get_data(name: str):
-    user = await User.find_one({'name': name})
-    if user:
-        return user.to_dict()
+@app.get("/users/")
+async def get_users_with_interests(active: bool):
+    users = await User.find_many({'active': active})
+    if users:
+        return [user.to_dict() for user in users]
     else:
-        return {"message": "User not found"}
+        raise HTTPException(status_code=404, detail="No users are currently active")
+
 ```
 
 Using `await` with `motormongo` operations such as `User.find_one()` allows the application to perform non-blocking

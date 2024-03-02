@@ -7,4 +7,4 @@ class User(Document):
 
 
 class Post(Document):
-    author = ReferenceField(document_class=User)
+    author = ReferenceField(document=User)

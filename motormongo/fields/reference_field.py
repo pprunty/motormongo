@@ -5,13 +5,13 @@ from motormongo.fields.field import Field
 
 
 class ReferenceField(Field):
-    def __init__(self, document_class, **kwargs):
+    def __init__(self, document, **kwargs):
         super().__init__(type=ObjectId, **kwargs)
-        self.document_class = document_class
+        self.document = document
 
     def __set__(self, obj, value):
-        # If the value is an instance of the document_class, try to get its _id
-        if isinstance(value, self.document_class):
+        # If the value is an instance of the document, try to get its _id
+        if isinstance(value, self.document):
             # If the value is an object, attempt to retrieve its ObjectId
             if hasattr(value, "_id"):
                 value = ObjectId(value._id)
@@ -26,7 +26,7 @@ class ReferenceField(Field):
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
         elif not isinstance(value, ObjectId):
             raise ReferenceTypeError(
-                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document_class.__name__}. Got {type(value)}."
+                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document.__name__}. Got {type(value)}."
             )
 
         super().__set__(obj, value)
@@ -50,7 +50,7 @@ class ReferenceField(Field):
         if not isinstance(reference_value, ObjectId):
             raise ValueError(f"The reference '{self.name}' must be an ObjectId.")
 
-        db = await self.document_class.db()
-        collection = db[self.document_class.get_collection_name()]
+        db = await self.document.db()
+        collection = db[self.document.get_collection_name()]
         document = await collection.find_one({"_id": reference_value})
-        return self.document_class(**document) if document else None
+        return self.document(**document) if document else None

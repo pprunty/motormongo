@@ -626,7 +626,7 @@ collections.
 
 **Parameters:**
 
-- `document_class`: The class of the document to which the field references.
+- `document`: The class of the document to which the field references.
 
 **Example Usage:**
 
@@ -639,7 +639,7 @@ class User(Document):
 
 
 class Post(Document):
-    author = ReferenceField(document_class=User)
+    author = ReferenceField(document=User)
 
 
 # Create a user and a post referencing the user
