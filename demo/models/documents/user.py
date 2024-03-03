@@ -4,7 +4,7 @@ from enum import Enum
 
 from motormongo import Document, EmbeddedDocument
 from motormongo import (EmbeddedDocumentField, DateTimeField, ReferenceField, FloatField, ListField,
-                               GeoJSONField, BooleanField, BinaryField, StringField, IntegerField, EnumField)
+                        GeoJSONField, BooleanField, BinaryField, StringField, IntegerField, EnumField)
 
 
 def hash_password(password: str) -> bytes:
@@ -41,7 +41,15 @@ class User(Document):
             {'fields': ['location'], 'type': '2dsphere'},
             {'fields': [('created_at', -1)]},  # Ascending index on username
         ]
-        timestamps = True
+
+
+# class Worker(User):
+#     something_else = StringField(min_length=3, max_length=50, required=False)
+#
+#     class Meta:
+#         indexes = [
+#             {'fields': ['something_else'], 'expireAfterSeconds': 300}  # 5-minute expiration
+#         ]
 
 
 class Metadata(EmbeddedDocument):

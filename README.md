@@ -12,7 +12,7 @@
 
 Author: [Patrick Prunty](https://pprunty.github.io/pprunty/).
 
-`motormongo` - An Object Document Mapper (ODM) for [MongoDB](https://www.mongodb.com) built on top
+`motormongo` is an Object Document Mapper (ODM) for [MongoDB](https://www.mongodb.com) built on top
 of [`motor`](https://github.com/mongodb/motor), the MongoDB
 recommended asynchronous Python driver for MongoDB Python applications, designed to work with Tornado or
 asyncio and enable non-blocking access to MongoDB.

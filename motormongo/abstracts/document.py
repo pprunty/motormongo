@@ -165,12 +165,14 @@ class Document(metaclass=DocumentMeta):
         from motormongo import DataBase
 
         subclasses = cls.__subclasses__()
+        logger.debug("Attempting to create indexes for subclasses...")
         if subclasses:
             for subcls in subclasses:
                 if not subcls._indexes_created:
                     await DataBase._create_indexes(subcls)
                     subcls._indexes_created = True
         else:
+            logger.debug("Creating index for class...")
             if not cls._indexes_created:
                 await DataBase._create_indexes(cls)
                 cls._indexes_created = True
