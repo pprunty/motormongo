@@ -39,4 +39,3 @@ class GeoJSONField(Field):
             return value
         if isinstance(value, dict) and value.get("type") == "Point":
             return value.get("coordinates")
-        return value

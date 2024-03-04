@@ -1,7 +1,9 @@
 import os
 
+import bcrypt
 import pytest
 
+from motormongo.fields.exceptions import MissingTypeAnnotationError
 from motormongo import BinaryField, DataBase, Document, StringField
 from motormongo.fields.exceptions import BinaryDecodingError, InvalidBinaryTypeError
 from tests.test_documents.user import User
@@ -154,3 +156,17 @@ async def test_none_value_handling():
     assert retrieved_user.password is None
 
     await NoneValueUser.delete_one({"_id": user._id})
+
+
+@pytest.mark.asyncio
+async def test_hash_function_missing_type_annotation():
+    def hash_password(password) -> bytes:
+        if isinstance(password, bytes):
+            password = password.decode("utf-8")  # Convert bytes to string if necessary
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+    with pytest.raises(MissingTypeAnnotationError):
+        class NoneValueUser(Document):
+            username = StringField(min_length=3, max_length=50)
+
+            password = BinaryField(hash_function=hash_password)

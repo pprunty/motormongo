@@ -38,4 +38,3 @@ class EnumField(Field):
         value = obj.__dict__.get(self.name, self.options.get("default"))
         if isinstance(value, self.enum):
             return value.value
-        return value

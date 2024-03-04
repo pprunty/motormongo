@@ -35,3 +35,9 @@ def test_geojson_field_invalid_dict():
         User(
             location={"type": "Point", "coordinates": [95, -190]}
         )  # Invalid coordinates in dict
+
+async def test_invalid_geojson_assignment():
+    with pytest.raises(GeoCoordinateError):
+        User(
+            location="12,12"
+        )  # Invalid type

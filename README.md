@@ -66,7 +66,7 @@ from motormongo import DataBase
 
 async def init_db():
     # This 'connect' method needs to be called inside of an async function
-    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>")
+    await DataBase.connect(uri="<mongo_uri>", db="<mongo_database>")
 
 
 if __name__ == "__main__":
@@ -122,7 +122,7 @@ pooling_options = {
 
 async def init_db():
     # This 'connect' method needs to be called inside of an async function
-    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>", **pooling_options)
+    await DataBase.connect(uri="<mongo_uri>", db="<mongo_database>", **pooling_options)
 
 
 if __name__ == "__main__":
@@ -1157,7 +1157,7 @@ pooling_options = {
 
 async def init_db():
     # This 'connect' method needs to be called inside of an async function
-    await DataBase.connect(uri="<mongo_uri>", database="<mongo_database>", **pooling_options)
+    await DataBase.connect(uri="<mongo_uri>", db="<mongo_database>", **pooling_options)
 
 
 if __name__ == "__main__":
