@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "motormongo"
-version = "0.1.14"
+version = "0.1.15"
 description = "An asynchronous Object Document Mapper (ODM) for MongoDB built on top of Motor."
 authors = ["pprunty <pprunty@tcd.ie>"]
 readme = "README.md"

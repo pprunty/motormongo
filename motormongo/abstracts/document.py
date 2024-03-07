@@ -2,6 +2,7 @@ import json
 from datetime import timezone
 from enum import Enum
 from typing import Any, Dict, List, Tuple, Union
+from typing import TypeVar, Generic, Type
 
 from bson import ObjectId
 from pymongo import ReturnDocument
@@ -22,13 +23,16 @@ from motormongo.utils.formatter import (
 from motormongo.utils.logging import logger
 
 
+TDocument = TypeVar('TDocument', bound='Document')
+
+
 class DocumentMeta(type):
     """
     Metaclass for Document to automatically register subclasses
     for supporting polymorphism.
     """
 
-    def __init__(cls, name, bases, attrs):
+    def __init__(cls: Type[TDocument], name, bases, attrs):
         super().__init__(name, bases, attrs)
         if not hasattr(cls, "_registered_documents"):
             cls._registered_documents = []
@@ -101,7 +105,7 @@ class Document(metaclass=DocumentMeta):
         logger.debug(f"Creating class for collection {self.__collection}")
 
         # Handling '_id' separately
-        if "_id" in kwargs:
+        if "_id" in kwargs or "id" in kwargs:
             logger.debug(f"Setting _id: {kwargs['_id']}")
             setattr(self, "_id", ObjectId(kwargs["_id"]))
 
@@ -119,7 +123,7 @@ class Document(metaclass=DocumentMeta):
         if "updated_at" in kwargs:
             self.updated_at = kwargs.get("updated_at").replace(tzinfo=timezone.utc)
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls: Type[TDocument], **kwargs):
         """
         This method is a subclass initialization hook called whenever a subclass of 'Document' is created.
 
@@ -212,7 +216,7 @@ class Document(metaclass=DocumentMeta):
         return camel_to_snake_or_lower(cls.__name__)
 
     @classmethod
-    def convert_id(cls, query):
+    def convert_id(cls: Type[TDocument], query):
         """
         Converts the '_id' field in the query to an ObjectId, if necessary.
 
@@ -237,7 +241,7 @@ class Document(metaclass=DocumentMeta):
         return query
 
     @classmethod
-    async def insert_one(cls, document: Dict = None, **kwargs):
+    async def insert_one(cls: Type[TDocument], document: Dict = None, **kwargs) -> TDocument:
         """
         Asynchronously inserts a single document into the mongo.
 
@@ -253,6 +257,7 @@ class Document(metaclass=DocumentMeta):
             user = await MyClass.insert_one({"name": "johndoe", "age": 45})
 
             doc = {"name": "johndoe", "age": 45}
+            user = await MyClass.insert_one(**doc)
             user = await MyClass.insert_one(**doc)
 
         Args:
@@ -363,7 +368,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one(cls, query: Dict = None, **kwargs) -> "Document":
+    async def find_one(cls: Type[TDocument], query: Dict = None, **kwargs) -> "Document":
         """
         Asynchronously finds a single document in the mongo collection that matches the given filter.
 
@@ -498,7 +503,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def update_one(cls, query: Dict, update_fields: Dict) -> "Document":
+    async def update_one(cls: Type[TDocument], query: Dict, update_fields: Dict) -> "Document":
         """
         Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
 
@@ -617,7 +622,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def delete_one(cls, query: Dict = None, **kwargs) -> bool:
+    async def delete_one(cls: Type[TDocument], query: Dict = None, **kwargs) -> bool:
         """
         Asynchronously deletes a single document from the mongo that matches the given query.
 
@@ -653,7 +658,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def delete_many(cls, query: Dict = None, **kwargs) -> int:
+    async def delete_many(cls: Type[TDocument], query: Dict = None, **kwargs) -> int:
         """
         Asynchronously deletes multiple documents from one or more collections that match the given query.
 
@@ -752,7 +757,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one_and_replace(cls, query: Dict, replacement: Dict) -> "Document":
+    async def find_one_and_replace(cls: Type[TDocument], query: Dict, replacement: Dict) -> "Document":
         """
         Asynchronously finds a single document and replaces it with the provided replacement document.
 
@@ -845,7 +850,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one_and_delete(cls, query: Dict = None, **kwargs) -> "Document":
+    async def find_one_and_delete(cls: Type[TDocument], query: Dict = None, **kwargs) -> "Document":
         """
         Asynchronously finds a single document matching the query and deletes it.
 
@@ -1048,7 +1053,7 @@ class Document(metaclass=DocumentMeta):
         return json.dumps(self.to_dict(), default=self._json_encoder)
 
     @classmethod
-    def _get_class_from_type(cls, type_name: str):
+    def _get_class_from_type(cls: Type[TDocument], type_name: str):
         """
         Finds the subclass based on the provided type name.
 
@@ -1073,7 +1078,7 @@ class Document(metaclass=DocumentMeta):
         return None
 
     @classmethod
-    def from_dict(cls, subcls=None, **kwargs):
+    def from_dict(cls: Type[TDocument], subcls: Type[TDocument] = None, **kwargs) -> TDocument:
         """
         Factory method to instantiate objects of the correct subclass based on the document's
         __type field. This method ensures that each document is deserialized into an instance
@@ -1099,24 +1104,32 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Dict: A dictionary representation of the document.
         """
+        from bson import ObjectId
         from motormongo.abstracts.embedded_document import EmbeddedDocument
+        from enum import Enum
+
+        def serialize(value):
+            """Recursive function to serialize individual values."""
+            if isinstance(value, ObjectId):
+                return str(value) if id_as_string else value
+            elif isinstance(value, Enum):
+                return value.value
+            elif isinstance(value, EmbeddedDocument):
+                return value.to_dict(id_as_string=id_as_string)
+            elif isinstance(value, list):
+                return [serialize(item) for item in value]
+            return value
 
         doc_dict = {}
         for k, v in self.__dict__.items():
             if "__" not in k and k != "Meta":
-                # Use custom serialization logic as before
-                value = str(v) if id_as_string and isinstance(v, ObjectId) else v
-                if isinstance(v, Enum):
-                    value = v.value
-                elif isinstance(v, EmbeddedDocument):
-                    value = v.to_dict()
-                # Assign the processed value to the key in the dictionary
-                doc_dict[k] = value
+                doc_dict[k] = serialize(v)
+
         # Ensure the class type (__type) is included in the dictionary
         # todo: might need to add this back for polymorphism
         # doc_dict[self.__type_field] = self.__class__.__name__
         # Ensure '_id' is processed according to id_as_string flag
         if "_id" in self.__dict__:
-            doc_dict["_id"] = str(self._id) if id_as_string else self._id
+            doc_dict["_id"] = serialize(self._id)
 
         return doc_dict
