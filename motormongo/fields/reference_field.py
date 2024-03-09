@@ -3,33 +3,40 @@ from bson import ObjectId
 from motormongo.fields.exceptions import ReferenceConversionError, ReferenceTypeError
 from motormongo.fields.field import Field
 
-
 class ReferenceField(Field):
     def __init__(self, document, **kwargs):
         super().__init__(type=ObjectId, **kwargs)
         self.document = document
 
-    def __set__(self, obj, value):
+    def validate(self, value):
+        """Validate the input value against the field's constraints."""
         # If the value is an instance of the document, try to get its _id
         if isinstance(value, self.document):
-            # If the value is an object, attempt to retrieve its ObjectId
             if hasattr(value, "_id"):
-                value = ObjectId(value._id)
+                return ObjectId(value._id)  # Convert to ObjectId for consistency
         # If the value is a string, attempt to convert it to ObjectId
         elif isinstance(value, str):
             try:
-                value = ObjectId(value)
+                return ObjectId(value)
             except Exception:
                 raise ReferenceConversionError(
                     f"String value '{value}' cannot be converted to an ObjectId."
                 )
+        # If the value is already an ObjectId, it's valid
+        elif isinstance(value, ObjectId):
+            return value
         # If the value is neither a string nor an ObjectId, nor a document instance, raise an error
-        elif not isinstance(value, ObjectId):
+        else:
             raise ReferenceTypeError(
-                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document.__name__}. Got {type(value)}."
+                f"Value for {self.name} must be an ObjectId, a string representation of ObjectId, or an instance of {self.document.__name__}. Got {type(value).__name__}."
             )
 
-        super().__set__(obj, value)
+    def __set__(self, obj, value):
+        if value is not None:
+            validated_value = self.validate(value)  # Use validate method to process the value
+            super().__set__(obj, validated_value)
+        else:
+            super().__set__(obj, value)
 
     def __get__(self, instance, owner):
         if instance is None:

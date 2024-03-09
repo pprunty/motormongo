@@ -22,7 +22,7 @@ def test_geojson_field_dict_assignment():
 
 def test_geojson_field_dict_assignment_w_json():
     class Location(Document):
-        coords = GeoJSONField()
+        coords = GeoJSONField(return_as_list=False)
 
     location = Location(
         coords={"type": "Point", "coordinates": [40.730610, -73.935242]}
@@ -41,3 +41,6 @@ async def test_invalid_geojson_assignment():
         User(
             location="12,12"
         )  # Invalid type
+
+
+# TODO: Test return_as_list retrieval here

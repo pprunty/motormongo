@@ -8,11 +8,10 @@ class FloatField(Field):
         self.min_value = min_value
         self.max_value = max_value
 
-    def __set__(self, obj, value):
+    def validate(self, value):
+        """Validate the input value against the field's constraints."""
         if value is not None:
-            if not isinstance(
-                value, (float, int)
-            ):  # Accept integers as they can be cast to float
+            if not isinstance(value, (float, int)):  # Accept integers as they can be cast to float
                 raise FloatValueError(
                     f"Value for {self.name} must be a float or int. Got {type(value)} of value: {value}."
                 )
@@ -28,8 +27,11 @@ class FloatField(Field):
                 raise FloatRangeError(
                     f"Value for {self.name} must be no more than {self.max_value}"
                 )
+        return value
 
-        super().__set__(obj, value)
+    def __set__(self, obj, value):
+        validated_value = self.validate(value)  # Validate the input value
+        super().__set__(obj, validated_value)
 
     def __get__(self, obj, objtype=None):
         return obj.__dict__.get(self.name, self.options.get("default"))

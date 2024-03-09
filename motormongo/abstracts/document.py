@@ -1,5 +1,5 @@
 import json
-from datetime import timezone
+from datetime import timezone, datetime
 from enum import Enum
 from typing import Any, Dict, List, Tuple, Union
 from typing import TypeVar, Generic, Type
@@ -21,7 +21,6 @@ from motormongo.utils.formatter import (
     enforce_types,
 )
 from motormongo.utils.logging import logger
-
 
 TDocument = TypeVar('TDocument', bound='Document')
 
@@ -116,6 +115,7 @@ class Document(metaclass=DocumentMeta):
                     if value is None and field.required:
                         raise ValueError(f"The field '{name}' is required.")
                     elif value is not None:
+                        from motormongo import EmbeddedDocument, ListField
                         setattr(self, name, value)
 
         if "created_at" in kwargs:
@@ -305,8 +305,8 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_many(
-        cls, documents: List[Dict[str, Any]]
-    ) -> Tuple[List["Document"], Any]:
+            cls, documents: List[Dict[str, Any]]
+    ) -> Tuple[List["TDocument"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
 
@@ -368,7 +368,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one(cls: Type[TDocument], query: Dict = None, **kwargs) -> "Document":
+    async def find_one(cls: Type[TDocument], query: Dict = None, **kwargs) -> "TDocument":
         """
         Asynchronously finds a single document in the mongo collection that matches the given filter.
 
@@ -423,12 +423,12 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-        cls,
-        query: Dict = None,
-        limit: int = None,
-        return_as_list: bool = True,
-        **kwargs,
-    ) -> Union[List["Document"], List[Any], Any]:
+            cls,
+            query: Dict = None,
+            limit: int = None,
+            return_as_list: bool = True,
+            **kwargs,
+    ) -> Union[List["TDocument"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
         given filter and limit. Optionally, it can return an AsyncIOMotorCursor instead of a list for each collection.
@@ -447,7 +447,7 @@ class Document(metaclass=DocumentMeta):
             **kwargs: Additional filter criteria specified as keyword arguments.
 
         Returns:
-            Union[List["Document"], List[AsyncIOMotorCursor], Any]: Depending on return_as_list, either a list of class instances
+            Union[List["TDocument"], List[AsyncIOMotorCursor], Any]: Depending on return_as_list, either a list of class instances
                                                                     representing the found documents or an AsyncIOMotorCursor for each collection.
                                                                     Returns an empty list if no documents match the filter criteria
                                                                     and return_as_list is True.
@@ -503,7 +503,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def update_one(cls: Type[TDocument], query: Dict, update_fields: Dict) -> "Document":
+    async def update_one(cls: Type[TDocument], query: Dict, update_fields: Dict) -> "TDocument":
         """
         Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
 
@@ -563,8 +563,8 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-        cls, query: Dict, update_fields: Dict
-    ) -> Union[Tuple[List["Document"], int], Tuple[List[Any], int]]:
+            cls, query: Dict, update_fields: Dict
+    ) -> Union[Tuple[List["TDocument"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
 
@@ -711,8 +711,8 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-        cls, query: Dict, defaults: Dict
-    ) -> Tuple["Document", bool]:
+            cls, query: Dict, defaults: Dict
+    ) -> Tuple["TDocument", bool]:
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
@@ -757,7 +757,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one_and_replace(cls: Type[TDocument], query: Dict, replacement: Dict) -> "Document":
+    async def find_one_and_replace(cls: Type[TDocument], query: Dict, replacement: Dict) -> "TDocument":
         """
         Asynchronously finds a single document and replaces it with the provided replacement document.
 
@@ -797,8 +797,8 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-        cls, query: Dict, update_fields: Dict
-    ) -> Tuple["Document", bool]:
+            cls, query: Dict, update_fields: Dict
+    ) -> Tuple["TDocument", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
         the provided values.
@@ -850,7 +850,7 @@ class Document(metaclass=DocumentMeta):
             )
 
     @classmethod
-    async def find_one_and_delete(cls: Type[TDocument], query: Dict = None, **kwargs) -> "Document":
+    async def find_one_and_delete(cls: Type[TDocument], query: Dict = None, **kwargs) -> "TDocument":
         """
         Asynchronously finds a single document matching the query and deletes it.
 
@@ -905,7 +905,6 @@ class Document(metaclass=DocumentMeta):
         document = add_timestamps_if_required(
             self, operation="update" if hasattr(self, "_id") else "create", **document
         )
-        print(f"doc = {document}")
 
         try:
             db = await self.db()
@@ -955,10 +954,10 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-        cls,
-        pipeline: List[Dict],
-        return_as_list: bool = False,
-    ) -> Union[List["Document"], List[Any], Any]:
+            cls,
+            pipeline: List[Dict],
+            return_as_list: bool = False,
+    ) -> Union[List["TDocument"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
 
@@ -968,7 +967,7 @@ class Document(metaclass=DocumentMeta):
                 Defaults to False.
 
         Returns:
-            Union[List["Document"], List[Any], Any]: Depending on return_as_list, either a list of class instances
+            Union[List["TDocument"], List[Any], Any]: Depending on return_as_list, either a list of class instances
                 representing the documents resulting from the aggregation pipeline or an AsyncIOMotorCursor for each collection.
                 Returns an empty list if no documents are found and return_as_list is True.
 
@@ -1022,36 +1021,6 @@ class Document(metaclass=DocumentMeta):
                 f"Error executing {cls.__name__} document pipeline with pipeline '{pipeline}': {e}"
             )
 
-    @staticmethod
-    def _json_encoder(obj):
-        """
-        Custom JSON encoder for handling complex types like ObjectId.
-
-        Args:
-            obj: The object to encode.
-
-        Returns:
-            str: A JSON serializable representation of `obj`.
-
-        Raises:
-            TypeError: If the object is not JSON serializable.
-        """
-        if isinstance(obj, ObjectId):
-            return str(obj)  # Convert ObjectId to string
-        # Add more custom encodings if necessary
-        raise TypeError(
-            f"Object of type {obj.__class__.__name__} is not JSON serializable"
-        )
-
-    def to_json(self):
-        """
-        Converts the document to a JSON string.
-
-        Returns:
-            str: A JSON string representation of the document.
-        """
-        return json.dumps(self.to_dict(), default=self._json_encoder)
-
     @classmethod
     def _get_class_from_type(cls: Type[TDocument], type_name: str):
         """
@@ -1096,40 +1065,72 @@ class Document(metaclass=DocumentMeta):
         """
         Converts the document to a dictionary representation, including type information
         and using field-specific __get__ methods for serialization where applicable.
-
-        Args:
-            id_as_string (bool, optional): If True, converts ObjectId instances to strings.
-                                           Defaults to True.
-
-        Returns:
-            Dict: A dictionary representation of the document.
         """
         from bson import ObjectId
-        from motormongo.abstracts.embedded_document import EmbeddedDocument
+        from datetime import datetime
         from enum import Enum
+        from motormongo import EmbeddedDocument, GeoJSONField  # Assuming this is your base class for embedded documents
 
-        def serialize(value):
-            """Recursive function to serialize individual values."""
+        def serialize(value, field_type=None):
+            """Recursive function to serialize individual values, aligned with _json_encoder logic."""
             if isinstance(value, ObjectId):
                 return str(value) if id_as_string else value
+            elif isinstance(field_type, GeoJSONField):
+                if field_type.return_as_list:
+                    return value.get('coordinates')
+                return value
+            # elif isinstance(value, datetime):
+            #     return value.isoformat()
             elif isinstance(value, Enum):
                 return value.value
             elif isinstance(value, EmbeddedDocument):
                 return value.to_dict(id_as_string=id_as_string)
             elif isinstance(value, list):
                 return [serialize(item) for item in value]
-            return value
+            # Add more types as necessary, mimicking the logic in _json_encoder
+            else:
+                # For other types that _json_encoder can handle, you might just return them directly
+                return value
 
         doc_dict = {}
         for k, v in self.__dict__.items():
             if "__" not in k and k != "Meta":
-                doc_dict[k] = serialize(v)
+                # Determine the expected type for this field, if applicable
+                field_type = type(self).__dict__.get(k)
+                doc_dict[k] = serialize(v, field_type)
 
-        # Ensure the class type (__type) is included in the dictionary
-        # todo: might need to add this back for polymorphism
-        # doc_dict[self.__type_field] = self.__class__.__name__
-        # Ensure '_id' is processed according to id_as_string flag
         if "_id" in self.__dict__:
             doc_dict["_id"] = serialize(self._id)
 
         return doc_dict
+
+    def _json_encoder(cls, obj):
+        """
+        Custom JSON encoder for handling complex types like ObjectId and datetime.
+
+        Args:
+            obj: The object to encode.
+
+        Returns:
+            A JSON serializable representation of `obj`.
+
+        Raises:
+            TypeError: If the object is not JSON serializable.
+        """
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, Enum):
+            return obj.value
+        # Include more types here if necessary
+        raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+    def to_json(self):
+        """
+        Converts the document to a JSON string.
+
+        Returns:
+            str: A JSON string representation of the document.
+        """
+        return json.dumps(self.to_dict(), default=self._json_encoder)

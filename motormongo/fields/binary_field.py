@@ -29,7 +29,8 @@ class BinaryField(Field):
         if self.hash_function:
             self._check_hash_function_annotation()
 
-    def __set__(self, obj, value: Union[str, bytes, Binary]):
+    def validate(self, value: Union[str, bytes, Binary]):
+        """Validate and process the input value, returning it in the correct form."""
         if value is not None and not isinstance(value, (str, bytes, Binary)):
             raise InvalidBinaryTypeError(
                 f"Value must be a string, bytes object, or bson.Binary. Got {type(value).__name__} of value {value}."
@@ -52,18 +53,16 @@ class BinaryField(Field):
         if isinstance(value, bytes):
             value = Binary(value)
 
-        super().__set__(obj, value)
+        return value
+
+    def __set__(self, obj, value: Union[str, bytes, Binary]):
+        processed_value = self.validate(value)  # Validate and process the value
+        super().__set__(obj, processed_value)
 
     def __get__(self, obj, objtype=None):
         value = super().__get__(obj, objtype)
-        # Attempt to decode only if return_decoded is True and hash_function is not used
-        if (
-            self.return_decoded
-            and self.hash_function is None
-            and isinstance(value, Binary)
-        ):
+        if self.return_decoded and self.hash_function is None and isinstance(value, Binary):
             try:
-                # Decode using the provided or default decode function
                 value = self.decode(value)
             except Exception as e:
                 raise BinaryDecodingError(f"Error decoding Binary field: {e}")

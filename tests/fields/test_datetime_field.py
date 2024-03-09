@@ -1,12 +1,13 @@
 import asyncio
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import pytest
 
 from motormongo import BooleanField, DataBase, DateTimeField, Document, StringField
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from tests.test_documents.user import User
+
 
 # @pytest.mark.asyncio
 # async def test_auto_now_field():
@@ -87,14 +88,29 @@ async def test_update_at_field_w_update_one():
 
 
 @pytest.mark.asyncio
-async def test_datetime_field_parsing():
+async def test_datetime_auto_now():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
-    user = User(username="datetimeuser", last_login="2023-01-01T12:00:00")
+    user = User(username="datetimeuser", dob="2023-01-01T12:00:00")
     await user.save()
 
+    assert isinstance(user.dob, datetime)
+    assert user.dob == datetime(2023, 1, 1, 12, 0, 0)
+
+    await User.delete_one({"username": user.username})
+
+
+@pytest.mark.asyncio
+async def test_datetime_auto_now():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+    user = User(username="datetimeuser")
+    await user.save()
+
+    now = datetime.now(timezone.utc)
     assert isinstance(user.last_login, datetime)
-    assert user.last_login == datetime(2023, 1, 1, 12, 0, 0)
+    # Check that last_login was set within the last minute
+    assert now - timedelta(minutes=1) <= user.last_login <= now
 
     await User.delete_one({"username": user.username})
 
@@ -196,23 +212,23 @@ async def test_datetime_field_type_validation():
     await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
 
     with pytest.raises(DateTimeFormatError):
-        user = User(username="wrongdateuser", last_login="not a real date")
+        user = User(username="wrongdateuser", dob="not a real date")
         await user.save()
 
 
 @pytest.mark.asyncio
 async def test_datetime_field_valid_assignment():
-    user = User(last_login="2023-01-01T12:00:00")
-    assert user.last_login.year == 2023
+    user = User(dob="2023-01-01T12:00:00")
+    assert user.dob.year == 2023
 
 
 @pytest.mark.asyncio
 async def test_datetime_field_invalid_format():
     with pytest.raises(DateTimeFormatError):
-        User(last_login="01-01-2023 12:00:00")  # Assuming this format is not supported
+        User(dob="01-01-2023 12:00:00")  # Assuming this format is not supported
 
 
 @pytest.mark.asyncio
 async def test_datetime_field_invalid_type():
     with pytest.raises(DateTimeValueError):
-        User(last_login=123)  # Not a datetime object, date object, or string
+        User(dob=123)  # Not a datetime object, date object, or string
