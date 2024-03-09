@@ -4,6 +4,7 @@ from typing import Iterable, List
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from motormongo.fields.field import Field
 
+
 class DateTimeField(Field):
     def __init__(
         self,
@@ -32,7 +33,9 @@ class DateTimeField(Field):
             "%Y%m%dT%H%M%S",  # Basic ISO-like without delimiters
             "%Y%m%d",  # Basic date without delimiters
         ]
-        self.datetime_formats = datetime_formats if datetime_formats is not None else default_formats
+        self.datetime_formats = (
+            datetime_formats if datetime_formats is not None else default_formats
+        )
 
     def validate(self, value):
         """Validate and convert the input value into a datetime object if necessary."""

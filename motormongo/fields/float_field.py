@@ -11,7 +11,9 @@ class FloatField(Field):
     def validate(self, value):
         """Validate the input value against the field's constraints."""
         if value is not None:
-            if not isinstance(value, (float, int)):  # Accept integers as they can be cast to float
+            if not isinstance(
+                value, (float, int)
+            ):  # Accept integers as they can be cast to float
                 raise FloatValueError(
                     f"Value for {self.name} must be a float or int. Got {type(value)} of value: {value}."
                 )

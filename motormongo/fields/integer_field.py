@@ -1,6 +1,7 @@
 from motormongo.fields.exceptions import IntegerRangeError, IntegerValueError
 from motormongo.fields.field import Field
 
+
 class IntegerField(Field):
     def __init__(self, min_value=None, max_value=None, **kwargs):
         super().__init__(type=int, **kwargs)

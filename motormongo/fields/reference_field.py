@@ -3,6 +3,7 @@ from bson import ObjectId
 from motormongo.fields.exceptions import ReferenceConversionError, ReferenceTypeError
 from motormongo.fields.field import Field
 
+
 class ReferenceField(Field):
     def __init__(self, document, **kwargs):
         super().__init__(type=ObjectId, **kwargs)
@@ -33,7 +34,9 @@ class ReferenceField(Field):
 
     def __set__(self, obj, value):
         if value is not None:
-            validated_value = self.validate(value)  # Use validate method to process the value
+            validated_value = self.validate(
+                value
+            )  # Use validate method to process the value
             super().__set__(obj, validated_value)
         else:
             super().__set__(obj, value)

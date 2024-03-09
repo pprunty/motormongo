@@ -1,6 +1,7 @@
 from motormongo.fields.exceptions import BooleanFieldError
 from motormongo.fields.field import Field
 
+
 class BooleanField(Field):
     def __init__(self, **kwargs):
         super().__init__(type=bool, **kwargs)
@@ -14,5 +15,7 @@ class BooleanField(Field):
         return value
 
     def __set__(self, obj, value):
-        validated_value = self.validate(value)  # Use validate method to process the value
+        validated_value = self.validate(
+            value
+        )  # Use validate method to process the value
         super().__set__(obj, validated_value)

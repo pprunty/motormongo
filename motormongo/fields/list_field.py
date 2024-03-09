@@ -1,6 +1,5 @@
-from motormongo.fields.exceptions import ListValueTypeError, ListItemTypeError
-
 from motormongo.fields import Field
+from motormongo.fields.exceptions import ListItemTypeError, ListValueTypeError
 
 
 class ListField(Field):
@@ -16,7 +15,7 @@ class ListField(Field):
                 )
 
             processed_list = []
-            if hasattr(self.field, 'validate'):
+            if hasattr(self.field, "validate"):
                 # Use the field's validate method for each item if available
                 for item in value:
                     try:

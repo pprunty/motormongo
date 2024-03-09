@@ -61,7 +61,11 @@ class BinaryField(Field):
 
     def __get__(self, obj, objtype=None):
         value = super().__get__(obj, objtype)
-        if self.return_decoded and self.hash_function is None and isinstance(value, Binary):
+        if (
+            self.return_decoded
+            and self.hash_function is None
+            and isinstance(value, Binary)
+        ):
             try:
                 value = self.decode(value)
             except Exception as e:

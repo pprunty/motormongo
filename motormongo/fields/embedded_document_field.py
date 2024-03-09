@@ -7,6 +7,7 @@ from motormongo.fields.field import Field
 class EmbeddedDocumentField(Field):
     def __init__(self, document_type, **kwargs):
         from motormongo.abstracts.embedded_document import EmbeddedDocument
+
         super().__init__(type=(dict, EmbeddedDocument), **kwargs)
         if not issubclass(document_type, (EmbeddedDocument, BaseModel)):
             raise EmbeddedDocumentTypeError(

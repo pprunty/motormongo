@@ -16,7 +16,11 @@ class EnumField(Field):
         if isinstance(value, str):
             # Attempt to find a matching enum member by string value
             matching_enum = next(
-                (enum_member for enum_member in self.enum if enum_member.value == value),
+                (
+                    enum_member
+                    for enum_member in self.enum
+                    if enum_member.value == value
+                ),
                 None,
             )
             if matching_enum is not None:
@@ -33,7 +37,9 @@ class EnumField(Field):
 
     def __set__(self, obj, value):
         if value is not None:
-            validated_value = self.validate(value)  # Use validate method to process the value
+            validated_value = self.validate(
+                value
+            )  # Use validate method to process the value
             super().__set__(obj, validated_value)
         else:
             super().__set__(obj, value)
