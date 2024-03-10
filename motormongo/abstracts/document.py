@@ -98,6 +98,7 @@ class Document(metaclass=DocumentMeta):
         """
         self.__collection = self.get_collection_name()
         self.__dict__[self.__type_field] = self.__class__.__name__
+        __strict_validation = kwargs.pop('__strict_validation', False)
         # Logging the class creation
         logger.debug(f"Creating class for collection {self.__collection}")
         logger.debug(f"Creating class for collection {self.__collection}")
@@ -110,13 +111,15 @@ class Document(metaclass=DocumentMeta):
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
+                    from motormongo import EmbeddedDocument
                     value = kwargs.get(name, field.options.get("default"))
-                    if value is None and field.required:
-                        raise ValueError(f"The field '{name}' is required.")
-                    elif value is not None:
-                        from motormongo import EmbeddedDocument, ListField
-
+                    # print(f"k = {name}, v = {value}")
+                    if value is not None:
                         setattr(self, name, value)
+                    # if value is None and field.required and __strict_validation:
+                    #     raise ValueError(f"The field '{name}' is required.")
+                    # elif value is not None:
+                    #     setattr(self, name, value)
 
         if "created_at" in kwargs:
             self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
@@ -298,7 +301,7 @@ class Document(metaclass=DocumentMeta):
             inserted_document = await db[collection_name].find_one(
                 {"_id": result.inserted_id}
             )
-            logger.debug(f"__ insert = {inserted_document}")
+            # print(f"__ insert = {inserted_document}")
             return cls.from_dict(**inserted_document)
         except Exception as e:
             raise DocumentInsertError(
@@ -371,7 +374,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one(
-        cls: Type[TDocument], query: Dict = None, **kwargs
+        cls: Type[TDocument], query: Dict = None, strict_validation=True, **kwargs
     ) -> "TDocument":
         """
         Asynchronously finds a single document in the mongo collection that matches the given filter.
@@ -419,7 +422,7 @@ class Document(metaclass=DocumentMeta):
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
             logger.debug(f"__doc rep = {document}")
-            return cls.from_dict(**document) if document else None
+            return cls.from_dict(**document, strict_validation=strict_validation) if document else None
         except Exception as e:
             raise DocumentNotFoundError(
                 f"Error finding {cls.__name__} document with query '{filter}': {e}"
@@ -508,7 +511,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_one(
-        cls: Type[TDocument], query: Dict, update_fields: Dict
+        cls: Type[TDocument], query: Dict, update_fields: Dict, strict_validation = True,
     ) -> "TDocument":
         """
         Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
@@ -546,9 +549,9 @@ class Document(metaclass=DocumentMeta):
             update_fields.pop(field, None)
 
         try:
-            logger.debug(f"__update_one instance 1 {update_fields}")
-            instance = cls.from_dict(**update_fields)
-            logger.debug(f"__update_one instance {instance.to_dict()}")
+            # print(f"__update_one instance 1 {update_fields}")
+            instance = cls.from_dict(**update_fields, strict_validation=strict_validation)
+            # print(f"__update_one instance {instance.to_dict()}")
         except TypeError as e:
             raise ValueError(f"Error initializing object: {e}")
 
@@ -835,16 +838,18 @@ class Document(metaclass=DocumentMeta):
             db = await cls.db()
             collection = db[cls.get_collection_name()]
             existing_doc = await collection.find_one(query)
-
+            # print(f"existing doc = {existing_doc}")
             if existing_doc:
                 fields_to_update = {
                     k: v
                     for k, v in update_fields.items()
-                    if k not in existing_doc or not existing_doc[k]
+                    if (k not in existing_doc or not existing_doc[k]) and k not in query
                 }
                 if fields_to_update:
-                    updated_document = await cls.update_one(query, fields_to_update)
+                    updated_document = await cls.update_one(query, fields_to_update, strict_validation=False)
+                    # print(f"updated_document: {updated_document}")
                     return updated_document, True  # Document updated
+                    # print(f"got here: {existing_doc}")
                 return cls.from_dict(**existing_doc), False  # No update performed
             else:
                 raise DocumentNotFoundError(
@@ -1058,7 +1063,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     def from_dict(
-        cls: Type[TDocument], subcls: Type[TDocument] = None, **kwargs
+        cls: Type[TDocument], subcls: Type[TDocument] = None, strict_validation=True, **kwargs
     ) -> TDocument:
         """
         Factory method to instantiate objects of the correct subclass based on the document's
@@ -1068,6 +1073,8 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Document: An instance of the appropriate subclass of Document.
         """
+        if not strict_validation:
+            kwargs['__strict_validation'] = False
         if subcls:
             return subcls(**kwargs)
         else:

@@ -48,6 +48,27 @@ async def test_find_one_or_create_creates():
     assert found_result._id is not None
     await User.delete_one(_id=found_result._id)
 
+@pytest.mark.asyncio
+async def test_find_one_or_create_w_embedded():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+    user = {
+        "username": "johndoe",
+        "email": "johndoe@hotmail.com",
+        "password": "password123",
+        "age": 69,
+        "profile": {
+            "bio": "Hello World!"
+        }
+    }
+    found_result, was_created = await User.find_one_or_create(
+        {"_id": "65d38a11208dd7c4fa61d67b"}, user
+    )
+    print(f"found result embdedde = {found_result.profile}")
+    assert found_result is not None
+    assert was_created
+    assert found_result._id is not None
+    await User.delete_one(_id=found_result._id)
+
 
 @pytest.mark.asyncio
 async def test_find_one_and_update_empty_fields():
@@ -56,6 +77,7 @@ async def test_find_one_and_update_empty_fields():
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
     }
+    User.email.required = True
     insert_result = await User.insert_one(user)
     assert insert_result is not None
     update_fields = {

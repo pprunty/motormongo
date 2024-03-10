@@ -44,7 +44,8 @@ class Profile(EmbeddedDocument):
 class User(Document):
     username = StringField(min_length=3, max_length=50)
     email = StringField(
-        regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50
+        regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50,
+    required=True
     )
     password = BinaryField(hash_function=hash_password)
     dob = DateTimeField()
