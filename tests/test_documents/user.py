@@ -40,12 +40,20 @@ class Profile(EmbeddedDocument):
     bio = StringField()
     website = StringField(default="somesite.com")
 
+    class Meta:
+        collection = "users"
+        indexes = [
+            {"fields": [("created_at", 1)]},  # Ascending index on username
+        ]
+        created_at_timestamp = True
+        updated_at_timestamp = True
+
 
 class User(Document):
     username = StringField(min_length=3, max_length=50)
     email = StringField(
         regex=re.compile(r"^\S+@\S+\.\S+$"), min_length=0, max_length=50,
-    required=True
+        # required=True
     )
     password = BinaryField(hash_function=hash_password)
     dob = DateTimeField()

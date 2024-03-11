@@ -32,8 +32,8 @@ async def test_find_one_and_print_id_success():
     }
     result = await User.insert_one(user)
     found_result = await User.find_one(_id=result._id)
-    assert found_result.id is not None
-    await User.delete_one(_id=result.id)
+    assert found_result._id is not None
+    await User.delete_one(_id=result._id)
 
 @pytest.mark.asyncio
 async def test_find_one_w_kwargs_filter_criteria():

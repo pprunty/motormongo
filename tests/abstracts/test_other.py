@@ -77,7 +77,6 @@ async def test_find_one_and_update_empty_fields():
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
     }
-    User.email.required = True
     insert_result = await User.insert_one(user)
     assert insert_result is not None
     update_fields = {

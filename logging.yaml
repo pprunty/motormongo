@@ -3,7 +3,7 @@ disable_existing_loggers: False
 formatters:
   colored:
     (): colorlog.ColoredFormatter
-    format: '%(log_color)s%(asctime)s %(levelname)s %(name)s %(bold_white)s%(message)s'
+    format: '%(log_color)s%(asctime)s %(levelname)s %(name)s %(bold_white)s%(message)s (%(filename)s:%(lineno)d)'
 handlers:
   console:
     class: logging.StreamHandler

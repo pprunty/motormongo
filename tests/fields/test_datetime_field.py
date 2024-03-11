@@ -176,7 +176,7 @@ async def test_datetime_created_at():
     session = Session()
     await session.save()
 
-    found_session = await Session.find_one(_id=session.id)
+    found_session = await Session.find_one(_id=session._id)
     session_dict = found_session.to_dict()
 
     assert "created_at" in session_dict

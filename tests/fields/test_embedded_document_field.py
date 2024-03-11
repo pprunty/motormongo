@@ -1,7 +1,10 @@
+import os
+from datetime import datetime
+
 import pytest
 from pydantic import BaseModel
 
-from motormongo import Document, EmbeddedDocument, EmbeddedDocumentField, StringField
+from motormongo import Document, EmbeddedDocument, EmbeddedDocumentField, StringField, DataBase
 from motormongo.fields.exceptions import EmbeddedDocumentTypeError
 from tests.test_documents.user import Profile, User
 
@@ -59,3 +62,18 @@ def test_embedded_document_invalid_assignment():
 
         class Doc(Document):
             metadata = EmbeddedDocumentField(document_type=object)
+
+
+@pytest.mark.asyncio
+async def test_embedded_with_timestamps():
+    await DataBase.connect(uri=os.getenv("MONGODB_URL"), db=os.getenv("MONGODB_DB"))
+
+    user = User(username="datetimeuser", dob="2023-01-01T12:00:00", profile=Profile(bio="hello world"))
+
+    await user.save()
+
+    print(f"user profile = {user.profile.to_dict()}")
+    assert isinstance(user.profile.created_at, datetime)
+    assert isinstance(user.profile.updated_at, datetime)
+
+    await User.delete_many({})
