@@ -39,7 +39,7 @@ locust = "^2.23.1"
 mongoengine = "^0.27.0"
 sphinx = "^7.2.6"
 sphinx-rtd-theme = "^2.0.0"
-myst-parser = "^2.0.0"
+myst-parser = ">=2,<4"
 
 [tool.yapf]
 based_on_style = "google"
