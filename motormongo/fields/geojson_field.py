@@ -1,6 +1,7 @@
 from motormongo.fields.exceptions import GeoCoordinateError
 from motormongo.fields.field import Field
 
+
 class GeoJSONField(Field):
     def __init__(self, return_as_list=True, **kwargs):
         super().__init__(type=(list, tuple, dict), **kwargs)
@@ -14,13 +15,18 @@ class GeoJSONField(Field):
                     raise GeoCoordinateError(
                         "Latitude must be between -90 and 90, and Longitude must be between -180 and 180"
                     )
-                value = {"type": "Point", "coordinates": [longitude, latitude]}  # Already correct order for GeoJSON
+                value = {
+                    "type": "Point",
+                    "coordinates": [longitude, latitude],
+                }  # Already correct order for GeoJSON
             elif (
-                    isinstance(value, dict)
-                    and value.get("type") == "Point"
-                    and len(value.get("coordinates", [])) == 2
+                isinstance(value, dict)
+                and value.get("type") == "Point"
+                and len(value.get("coordinates", [])) == 2
             ):
-                longitude, latitude = value["coordinates"]  # Flipped to use longitude first
+                longitude, latitude = value[
+                    "coordinates"
+                ]  # Flipped to use longitude first
                 if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
                     raise GeoCoordinateError(
                         "Latitude must be between -90 and 90, and Longitude must be between -180 and 180"

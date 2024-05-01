@@ -160,7 +160,9 @@ class Document(metaclass=DocumentMeta):
         from motormongo import DataBase
 
         subclasses = cls.__subclasses__()
-        logger.debug(f"Creating indexes for Document instance: {cls.__class__.__name__}")
+        logger.debug(
+            f"Creating indexes for Document instance: {cls.__class__.__name__}"
+        )
         if subclasses:
             for subcls in subclasses:
                 if not subcls._indexes_created:
@@ -413,7 +415,9 @@ class Document(metaclass=DocumentMeta):
                 )
                 return None
         except Exception as e:
-            logger.error(f"Error finding document in collection: '{cls.get_collection_name()}': {e}")
+            logger.error(
+                f"Error finding document in collection: '{cls.get_collection_name()}': {e}"
+            )
             raise DocumentNotFoundError(
                 f"Error finding {cls.__name__} document with query '{filter}': {e}"
             )
@@ -980,7 +984,9 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in saving the document to the mongo.
         """
-        logger.info(f"Saving document in {self.get_collection_name()} with data {self.to_dict(id_as_string=False)}")
+        logger.info(
+            f"Saving document in {self.get_collection_name()} with data {self.to_dict(id_as_string=False)}"
+        )
         document = self.to_dict(id_as_string=False)
 
         try:

@@ -39,7 +39,7 @@ class DataBase:
 
     @classmethod
     async def remove_outdated_indexes(
-            cls, document_class, defined_indexes, existing_indexes
+        cls, document_class, defined_indexes, existing_indexes
     ):
         indexes_to_remove = set(existing_indexes) - set(defined_indexes)
         collection_name = document_class.get_collection_name()
@@ -70,14 +70,20 @@ class DataBase:
                         f"Creating unique index '{index_name}' on '{field_name}' in '{collection_name}'."
                     )
                     await cls.db[collection_name].create_index(
-                        [(field_name, ASCENDING)], unique=True, name=index_name, background=True
+                        [(field_name, ASCENDING)],
+                        unique=True,
+                        name=index_name,
+                        background=True,
                     )
 
         if hasattr(document_class, "Meta") and hasattr(document_class.Meta, "indexes"):
             for index in document_class.Meta.indexes:
-                fields = index['fields']
+                fields = index["fields"]
                 options = {k: v for k, v in index.items() if k != "fields"}
-                index_name = options.pop("name", "_".join([f[0] if isinstance(f, tuple) else f for f in fields]))
+                index_name = options.pop(
+                    "name",
+                    "_".join([f[0] if isinstance(f, tuple) else f for f in fields]),
+                )
 
                 if index_name not in existing_indexes:
                     logger.debug(
@@ -89,7 +95,6 @@ class DataBase:
                         )
                     except OperationFailure as e:
                         logger.warning(f"Failed to create index '{index_name}': {e}")
-
 
         await cls.remove_outdated_indexes(
             document_class, defined_indexes, existing_indexes.keys()
