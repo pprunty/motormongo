@@ -231,7 +231,7 @@ await measurement.save()
 
 ## GeoJSONField
 
-The `GeoJSONField` is designed for storing geographical coordinates in GeoJSON format.
+The `GeoJSONField` is designed for storing geographical coordinates in GeoJSON format (longitude, latitude).
 
 **Parameters:**
 

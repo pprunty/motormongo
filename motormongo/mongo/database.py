@@ -18,6 +18,8 @@ class DataBase:
         try:
             cls.client = AsyncIOMotorClient(uri, **pooling_options)
             cls.db = cls.client[str(db)]
+            for document in Document.__subclasses__():
+                await document.ensure_indexes()
             logger.info(f"Successfully connected to MongoDB database '{db}'.")
         except Exception as e:
             logger.error(
@@ -30,14 +32,14 @@ class DataBase:
     @classmethod
     async def close(cls):
         if cls.client is not None:
-            logger.info("Closing MongoDB connection.")
+            logger.info(f"Closing connection to MongoDB database '{cls.db}'.")
             cls.client.close()
             cls.client = None
             cls.db = None
 
     @classmethod
     async def remove_outdated_indexes(
-        cls, document_class, defined_indexes, existing_indexes
+            cls, document_class, defined_indexes, existing_indexes
     ):
         indexes_to_remove = set(existing_indexes) - set(defined_indexes)
         collection_name = document_class.get_collection_name()
@@ -68,23 +70,26 @@ class DataBase:
                         f"Creating unique index '{index_name}' on '{field_name}' in '{collection_name}'."
                     )
                     await cls.db[collection_name].create_index(
-                        [(field_name, ASCENDING)], unique=True, name=index_name
+                        [(field_name, ASCENDING)], unique=True, name=index_name, background=True
                     )
 
         if hasattr(document_class, "Meta") and hasattr(document_class.Meta, "indexes"):
             for index in document_class.Meta.indexes:
-                index_name = index.get(
-                    "name", "_".join([f[0] for f in index["fields"]])
-                )
-                defined_indexes.add(index_name)
+                fields = index['fields']
+                options = {k: v for k, v in index.items() if k != "fields"}
+                index_name = options.pop("name", "_".join([f[0] if isinstance(f, tuple) else f for f in fields]))
+
                 if index_name not in existing_indexes:
                     logger.debug(
-                        f"Creating specified index '{index_name}' in '{collection_name}'."
+                        f"Creating index '{index_name}' in '{collection_name}' with options: {options}"
                     )
-                    await cls.db[collection_name].create_index(
-                        index["fields"],
-                        **{k: v for k, v in index.items() if k != "fields"},
-                    )
+                    try:
+                        await cls.db[collection_name].create_index(
+                            fields, **options, background=True
+                        )
+                    except OperationFailure as e:
+                        logger.warning(f"Failed to create index '{index_name}': {e}")
+
 
         await cls.remove_outdated_indexes(
             document_class, defined_indexes, existing_indexes.keys()
@@ -113,7 +118,7 @@ class DataBase:
             if not document_class._indexes_created:
                 await cls.create_indexes_for_document(document_class=document_class)
                 document_class._indexes_created = True
-                logger.debug(
+                logger.info(
                     f"Indexes created successfully for Document: {document_class}"
                 )
             else:

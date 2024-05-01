@@ -13,12 +13,12 @@ async def test_update_success():
         "username": "johndoe",
         "email": "johndoe@hotmail.com",
         "password": "password123",
-        "age": 69,
+        "age": 20,
     }
     result = await User.insert_one(user)
-    update_result = await User.update_one({"_id": result._id}, {"age": 70})
+    update_result = await User.update_one({"_id": result._id}, {"age": 21})
     assert update_result.age != result.age
-    assert update_result.age == 70
+    assert update_result.age == 21
     assert result._id == update_result._id
     assert update_result.created_at == result.created_at
     assert update_result.updated_at > result.updated_at

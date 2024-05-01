@@ -98,36 +98,29 @@ class Document(metaclass=DocumentMeta):
         """
         self.__collection = self.get_collection_name()
         self.__dict__[self.__type_field] = self.__class__.__name__
-        __strict_validation = kwargs.pop("__strict_validation", False)
-        # Logging the class creation
-        logger.info(f"----------------------------------")
+        logger.debug(f"----------------------------------")
         logger.info(f"Creating instance of class: {self.__class__.__name__}")
 
-        # Handling '_id' separately
         if "_id" in kwargs or "id" in kwargs:
-            logger.info(f"Setting _id: {kwargs['_id']}")
-            setattr(self, "_id", ObjectId(kwargs["_id"]))
+            logger.debug(f"Setting _id: {kwargs.get('_id', None)}")
+            setattr(self, "_id", ObjectId(kwargs.get("_id", None)))
 
         for cls in reversed(self.__class__.__mro__):  # Iterate through the MRO
             for name, field in cls.__dict__.items():
                 if isinstance(field, Field):
                     value = kwargs.get(name, field.options.get("default"))
-                    logger.info(f"k = {name}, v = {value} and type = {type(value)}")
+                    logger.debug(f"k = {name}, v = {value} and type = {type(value)}")
                     if value is not None:
                         setattr(self, name, value)
-                    # if value is None and field.required and __strict_validation:
-                    #     raise ValueError(f"The field '{name}' is required.")
-                    # elif value is not None:
-                    #     setattr(self, name, value)
 
-        if "created_at" in kwargs:
-            self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
-            logger.info(f"Setting created_at: {self.created_at}")
-        if "updated_at" in kwargs:
-            self.updated_at = kwargs.get("updated_at").replace(tzinfo=timezone.utc)
-            logger.info(f"Setting updated_at: {self.updated_at}")
+        # if "created_at" in kwargs:
+        #     self.created_at = kwargs.get("created_at").replace(tzinfo=timezone.utc)
+        #     logger.info(f"Setting created_at: {self.created_at}")
+        # if "updated_at" in kwargs:
+        #     self.updated_at = kwargs.get("updated_at").replace(tzinfo=timezone.utc)
+        #     logger.info(f"Setting updated_at: {self.updated_at}")
 
-        logger.info(f"----------------------------------")
+        logger.debug(f"----------------------------------")
 
     def __init_subclass__(cls: Type[TDocument], **kwargs):
         """
@@ -167,7 +160,7 @@ class Document(metaclass=DocumentMeta):
         from motormongo import DataBase
 
         subclasses = cls.__subclasses__()
-        logger.info(f"Creating indexes for Document instance: {cls.__class__.__name__}")
+        logger.debug(f"Creating indexes for Document instance: {cls.__class__.__name__}")
         if subclasses:
             for subcls in subclasses:
                 if not subcls._indexes_created:
@@ -269,10 +262,10 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error initializing the class instance or inserting the document into the mongo.
         """
-        logger.debug(
-            f"Attempting to insert a single document into collection {cls.get_collection_name()}"
+        logger.info(
+            f"Inserting a single document into collection {cls.get_collection_name()}"
         )
-        await cls.ensure_indexes()
+
         document = {**(document or {}), **kwargs}
 
         collection_name = cls.get_collection_name()
@@ -285,8 +278,6 @@ class Document(metaclass=DocumentMeta):
         document_w_timestamps = add_timestamps_if_required(
             cls, operation="create", **instance.to_dict(id_as_string=False)
         )
-
-        logger.debug(f"Consolidated document for insertion: {document_w_timestamps}")
 
         try:
             collection_name = cls.get_collection_name()
@@ -338,10 +329,9 @@ class Document(metaclass=DocumentMeta):
             docs_to_insert = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
             inserted_docs, inserted_ids = await MyClass.insert_many(docs_to_insert)
         """
-        logger.debug(
-            f"Attempting to insert multiple documents into collection {cls.get_collection_name()}"
+        logger.info(
+            f"Inserting multiple documents into collection {cls.get_collection_name()}"
         )
-        await cls.ensure_indexes()
 
         processed_documents = []
         for doc in documents:
@@ -401,10 +391,9 @@ class Document(metaclass=DocumentMeta):
         Note:
             If both filter and keyword arguments are provided, they are combined for the query.
         """
-        logger.debug(
+        logger.info(
             f"Attempting to find a single document in collection {cls.get_collection_name()} with query: {query}, kwargs: {kwargs}"
         )
-        await cls.ensure_indexes()
 
         filter = {**(query or {}), **kwargs}
         filter = cls.convert_id(filter)
@@ -414,17 +403,17 @@ class Document(metaclass=DocumentMeta):
             collection = db[cls.get_collection_name()]
             document = await collection.find_one(filter)
             if document:
-                logger.debug(
-                    f"Document found in {cls.get_collection_name()}: {document}"
+                logger.info(
+                    f"Document found in collection: '{cls.get_collection_name()}': {document}"
                 )
                 return cls.from_dict(**document)
             else:
                 logger.info(
-                    f"No document matched the query in {cls.get_collection_name()}"
+                    f"No document matched the query in collection: '{cls.get_collection_name()}'"
                 )
                 return None
         except Exception as e:
-            logger.error(f"Error finding document in {cls.get_collection_name()}: {e}")
+            logger.error(f"Error finding document in collection: '{cls.get_collection_name()}': {e}")
             raise DocumentNotFoundError(
                 f"Error finding {cls.__name__} document with query '{filter}': {e}"
             )
@@ -463,10 +452,10 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in finding the documents with the given filter.
         """
-        logger.debug(
+        logger.info(
             f"Attempting to find multiple documents in collection {cls.get_collection_name()} with query: {query}, kwargs: {kwargs}, limit: {limit}"
         )
-        await cls.ensure_indexes()
+
         filter = {**(query or {}), **kwargs}
         combined_results = (
             []
@@ -549,7 +538,7 @@ class Document(metaclass=DocumentMeta):
         Note:
             - The `update_fields` should not include the '_id' field as it is automatically popped from the update data.
         """
-        logger.debug(
+        logger.info(
             f"Updating a single document in {cls.get_collection_name()} with query {query} and update fields {update_fields}"
         )
         await cls.ensure_indexes()
@@ -575,7 +564,7 @@ class Document(metaclass=DocumentMeta):
             if update_result is not None:
                 return cls.from_dict(**update_result)
             else:
-                logger.info(
+                logger.debug(
                     f"No document found with query {query} in {cls.get_collection_name()} for update"
                 )
                 return None
@@ -602,10 +591,9 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentUpdateError: If there is an error in updating documents.
         """
-        logger.debug(
+        logger.info(
             f"Updating multiple documents in {cls.get_collection_name()} with query {query} and update fields {update_fields}"
         )
-        await cls.ensure_indexes()
 
         async def perform_update(collection, subcls=None):
             result = await collection.update_many(query, {"$set": update_fields})
@@ -632,7 +620,7 @@ class Document(metaclass=DocumentMeta):
                     )
                     combined_results.extend(updated_docs)
                     total_modified += modified_count
-                logger.info(
+                logger.debug(
                     f"Total documents updated in multiple collections: {total_modified}"
                 )
                 return combined_results, total_modified
@@ -669,10 +657,10 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document from the mongo.
         """
-        logger.debug(
+        logger.info(
             f"Deleting a single document from {cls.get_collection_name()} with query {query}"
         )
-        await cls.ensure_indexes()
+
         query = {**(query or {}), **kwargs}
         query = cls.convert_id(query)
 
@@ -713,15 +701,15 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentDeleteError: If there is an error in deleting the documents.
         """
-        logger.debug(
+        logger.info(
             f"Deleting multiple documents from {cls.get_collection_name()} with query {query}"
         )
-        await cls.ensure_indexes()
+
         query = {**(query or {}), **kwargs}
 
         async def perform_deletion(collection):
             delete_result = await collection.delete_many(query)
-            logger.info(
+            logger.debug(
                 f"{delete_result.deleted_count} documents deleted from {collection.name}"
             )
             return delete_result.deleted_count
@@ -775,10 +763,10 @@ class Document(metaclass=DocumentMeta):
             DocumentInsertError: If there is an error in creating the document.
         """
         enforce_types([(query, dict, "query"), (defaults, dict, "defaults")])
-        logger.debug(
+        logger.info(
             f"Finding or creating a document in {cls.get_collection_name()} with query {query} and defaults {defaults}"
         )
-        await cls.ensure_indexes()
+
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -831,11 +819,12 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in replacing the document.
         """
-        logger.debug(
+        logger.info(
             f"Replacing a document in {cls.get_collection_name()} with query {query} and replacement {replacement}"
         )
-        await cls.ensure_indexes()
+
         replacement = add_timestamps_if_required(cls, **replacement)
+        replacement = replacement
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -849,7 +838,7 @@ class Document(metaclass=DocumentMeta):
                 )
                 return cls.from_dict(**updated_document)
             else:
-                logger.info(
+                logger.warning(
                     f"No document found with query {query} in {cls.get_collection_name()} for replacement"
                 )
                 return None
@@ -888,10 +877,10 @@ class Document(metaclass=DocumentMeta):
             ValueError: If there is an error in finding or updating the document.
         """
         enforce_types([(query, dict, "query"), (update_fields, dict, "defaults")])
-        logger.debug(
+        logger.info(
             f"Updating empty fields of a document in {cls.get_collection_name()} with query {query} and update fields {update_fields}"
         )
-        await cls.ensure_indexes()
+
         try:
             db = await cls.db()
             collection = db[cls.get_collection_name()]
@@ -912,12 +901,12 @@ class Document(metaclass=DocumentMeta):
                     )
                     return updated_document, True
                 else:
-                    logger.info(
+                    logger.warning(
                         f"No document found with query {query} in {cls.get_collection_name()} for updating empty fields"
                     )
                     return cls.from_dict(**existing_doc), False
             else:
-                logger.info(
+                logger.warning(
                     f"No document found with query {query} in {cls.get_collection_name()}."
                 )
                 raise DocumentNotFoundError(
@@ -948,10 +937,10 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document.
         """
-        logger.debug(
+        logger.info(
             f"Deleting a document in {cls.get_collection_name()} with query {query}"
         )
-        await cls.ensure_indexes()
+
         query = {**(query or {}), **kwargs}
         try:
             db = await cls.db()
@@ -964,7 +953,7 @@ class Document(metaclass=DocumentMeta):
                 )
                 return cls.from_dict(**deleted_document)
             else:
-                logger.info(
+                logger.warning(
                     f"No document found with query {query} in {cls.get_collection_name()} for deletion"
                 )
                 raise DocumentNotFoundError(
@@ -991,12 +980,8 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in saving the document to the mongo.
         """
-        await self.ensure_indexes()
+        logger.info(f"Saving document in {self.get_collection_name()} with data {self.to_dict(id_as_string=False)}")
         document = self.to_dict(id_as_string=False)
-
-        document = add_timestamps_if_required(
-            self, operation="update" if hasattr(self, "_id") else "create", **document
-        )
 
         try:
             db = await self.db()
@@ -1015,13 +1000,17 @@ class Document(metaclass=DocumentMeta):
             else:
                 # This is an existing document, replace it
                 await collection.replace_one({"_id": self._id}, document)
-                # Only update 'updated_at' for existing documents
-                if hasattr(self, "Meta"):
-                    if hasattr(self.Meta, "updated_at_timestamp"):
-                        self.updated_at = document.get("updated_at")
         except Exception as e:
             raise DocumentInsertError(f"Error saving document '{document}': {e}")
 
+    # def _update_instance_from_dict(self, data: dict):
+    #     """
+    #     Update the instance attributes with data from a dictionary.
+    #     This method assumes `from_dict` or equivalent functionality is available to update the instance.
+    #     """
+    #     # Assuming you have a from_dict class method or similar to update instance from dict
+    #     for key, value in data.items():
+    #         setattr(self, key, value)
     async def delete(self) -> None:
         """
         Asynchronously deletes the current document instance from the mongo based on its `_id`.
@@ -1034,10 +1023,9 @@ class Document(metaclass=DocumentMeta):
         Raises:
             ValueError: If there is an error in deleting the document from the mongo.
         """
-        logger.debug(
+        logger.info(
             f"Deleting document in {self.get_collection_name()} with ID {getattr(self, '_id', 'N/A')}"
         )
-        await self.ensure_indexes()
         try:
             db = await self.db()
             collection = db[self.get_collection_name()]
@@ -1075,10 +1063,9 @@ class Document(metaclass=DocumentMeta):
         Raises:
             DocumentAggregationError: If an error occurs during pipeline execution.
         """
-        logger.debug(
+        logger.info(
             f"Performing aggregation in {cls.get_collection_name()} with pipeline {pipeline}"
         )
-        await cls.ensure_indexes()
 
         async def perform_aggregation(collection, subcls=None):
             cursor = collection.aggregate(pipeline)
@@ -1147,7 +1134,6 @@ class Document(metaclass=DocumentMeta):
     def from_dict(
         cls: Type[TDocument],
         subcls: Type[TDocument] = None,
-        strict_validation=True,
         **kwargs,
     ) -> TDocument:
         """
@@ -1158,8 +1144,7 @@ class Document(metaclass=DocumentMeta):
         Returns:
             Document: An instance of the appropriate subclass of Document.
         """
-        if not strict_validation:
-            kwargs["__strict_validation"] = False
+        logger.debug(f"from_dict kwargs = {kwargs}")
         if subcls:
             return subcls(**kwargs)
         else:
