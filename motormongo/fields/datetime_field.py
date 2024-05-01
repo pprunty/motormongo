@@ -1,5 +1,5 @@
 from datetime import date, datetime, timezone
-from typing import Iterable, List
+from typing import List
 
 from motormongo.fields.exceptions import DateTimeFormatError, DateTimeValueError
 from motormongo.fields.field import Field
