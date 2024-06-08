@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+
 # from datetime import timezone
 from enum import Enum
 from typing import Any, Dict, List, Tuple, Type, TypeVar, Union
@@ -235,7 +236,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_one(
-            cls: Type[TDocument], document: Dict = None, **kwargs
+        cls: Type[TDocument], document: Dict = None, **kwargs
     ) -> TDocument:
         """
         Asynchronously inserts a single document into the mongo.
@@ -303,7 +304,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def insert_many(
-            cls, documents: List[Dict[str, Any]]
+        cls, documents: List[Dict[str, Any]]
     ) -> Tuple[List["TDocument"], Any]:
         """
         Asynchronously inserts multiple documents into the mongo collection associated with the class.
@@ -368,7 +369,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one(
-            cls: Type[TDocument], query: Dict = None, strict_validation=True, **kwargs
+        cls: Type[TDocument], query: Dict = None, strict_validation=True, **kwargs
     ) -> "TDocument":
         """
         Asynchronously finds a single document in the mongo collection that matches the given filter.
@@ -425,11 +426,11 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_many(
-            cls,
-            query: Dict = None,
-            limit: int = None,
-            return_as_list: bool = True,
-            **kwargs,
+        cls,
+        query: Dict = None,
+        limit: int = None,
+        return_as_list: bool = True,
+        **kwargs,
     ) -> Union[List["TDocument"], List[Any], Any]:
         """
         Asynchronously retrieves multiple documents from one or more mongo collections that match the
@@ -511,10 +512,10 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_one(
-            cls: Type[TDocument],
-            query: Dict,
-            update_fields: Dict,
-            strict_validation=True,
+        cls: Type[TDocument],
+        query: Dict,
+        update_fields: Dict,
+        strict_validation=True,
     ) -> "TDocument":
         """
         Asynchronously updates a single document in the mongo collection based on the provided query and update fields.
@@ -581,7 +582,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def update_many(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Union[Tuple[List["TDocument"], int], Tuple[List[Any], int]]:
         """
         Asynchronously updates multiple documents in one or more collections that match the given query.
@@ -747,7 +748,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_or_create(
-            cls, query: Dict, defaults: Dict
+        cls, query: Dict, defaults: Dict
     ) -> Tuple["TDocument", bool]:
         """
         Asynchronously finds a single document matching the query. If no document is found, creates a new document with the specified defaults.
@@ -805,7 +806,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_replace(
-            cls: Type[TDocument], query: Dict, replacement: Dict
+        cls: Type[TDocument], query: Dict, replacement: Dict
     ) -> "TDocument":
         """
         Asynchronously finds a single document and replaces it with the provided replacement document.
@@ -857,7 +858,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_update_empty_fields(
-            cls, query: Dict, update_fields: Dict
+        cls, query: Dict, update_fields: Dict
     ) -> Tuple["TDocument", bool]:
         """
         Asynchronously finds a single document matching the query and updates its empty fields with
@@ -924,7 +925,7 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def find_one_and_delete(
-            cls: Type[TDocument], query: Dict = None, **kwargs
+        cls: Type[TDocument], query: Dict = None, **kwargs
     ) -> "TDocument":
         """
         Asynchronously finds a single document matching the query and deletes it.
@@ -1050,9 +1051,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     async def aggregate(
-            cls,
-            pipeline: List[Dict],
-            return_as_list: bool = False,
+        cls,
+        pipeline: List[Dict],
+        return_as_list: bool = False,
     ) -> Union[List["TDocument"], List[Any], Any]:
         """
         Perform aggregation operations on the documents in one or more collections.
@@ -1139,9 +1140,9 @@ class Document(metaclass=DocumentMeta):
 
     @classmethod
     def from_dict(
-            cls: Type[TDocument],
-            subcls: Type[TDocument] = None,
-            **kwargs,
+        cls: Type[TDocument],
+        subcls: Type[TDocument] = None,
+        **kwargs,
     ) -> TDocument:
         """
         Factory method to instantiate objects of the correct subclass based on the document's
@@ -1159,11 +1160,14 @@ class Document(metaclass=DocumentMeta):
 
     def _serialize(self, value, field_type=None, id_as_string=False):
         from enum import Enum
+
         from bson import ObjectId
+
         from motormongo import (  # Assuming this is your base class for embedded documents
             EmbeddedDocument,
             GeoJSONField,
         )
+
         """Recursive function to serialize individual values, aligned with _json_encoder logic."""
         if isinstance(value, ObjectId):
             return str(value) if id_as_string else value

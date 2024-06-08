@@ -1,3 +1,5 @@
+![motormongo.png](motormongo.png)
+
 | Description             | Badge                                                                                                                                                   |
 |-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **PyPI - Version**      | [![PyPI - Version](https://img.shields.io/pypi/v/motormongo)](https://pypi.org/project/motormongo/)                                                     |
